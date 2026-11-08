@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Código QR - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px;text-align:center}
+    h1{color:#c9a24b}
+    input,select,button,.boton{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button,.boton{display:block;background:#c9a24b;color:#fff;border:0;cursor:pointer;text-decoration:none}
+    a{color:#c9a24b}
+    #qr{width:260px;height:260px;max-width:100%;background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:8px;margin:12px auto}
+    #enlace{word-break:break-all;font-size:.9rem}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Código QR</h1>
+  <p><a href="admin.html">Panel</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <select id="sel"></select>
+    <img id="qr" alt="Código QR de la invitación">
+    <p id="enlace"></p>
+    <a id="btn-descargar" class="boton" download="qr.png">Descargar QR (PNG)</a>
+    <button id="btn-copiar" type="button">Copiar enlace</button>
+    <p class="msg" id="msg"></p>
+    <p><small>También podés mantener apretado el QR y elegir "Descargar imagen".</small></p>
+  </section>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) {
+        $("login-msg").textContent = "Email o contraseña incorrectos.";
+      }
+    });
+
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    function linkDe(id) {
+      return location.origin + location.pathname.replace(/qr\.html$/, "") + "i/" + id;
+    }
+
+    async function cargar() {
+      try {
+        const snap = await getDocs(collection(db, "invitations"));
+        $("sel").innerHTML = "";
+        snap.forEach((d) => {
+          const o = document.createElement("option");
+          o.value = d.id;
+          o.textContent = (d.data().honoree || d.id) + " (" + d.id + ")";
+          $("sel").appendChild(o);
+        });
+        if (snap.empty) { $("msg").textContent = "No hay invitaciones."; return; }
+        const pedida = new URLSearchParams(location.search).get("i");
+        if (pedida) $("sel").value = pedida;
+        dibujar();
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudieron cargar las invitaciones.";
+      }
+    }
+
+    function dibujar() {
+      const id = $("sel").value;
+      if (!id) return;
+      const url = linkDe(id);
+      $("enlace").textContent = url;
+      try {
+        const qr = qrcode(0, "M");
+        qr.addData(url);
+        qr.make();
+        const n = qr.getModuleCount();
+        const celda = 10, margen = 4;
+        const lado = (n + margen * 2) * celda;
+        const c = document.createElement("canvas");
+        c.width = lado; c.height = lado;
+        const g = c.getContext("2d");
+        g.fillStyle = "#ffffff";
+        g.fillRect(0, 0, lado, lado);
+        g.fillStyle = "#000000";
+        for (let f = 0; f < n; f++) {
+          for (let k = 0; k < n; k++) {
+            if (qr.isDark(f, k)) g.fillRect((k + margen) * celda, (f + margen) * celda, celda, celda);
+          }
+        }
+        const png = c.toDataURL("image/png");
+        $("qr").src = png;
+        $("btn-descargar").href = png;
+        $("btn-descargar").download = "qr-" + id + ".png";
+        $("msg").textContent = "";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo generar el QR.";
+      }
+    }
+
+    $("sel").addEventListener("change", dibujar);
+    $("btn-copiar").addEventListener("click", () => {
+      navigator.clipboard.writeText(linkDe($("sel").value))
+        .then(() => { $("msg").textContent = "Enlace copiado."; });
+    });
+  </script>
+</body>
+</html>
