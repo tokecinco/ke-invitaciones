@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Pagos - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:12px;padding:12px;text-align:center;font-size:.9rem}
+    .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .fila{border-left:5px solid #ccc}
+    .fila.pagado{border-left-color:#4caf50}
+    .fila.senado{border-left-color:#e0a800}
+    .fila.pendiente{border-left-color:#c0392b}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Pagos</h1>
+  <p><a href="admin.html">Panel</a> - <a href="confirmaciones.html">Confirmaciones</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <h2>Resumen</h2>
+    <div class="stats">
+      <div class="stat"><b id="s-ing">$0</b>Cobrado</div>
+      <div class="stat"><b id="s-saldo">$0</b>Saldo pendiente</div>
+      <div class="stat"><b id="s-pagadas">0</b>Pagadas</div>
+      <div class="stat"><b id="s-senadas">0</b>Señadas</div>
+      <div class="stat"><b id="s-pend">0</b>Pendientes</div>
+      <div class="stat"><b id="s-total">0</b>Invitaciones</div>
+    </div>
+
+    <h2>Precios</h2>
+    <div class="caja">
+      <label>Precio de la invitación ($)</label>
+      <input id="p-precio" type="number" min="0" inputmode="numeric">
+      <label>Seña ($)</label>
+      <input id="p-sena" type="number" min="0" inputmode="numeric">
+      <button id="btn-precios" type="button">Guardar precios</button>
+      <p id="p-msg" class="msg"></p>
+    </div>
+
+    <h2>Registrar pago</h2>
+    <div class="caja">
+      <label>Invitación</label>
+      <select id="sel"></select>
+      <label>Precio acordado ($)</label>
+      <input id="f-precio" type="number" min="0" inputmode="numeric">
+      <label>Cobrado hasta ahora ($)</label>
+      <input id="f-cobrado" type="number" min="0" inputmode="numeric">
+      <label>Estado</label>
+      <select id="f-estado">
+        <option value="pendiente">Pendiente</option>
+        <option value="senado">Señado</option>
+        <option value="pagado">Pagado</option>
+      </select>
+      <input id="f-nota" placeholder="Nota (opcional)" maxlength="200">
+      <p id="f-saldo"></p>
+      <button id="btn-guardar" type="button">Guardar pago</button>
+      <p id="f-msg" class="msg"></p>
+    </div>
+
+    <h2>Detalle</h2>
+    <div id="lista"></div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
+
+    let ajustes = { price: 15000, deposit: 5000 };
+    let invitaciones = {};
+    let pagos = {};
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) {
+        $("login-msg").textContent = "Email o contraseña incorrectos.";
+      }
+    });
+
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) iniciar();
+    });
+
+    async function iniciar() {
+      try {
+        const s = await getDoc(doc(db, "settings", "pricing"));
+        if (s.exists()) ajustes = { ...ajustes, ...s.data() };
+        $("p-precio").value = ajustes.price;
+        $("p-sena").value = ajustes.deposit;
+        await cargarDatos();
+      } catch (e) {
+        console.error(e);
+        $("lista").textContent = "No se pudieron cargar los datos.";
+      }
+    }
+
+    async function cargarDatos() {
+      const [inv, pag] = await Promise.all([
+        getDocs(collection(db, "invitations")),
+        getDocs(collection(db, "payments"))
+      ]);
+      invitaciones = {}; pagos = {};
+      inv.forEach((d) => { invitaciones[d.id] = d.data(); });
+      pag.forEach((d) => { pagos[d.id] = d.data(); });
+
+      const actual = $("sel").value;
+      $("sel").innerHTML = "";
+      Object.keys(invitaciones).forEach((id) => {
+        const o = document.createElement("option");
+        o.value = id;
+        o.textContent = (invitaciones[id].honoree || id) + " (" + id + ")";
+        $("sel").appendChild(o);
+      });
+      if (actual && invitaciones[actual]) $("sel").value = actual;
+      llenarForm();
+      dibujar();
+    }
+
+    function datosDe(id) {
+      const p = pagos[id];
+      return {
+        price: p ? p.price : ajustes.price,
+        received: p ? p.received : 0,
+        status: p ? p.status : "pendiente",
+        note: p ? (p.note || "") : ""
+      };
+    }
+
+    function llenarForm() {
+      const id = $("sel").value;
+      if (!id) return;
+      const d = datosDe(id);
+      $("f-precio").value = d.price;
+      $("f-cobrado").value = d.received;
+      $("f-estado").value = d.status;
+      $("f-nota").value = d.note;
+      saldo();
+    }
+
+    function saldo() {
+      const precio = parseInt($("f-precio").value, 10) || 0;
+      const cobrado = parseInt($("f-cobrado").value, 10) || 0;
+      $("f-saldo").textContent = "Saldo pendiente: " + $$(Math.max(precio - cobrado, 0));
+    }
+
+    $("sel").addEventListener("change", llenarForm);
+    $("f-precio").addEventListener("input", saldo);
+    $("f-cobrado").addEventListener("input", () => {
+      saldo();
+      const precio = parseInt($("f-precio").value, 10) || 0;
+      const cobrado = parseInt($("f-cobrado").value, 10) || 0;
+      if (precio > 0 && cobrado >= precio) $("f-estado").value = "pagado";
+      else if (cobrado > 0) $("f-estado").value = "senado";
+      else $("f-estado").value = "pendiente";
+    });
+
+    $("btn-precios").addEventListener("click", async () => {
+      const price = parseInt($("p-precio").value, 10);
+      const deposit = parseInt($("p-sena").value, 10);
+      if (!(price >= 0) || !(deposit >= 0) || deposit > price) {
+        $("p-msg").textContent = "Revisá los importes (la seña no puede superar el precio).";
+        return;
+      }
+      try {
+        await setDoc(doc(db, "settings", "pricing"), { price, deposit, updatedAt: serverTimestamp() });
+        ajustes = { price, deposit };
+        $("p-msg").textContent = "Precios guardados. Se usan para los pagos nuevos.";
+      } catch (e) {
+        console.error(e);
+        $("p-msg").textContent = "No se pudo guardar.";
+      }
+    });
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      const price = parseInt($("f-precio").value, 10);
+      const received = parseInt($("f-cobrado").value, 10) || 0;
+      const msg = $("f-msg");
+      if (!id) { msg.textContent = "No hay invitación elegida."; return; }
+      if (!(price >= 0)) { msg.textContent = "Revisá el precio."; return; }
+      if (received < 0 || received > price) { msg.textContent = "Lo cobrado no puede superar el precio."; return; }
+      try {
+        await setDoc(doc(db, "payments", id), {
+          invitationId: id,
+          ownerId: invitaciones[id].ownerId || auth.currentUser.uid,
+          honoree: invitaciones[id].honoree || "",
+          price: price,
+          received: received,
+          status: $("f-estado").value,
+          note: $("f-nota").value.trim(),
+          updatedAt: serverTimestamp()
+        });
+        msg.textContent = "Pago guardado.";
+        await cargarDatos();
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "No se pudo guardar.";
+      }
+    });
+
+    function dibujar() {
+      const ids = Object.keys(invitaciones);
+      let cobrado = 0, saldoTotal = 0, pag = 0, sen = 0, pen = 0;
+      const cont = $("lista");
+      cont.textContent = "";
+      ids.forEach((id) => {
+        const d = datosDe(id);
+        cobrado += d.received;
+        saldoTotal += Math.max(d.price - d.received, 0);
+        if (d.status === "pagado") pag++; else if (d.status === "senado") sen++; else pen++;
+
+        const t = document.createElement("div");
+        t.className = "caja fila " + d.status;
+        const n = document.createElement("b");
+        n.textContent = invitaciones[id].honoree || id;
+        const e = document.createElement("div");
+        e.textContent = ETIQ[d.status] + " - Cobrado " + $$(d.received) + " de " + $$(d.price) +
+          " - Saldo " + $$(Math.max(d.price - d.received, 0));
+        t.append(n, e);
+        if (d.note) {
+          const nota = document.createElement("i");
+          nota.textContent = d.note;
+          t.appendChild(nota);
+        }
+        cont.appendChild(t);
+      });
+      if (!ids.length) cont.textContent = "No hay invitaciones.";
+      $("s-ing").textContent = $$(cobrado);
+      $("s-saldo").textContent = $$(saldoTotal);
+      $("s-pagadas").textContent = pag;
+      $("s-senadas").textContent = sen;
+      $("s-pend").textContent = pen;
+      $("s-total").textContent = ids.length;
+    }
+  </script>
+</body>
+  </html>
