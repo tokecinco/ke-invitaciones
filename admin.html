@@ -8,17 +8,20 @@
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
-    body{margin:0;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px;margin:0 auto}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     textarea{min-height:70px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
     label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
     .tarjeta{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
-    .tarjeta button{width:auto;padding:8px 14px;margin:4px 4px 0 0}
+    .tarjeta button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .msg{min-height:1.4em}
     .fotos img{width:60px;height:60px;object-fit:cover;border-radius:8px;margin:3px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
   </style>
 </head>
 <body>
@@ -32,9 +35,11 @@
   </section>
 
   <section id="panel" hidden>
+    <p><a href="confirmaciones.html">Confirmaciones</a> - <a href="pagos.html">Pagos</a></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
 
-    <h2>Nueva invitación</h2>
+    <h2 id="titulo-form">Nueva invitación</h2>
+    <p id="aviso-edicion" class="aviso" hidden></p>
     <form id="form" novalidate>
       <label>Plantilla</label>
       <select id="f-template">
@@ -54,14 +59,22 @@
       <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
       <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
       <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
-      <label>Fotos (hasta 4, la primera es la portada)</label>
+      <label id="lbl-fotos">Fotos (hasta 4, la primera es la portada)</label>
       <input id="f-fotos" type="file" accept="image/*" multiple>
       <div id="vista-fotos" class="fotos"></div>
       <button id="btn-crear" type="submit">Crear invitación</button>
+      <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
       <p id="f-msg" class="msg"></p>
     </form>
 
     <h2>Mis invitaciones</h2>
+    <input id="buscar" type="search" placeholder="Buscar por nombre">
+    <select id="filtro">
+      <option value="">Todas las plantillas</option>
+      <option value="cumple">Cumpleaños infantil</option>
+      <option value="quince">15 años</option>
+      <option value="boda">Casamiento</option>
+    </select>
     <div id="lista"></div>
   </section>
 
@@ -69,11 +82,14 @@
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, getDoc, setDoc, updateDoc, collection, getDocs, query, orderBy, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     let fotos = [];
+    let fotosExistentes = [];
+    let editId = null;
+    let todas = [];
 
     $("btn-login").addEventListener("click", async () => {
       $("login-msg").textContent = "Entrando...";
@@ -96,6 +112,7 @@
       return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
         .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50);
     }
+    function azar() { return Math.random().toString(36).slice(2, 6); }
     function linkDe(id) {
       return location.origin + location.pathname.replace(/admin\.html$/, "") + "i/" + id;
     }
@@ -119,23 +136,67 @@
       });
     }
 
+    function verFotos(lista) {
+      $("vista-fotos").innerHTML = "";
+      lista.forEach((src) => {
+        if (!/^(https:\/\/|data:image\/)/i.test(src)) return;
+        const i = document.createElement("img"); i.src = src;
+        $("vista-fotos").appendChild(i);
+      });
+    }
+
     $("f-fotos").addEventListener("change", async (e) => {
       const archivos = Array.from(e.target.files).slice(0, 4);
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
         for (const a of archivos) fotos.push(await comprimir(a));
-        $("vista-fotos").innerHTML = "";
-        fotos.forEach((src) => {
-          const i = document.createElement("img"); i.src = src;
-          $("vista-fotos").appendChild(i);
-        });
-        $("f-msg").textContent = fotos.length + " foto(s) lista(s).";
+        verFotos(fotos);
+        $("f-msg").textContent = fotos.length + " foto(s) nueva(s) lista(s)" +
+          (editId ? " (reemplazan a las anteriores)." : ".");
       } catch (err) {
         fotos = [];
         $("f-msg").textContent = "No se pudo leer una de las fotos.";
       }
     });
+
+    function salirDeEdicion() {
+      editId = null; fotos = []; fotosExistentes = [];
+      $("form").reset();
+      $("vista-fotos").innerHTML = "";
+      $("titulo-form").textContent = "Nueva invitación";
+      $("btn-crear").textContent = "Crear invitación";
+      $("btn-cancelar").hidden = true;
+      $("aviso-edicion").hidden = true;
+    }
+    $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
+
+    function editar(id, x) {
+      salirDeEdicion();
+      editId = id;
+      fotosExistentes = Array.isArray(x.photos) ? x.photos : [];
+      $("f-template").value = x.template || "cumple";
+      $("f-honoree").value = x.honoree || "";
+      $("f-tipo").value = x.eventType || "";
+      $("f-fecha").value = x.date || "";
+      $("f-hora").value = x.time || "";
+      $("f-salon").value = x.venue || "";
+      $("f-dir").value = x.address || "";
+      $("f-maps").value = x.mapsUrl || "";
+      $("f-bienvenida").value = x.welcome || "";
+      $("f-mensaje").value = x.message || "";
+      $("f-info").value = x.info || "";
+      $("f-whatsapp").value = x.whatsapp || "";
+      $("f-musica").value = x.music || "";
+      verFotos(fotosExistentes);
+      $("titulo-form").textContent = "Editar invitación";
+      $("btn-crear").textContent = "Guardar cambios";
+      $("btn-cancelar").hidden = false;
+      $("aviso-edicion").textContent = "Editando: " + id + ". Si no elegís fotos nuevas, se mantienen las actuales.";
+      $("aviso-edicion").hidden = false;
+      $("f-msg").textContent = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
 
     $("form").addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -150,43 +211,86 @@
       if (!fecha) { msg.textContent = "Falta la fecha."; return; }
       if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Maps debe empezar con https://"; return; }
       if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
-      if (fotos.join("").length > 900000) { msg.textContent = "Las fotos pesan demasiado. Usá menos fotos."; return; }
+
+      const fotosFinal = fotos.length ? fotos : fotosExistentes;
+      if (fotosFinal.join("").length > 900000) { msg.textContent = "Las fotos pesan demasiado. Usá menos fotos."; return; }
+
+      const datos = {
+        template: $("f-template").value,
+        honoree: honoree,
+        eventType: tipo,
+        date: fecha,
+        time: $("f-hora").value,
+        venue: $("f-salon").value.trim(),
+        address: $("f-dir").value.trim(),
+        mapsUrl: maps,
+        welcome: $("f-bienvenida").value.trim(),
+        message: $("f-mensaje").value.trim(),
+        info: $("f-info").value.trim(),
+        whatsapp: $("f-whatsapp").value.trim(),
+        music: musica,
+        photos: fotosFinal
+      };
 
       $("btn-crear").disabled = true;
-      msg.textContent = "Creando...";
+      msg.textContent = editId ? "Guardando..." : "Creando...";
       try {
-        let id = slug(honoree + " " + tipo) || "invitacion";
-        const existe = await getDoc(doc(db, "invitations", id));
-        if (existe.exists()) id += "-" + Math.random().toString(36).slice(2, 6);
-
-        await setDoc(doc(db, "invitations", id), {
-          active: true,
-          ownerId: auth.currentUser.uid,
-          template: $("f-template").value,
-          honoree: honoree,
-          eventType: tipo,
-          date: fecha,
-          time: $("f-hora").value,
-          venue: $("f-salon").value.trim(),
-          address: $("f-dir").value.trim(),
-          mapsUrl: maps,
-          welcome: $("f-bienvenida").value.trim(),
-          message: $("f-mensaje").value.trim(),
-          info: $("f-info").value.trim(),
-          whatsapp: $("f-whatsapp").value.trim(),
-          music: musica,
-          photos: fotos,
-          createdAt: serverTimestamp()
-        });
-        msg.textContent = "Creada. Enlace: " + linkDe(id);
-        $("form").reset(); fotos = []; $("vista-fotos").innerHTML = "";
+        if (editId) {
+          datos.updatedAt = serverTimestamp();
+          await updateDoc(doc(db, "invitations", editId), datos);
+          const id = editId;
+          salirDeEdicion();
+          msg.textContent = "Cambios guardados. Enlace: " + linkDe(id);
+        } else {
+          let id = slug(honoree + " " + tipo) || "invitacion";
+          const existe = await getDoc(doc(db, "invitations", id));
+          if (existe.exists()) id += "-" + azar();
+          datos.active = true;
+          datos.ownerId = auth.currentUser.uid;
+          datos.createdAt = serverTimestamp();
+          await setDoc(doc(db, "invitations", id), datos);
+          salirDeEdicion();
+          msg.textContent = "Creada. Enlace: " + linkDe(id);
+        }
         listar();
       } catch (err) {
         console.error(err);
-        msg.textContent = "No se pudo crear. Revisá que hayas entrado con la cuenta administradora.";
+        msg.textContent = "No se pudo guardar. Revisá que hayas entrado con la cuenta administradora.";
       }
       $("btn-crear").disabled = false;
     });
+
+    async function duplicar(id, x) {
+      try {
+        const nuevo = (slug(x.honoree || id) || "invitacion") + "-copia-" + azar();
+        const copia = { ...x, active: false, createdAt: serverTimestamp() };
+        delete copia.updatedAt;
+        await setDoc(doc(db, "invitations", nuevo), copia);
+        $("f-msg").textContent = "Duplicada como " + nuevo + " (queda desactivada hasta que la actives).";
+        listar();
+      } catch (err) {
+        console.error(err);
+        $("f-msg").textContent = "No se pudo duplicar.";
+      }
+    }
+
+    async function eliminar(id, x) {
+      const ok = confirm("¿Eliminar la invitación de " + (x.honoree || id) +
+        "? Se borran también sus confirmaciones y su registro de pago. No se puede deshacer.");
+      if (!ok) return;
+      try {
+        const rs = await getDocs(query(collection(db, "rsvps"), where("invitationId", "==", id)));
+        for (const r of rs.docs) await deleteDoc(r.ref);
+        await deleteDoc(doc(db, "payments", id));
+        await deleteDoc(doc(db, "invitations", id));
+        if (editId === id) salirDeEdicion();
+        $("f-msg").textContent = "Invitación eliminada.";
+        listar();
+      } catch (err) {
+        console.error(err);
+        $("f-msg").textContent = "No se pudo eliminar.";
+      }
+    }
 
     async function listar() {
       const cont = $("lista");
@@ -194,35 +298,64 @@
       try {
         const q = query(collection(db, "invitations"), orderBy("createdAt", "desc"));
         const snap = await getDocs(q);
-        cont.textContent = "";
-        if (snap.empty) { cont.textContent = "Todavía no hay invitaciones."; return; }
-        snap.forEach((d) => {
-          const x = d.data();
-          const t = document.createElement("div"); t.className = "tarjeta";
-          const n = document.createElement("b"); n.textContent = x.honoree || d.id;
-          const est = document.createElement("div");
-          est.textContent = (x.active ? "Activa" : "Desactivada") + " - " + (x.date || "");
-          const a = document.createElement("a");
-          a.href = linkDe(d.id); a.textContent = linkDe(d.id); a.target = "_blank";
-          a.style.wordBreak = "break-all";
-          const b1 = document.createElement("button");
-          b1.textContent = "Copiar enlace";
-          b1.onclick = () => navigator.clipboard.writeText(linkDe(d.id)).then(() => { b1.textContent = "Copiado"; });
-          const b2 = document.createElement("button");
-          b2.className = "sec";
-          b2.textContent = x.active ? "Desactivar" : "Activar";
-          b2.onclick = async () => {
-            await updateDoc(doc(db, "invitations", d.id), { active: !x.active });
-            listar();
-          };
-          t.append(n, est, a, document.createElement("br"), b1, b2);
-          cont.appendChild(t);
-        });
+        todas = snap.docs.map((d) => ({ id: d.id, x: d.data() }));
+        pintar();
       } catch (err) {
         console.error(err);
         cont.textContent = "No se pudo cargar la lista.";
       }
     }
+
+    function pintar() {
+      const cont = $("lista");
+      const txt = $("buscar").value.trim().toLowerCase();
+      const plan = $("filtro").value;
+      const lista = todas.filter(({ id, x }) =>
+        (!plan || x.template === plan) &&
+        (!txt || (x.honoree || "").toLowerCase().includes(txt) || id.includes(txt)));
+
+      cont.textContent = "";
+      if (!todas.length) { cont.textContent = "Todavía no hay invitaciones."; return; }
+      if (!lista.length) { cont.textContent = "No hay resultados."; return; }
+
+      lista.forEach(({ id, x }) => {
+        const t = document.createElement("div"); t.className = "tarjeta";
+        const n = document.createElement("b"); n.textContent = x.honoree || id;
+        const est = document.createElement("div");
+        est.textContent = (x.active ? "Activa" : "Desactivada") + " - " + (x.date || "");
+        const a = document.createElement("a");
+        a.href = linkDe(id); a.textContent = linkDe(id); a.target = "_blank";
+        a.style.wordBreak = "break-all";
+
+        const b = (texto, clase, fn) => {
+          const el = document.createElement("button");
+          el.type = "button"; el.textContent = texto;
+          if (clase) el.className = clase;
+          el.onclick = fn; return el;
+        };
+        const copiar = b("Copiar enlace", "", () =>
+          navigator.clipboard.writeText(linkDe(id)).then(() => { copiar.textContent = "Copiado"; }));
+        const conf = document.createElement("a");
+        conf.href = "confirmaciones.html?i=" + encodeURIComponent(id);
+        conf.textContent = "Ver confirmaciones";
+        conf.style.display = "inline-block"; conf.style.margin = "8px 8px 0 0";
+
+        t.append(n, est, a, document.createElement("br"),
+          b("Editar", "", () => editar(id, x)),
+          b("Duplicar", "sec", () => duplicar(id, x)),
+          b(x.active ? "Desactivar" : "Activar", "sec", async () => {
+            await updateDoc(doc(db, "invitations", id), { active: !x.active });
+            listar();
+          }),
+          copiar,
+          b("Eliminar", "rojo", () => eliminar(id, x)),
+          document.createElement("br"), conf);
+        cont.appendChild(t);
+      });
+    }
+
+    $("buscar").addEventListener("input", pintar);
+    $("filtro").addEventListener("change", pintar);
   </script>
 </body>
   </html>
