@@ -128,6 +128,27 @@ function reproducir() {
   $("audio").play().catch(() => {});
 }
 
+function mostrarBotonWhatsapp(d, nombre, asiste, cantidad) {
+  const numero = String(d.whatsapp || "").replace(/\D/g, "");
+  if (numero.length < 8 || numero.length > 15) return;
+  const texto = asiste
+    ? "Hola! Soy " + nombre + ". Confirmo mi asistencia a " + (d.honoree || "el evento") +
+      " (" + cantidad + " persona/s)."
+    : "Hola! Soy " + nombre + ". Lamentablemente no voy a poder asistir a " +
+      (d.honoree || "el evento") + ".";
+  let a = $("btn-wa");
+  if (!a) {
+    a = document.createElement("a");
+    a.id = "btn-wa";
+    a.className = "boton";
+    a.target = "_blank";
+    a.rel = "noopener";
+    $("r-estado").insertAdjacentElement("afterend", a);
+  }
+  a.textContent = "Avisar también por WhatsApp";
+  a.href = "https://wa.me/" + numero + "?text=" + encodeURIComponent(texto);
+}
+
 function configurarRsvp(d) {
   $("form-rsvp").addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -159,6 +180,7 @@ function configurarRsvp(d) {
       await addDoc(collection(db, "rsvps"), datos);
       estado.textContent = "¡Gracias! Tu respuesta fue enviada.";
       e.target.reset();
+      mostrarBotonWhatsapp(d, nombre, asiste, cantidad);
     } catch (err) {
       console.error(err);
       estado.textContent = "No se pudo enviar. Intentá de nuevo.";
