@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KE Invitaciones</title>
+  <meta property="og:title" content="KE Invitaciones">
+  <meta property="og:description" content="Invitaciones digitales interactivas para tus momentos especiales.">
+  <link rel="stylesheet" href="css/invitacion.css">
+</head>
+<body>
+
+  <div id="cargando" class="pantalla">Cargando invitación...</div>
+  <div id="error" class="pantalla" hidden></div>
+
+  <div id="sobre" class="pantalla" hidden>
+    <div class="sobre-caja">
+      <p>Tenés una invitación</p>
+      <h1 id="sobre-nombre"></h1>
+      <button id="btn-abrir" class="boton" type="button">Abrir invitación</button>
+    </div>
+  </div>
+
+  <main id="invitacion" hidden>
+    <section id="portada" class="portada">
+      <p id="tipo" class="tipo"></p>
+      <h1 id="nombre"></h1>
+      <p id="bienvenida"></p>
+    </section>
+
+    <section><p id="mensaje" class="mensaje"></p></section>
+
+    <section>
+      <h2>Faltan</h2>
+      <div id="cuenta" class="cuenta">
+        <div><b id="c-dias">0</b><span>días</span></div>
+        <div><b id="c-horas">0</b><span>horas</span></div>
+        <div><b id="c-min">0</b><span>min</span></div>
+        <div><b id="c-seg">0</b><span>seg</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Cuándo y dónde</h2>
+      <p id="fecha-hora"></p>
+      <p id="lugar"></p>
+      <a id="btn-mapa" class="boton" target="_blank" rel="noopener" hidden>Ver en Google Maps</a>
+    </section>
+
+    <section id="sec-info" hidden>
+      <h2>Información</h2>
+      <p id="info"></p>
+    </section>
+
+    <section id="sec-galeria" hidden>
+      <h2>Galería</h2>
+      <div id="galeria" class="galeria"></div>
+    </section>
+
+    <section>
+      <h2>Confirmá tu asistencia</h2>
+      <form id="form-rsvp" novalidate>
+        <input id="r-nombre" type="text" placeholder="Tu nombre" maxlength="80" required>
+        <select id="r-asiste">
+          <option value="si">Sí, voy a asistir</option>
+          <option value="no">No voy a poder asistir</option>
+        </select>
+        <input id="r-cantidad" type="number" min="1" max="20" value="1" placeholder="Cantidad de personas">
+        <textarea id="r-mensaje" maxlength="300" placeholder="Mensaje (opcional)"></textarea>
+        <button class="boton" type="submit">Enviar confirmación</button>
+        <p id="r-estado" class="estado"></p>
+      </form>
+    </section>
+
+    <section>
+      <button id="btn-compartir" class="boton" type="button">Compartir por WhatsApp</button>
+    </section>
+  </main>
+
+  <button id="btn-musica" type="button" hidden aria-label="Música">♪</button>
+  <audio id="audio" loop preload="none"></audio>
+
+  <script type="module" src="js/invitacion.js"></script>
+</body>
+        </html>
