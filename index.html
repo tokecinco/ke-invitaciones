@@ -3,39 +3,239 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KE Invitaciones</title>
+  <title>KE Invitaciones - Invitaciones digitales interactivas</title>
+  <meta name="description" content="Invitaciones digitales interactivas para tus momentos especiales.">
+  <meta property="og:title" content="KE Invitaciones">
+  <meta property="og:description" content="Invitaciones digitales interactivas para tus momentos especiales.">
+  <meta property="og:type" content="website">
   <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #fffaf3;
-      color: #1a1a1a;
-      font-family: Georgia, serif;
-      text-align: center;
-      padding: 20px;
-    }
-    h1 { color: #c9a24b; font-size: 2.2rem; margin-bottom: 8px; }
-    p { margin: 6px 0; }
-    #estado { margin-top: 24px; padding: 10px 18px; border-radius: 20px; background: #f6dde2; }
+    :root{--fondo:#fffaf3;--texto:#1a1a1a;--oro:#c9a24b;--rosa:#f6dde2;--negro:#1a1a1a}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--fondo);color:var(--texto);font-family:Georgia,"Times New Roman",serif;line-height:1.55}
+    h1,h2,h3{font-weight:normal;margin:0}
+    h2{color:var(--oro);font-size:1.8rem;text-align:center;margin-bottom:18px}
+    section{padding:44px 18px;max-width:960px;margin:0 auto}
+    .logo{font-size:1.4rem;letter-spacing:3px;color:var(--oro)}
+    .logo b{color:var(--negro)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;max-width:960px;margin:0 auto}
+    header a{color:var(--negro);text-decoration:none;font-size:.95rem}
+
+    .hero{text-align:center;padding:56px 18px 44px;background:linear-gradient(180deg,var(--rosa),var(--fondo));max-width:none}
+    .hero .in{max-width:640px;margin:0 auto;animation:sube .9s ease}
+    .hero h1{font-size:2.1rem;line-height:1.2}
+    .hero p{font-size:1.1rem;margin:14px 0 24px}
+    @keyframes sube{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+
+    .btn{display:inline-block;background:var(--oro);color:#fff;border:0;border-radius:30px;padding:13px 26px;font-size:1rem;font-family:inherit;text-decoration:none;cursor:pointer;margin:5px;transition:transform .2s}
+    .btn:hover{transform:translateY(-2px)}
+    .btn.neg{background:var(--negro)}
+    .btn.borde{background:transparent;color:var(--negro);border:1px solid var(--negro)}
+
+    .pasos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+    .paso{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:18px;text-align:center}
+    .paso .n{display:inline-block;width:36px;height:36px;line-height:36px;border-radius:50%;background:var(--oro);color:#fff;margin-bottom:8px}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+    .chip{border:1px solid var(--oro);background:#fff;color:var(--negro);border-radius:20px;padding:8px 14px;font-size:.9rem;font-family:inherit;cursor:pointer}
+    .chip.on{background:var(--oro);color:#fff}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .modelo{background:#fff;border:1px solid #eadfc8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;animation:sube .6s ease}
+    .portada{height:170px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background-size:cover;background-position:center}
+    .modelo .cuerpo{padding:14px;text-align:center}
+    .modelo small{color:#777}
+    .modelo .btn{padding:9px 16px;font-size:.9rem}
+
+    .precio{background:#fff;border:1px solid #eadfc8;border-radius:16px;padding:24px;text-align:center;max-width:420px;margin:0 auto}
+    .precio .monto{font-size:2.2rem;color:var(--oro)}
+    .promo{background:var(--rosa);border-radius:10px;padding:8px 12px;margin-top:12px}
+
+    details{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px 16px;margin:8px 0}
+    summary{cursor:pointer;font-weight:bold}
+    details p{margin:8px 0 0}
+
+    footer{background:var(--negro);color:#ddd;text-align:center;padding:26px 18px;font-size:.9rem}
+    footer a{color:var(--oro)}
+    #nota{text-align:center;color:#777}
   </style>
 </head>
 <body>
-  <h1>KE Invitaciones</h1>
-  <p>Una invitación especial para un momento inolvidable.</p>
-  <div id="estado">Probando conexión...</div>
+  <header>
+    <div class="logo">KE <b>INVITACIONES</b></div>
+    <a href="cliente.html">Mi cuenta</a>
+  </header>
+
+  <section class="hero">
+    <div class="in">
+      <h1>Una invitación especial para un momento inolvidable</h1>
+      <p>Invitaciones digitales interactivas para tus momentos especiales.</p>
+      <a class="btn" href="#modelos">Ver modelos</a>
+      <a class="btn neg" id="wa-principal" href="#" hidden target="_blank" rel="noopener">Solicitar por WhatsApp</a>
+    </div>
+  </section>
+
+  <section id="como">
+    <h2>Cómo funciona</h2>
+    <div class="pasos">
+      <div class="paso"><div class="n">1</div><h3>Elegí un modelo</h3><p>Mirá las demostraciones y elegí el diseño que más te guste.</p></div>
+      <div class="paso"><div class="n">2</div><h3>Pasanos los datos</h3><p>Nombre, fecha, hora, lugar, fotos y el mensaje que quieras.</p></div>
+      <div class="paso"><div class="n">3</div><h3>Recibí tu enlace</h3><p>Creamos tu invitación y te enviamos el enlace y el código QR.</p></div>
+      <div class="paso"><div class="n">4</div><h3>Compartí y recibí respuestas</h3><p>Tus invitados confirman desde la invitación y vos ves todo en tu cuenta.</p></div>
+    </div>
+  </section>
+
+  <section id="modelos">
+    <h2>Modelos</h2>
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid"></div>
+    <p id="nota">Cargando modelos...</p>
+  </section>
+
+  <section id="precios">
+    <h2>Precios</h2>
+    <div class="precio" id="precio">Cargando...</div>
+  </section>
+
+  <section id="faq">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Cómo es una invitación digital?</summary><p>Es una página web con la información de tu evento: portada con foto, cuenta regresiva, fecha, ubicación en el mapa, galería y confirmación de asistencia. Se comparte con un enlace o un código QR, por ejemplo por WhatsApp.</p></details>
+    <details><summary>¿Cómo confirman asistencia mis invitados?</summary><p>Desde la misma invitación: escriben su nombre, indican si asisten y cuántas personas van, y pueden dejar un mensaje. Vos ves el total desde tu cuenta.</p></details>
+    <details><summary>¿Se puede agregar música?</summary><p>Sí. La invitación puede tener música de fondo con un botón para pausarla. Empieza cuando el invitado abre el sobre.</p></details>
+    <details><summary>¿Cómo se paga?</summary><p>El pago es manual: se abona una seña para reservar tu invitación y el saldo se coordina con nosotros por WhatsApp.</p></details>
+    <details><summary>¿Puedo cambiar datos después de publicada?</summary><p>Sí. Con tu cuenta podés editar el mensaje, el texto de bienvenida, la información adicional y el WhatsApp. Para otros cambios, escribinos.</p></details>
+    <details><summary>¿Hasta cuándo está disponible mi invitación?</summary><p>Hasta la fecha de vencimiento que se acuerde. Después deja de mostrarse.</p></details>
+  </section>
+
+  <footer>
+    <div class="logo">KE <b style="color:#fff">INVITACIONES</b></div>
+    <p>Invitaciones digitales interactivas</p>
+    <p><a href="cliente.html">Ingresar a mi cuenta</a></p>
+  </footer>
 
   <script type="module">
-    import { db, auth } from "./js/firebase.js";
-    const estado = document.getElementById("estado");
-    if (db && auth) {
-      estado.textContent = "Firebase conectado ✓";
-    } else {
-      estado.textContent = "Error de conexión";
+    import { db } from "./js/firebase.js";
+    import { doc, getDoc, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const CATEGORIAS = [
+      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
+      ["especial", "Eventos especiales"]
+    ];
+    const base = location.origin + location.pathname.replace(/[^/]*$/, "");
+
+    let whatsapp = "";
+    let demos = {};
+    let modelos = [];
+    let filtro = "";
+
+    function linkWa(texto) {
+      return "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(texto);
     }
+
+    function dibujarChips() {
+      const cont = $("chips");
+      cont.textContent = "";
+      const lista = [["", "Todas"]].concat(CATEGORIAS);
+      lista.forEach(([v, t]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "chip" + (v === filtro ? " on" : ""); b.textContent = t;
+        b.onclick = () => { filtro = v; dibujarChips(); dibujarModelos(); };
+        cont.appendChild(b);
+      });
+    }
+
+    function dibujarModelos() {
+      const grid = $("grid");
+      grid.textContent = "";
+      const lista = modelos.filter((m) => !filtro || m.category === filtro);
+      $("nota").textContent = lista.length ? "" : "Pronto vamos a sumar modelos en esta categoría.";
+      lista.forEach((m) => {
+        const c = document.createElement("div"); c.className = "modelo";
+        const p = document.createElement("div"); p.className = "portada";
+        const col = m.colors || {};
+        p.style.background = col.suave || "#f6dde2";
+        p.style.color = col.acento || "#c9a24b";
+        if (m.sampleImage && /^data:image\//.test(m.sampleImage)) {
+          p.style.backgroundImage = 'url("' + m.sampleImage + '")';
+        } else { p.textContent = m.name; }
+        const cu = document.createElement("div"); cu.className = "cuerpo";
+        const n = document.createElement("h3"); n.textContent = m.name;
+        const cat = document.createElement("small");
+        cat.textContent = (CATEGORIAS.find((x) => x[0] === m.category) || [0, ""])[1];
+        cu.append(n, cat, document.createElement("br"));
+        if (demos[m.id]) {
+          const a = document.createElement("a");
+          a.className = "btn borde"; a.textContent = "Ver demostración";
+          a.href = base + "i/" + demos[m.id]; a.target = "_blank"; a.rel = "noopener";
+          cu.appendChild(a);
+        }
+        if (whatsapp) {
+          const a = document.createElement("a");
+          a.className = "btn"; a.textContent = "Elegir modelo";
+          a.href = linkWa("Hola! Me interesa la invitación digital modelo \"" + m.name + "\".");
+          a.target = "_blank"; a.rel = "noopener";
+          cu.appendChild(a);
+        }
+        c.append(p, cu);
+        grid.appendChild(c);
+      });
+    }
+
+    async function iniciar() {
+      dibujarChips();
+      try {
+        const [site, pricing, tp] = await Promise.all([
+          getDoc(doc(db, "settings", "site")),
+          getDoc(doc(db, "settings", "pricing")),
+          getDocs(collection(db, "templates"))
+        ]);
+
+        const s = site.exists() ? site.data() : {};
+        whatsapp = String(s.whatsapp || "").replace(/\D/g, "");
+        demos = s.demos || {};
+        if (whatsapp) {
+          $("wa-principal").href = linkWa("Hola! Quiero pedir una invitación digital.");
+          $("wa-principal").hidden = false;
+        }
+
+        modelos = tp.docs.map((d) => ({ id: d.id, ...d.data() })).filter((m) => m.active !== false);
+        dibujarModelos();
+
+        const caja = $("precio");
+        caja.textContent = "";
+        if (pricing.exists() && pricing.data().price >= 0) {
+          const p = pricing.data();
+          const t = document.createElement("h3"); t.textContent = "Invitación digital interactiva";
+          const m = document.createElement("div"); m.className = "monto"; m.textContent = $$(p.price);
+          const se = document.createElement("p");
+          se.textContent = "Se reserva con una seña de " + $$(p.deposit) + " y el saldo se abona luego.";
+          caja.append(t, m, se);
+          if (s.promo) {
+            const pr = document.createElement("div"); pr.className = "promo"; pr.textContent = s.promo;
+            caja.appendChild(pr);
+          }
+        } else {
+          caja.textContent = "Consultá el precio por WhatsApp.";
+        }
+        if (whatsapp) {
+          const a = document.createElement("a");
+          a.className = "btn neg"; a.textContent = "Consultar por WhatsApp";
+          a.href = linkWa("Hola! Quiero consultar por las invitaciones digitales.");
+          a.target = "_blank"; a.rel = "noopener";
+          caja.appendChild(document.createElement("br"));
+          caja.appendChild(a);
+        }
+      } catch (e) {
+        console.error(e);
+        $("nota").textContent = "No se pudieron cargar los modelos. Intentá de nuevo más tarde.";
+        $("precio").textContent = "Consultá el precio por WhatsApp.";
+      }
+    }
+    iniciar();
   </script>
 </body>
-</html>
+  </html>
