@@ -17,7 +17,9 @@
     const i = partes.indexOf("i");
     const base = i > 0 ? "/" + partes.slice(0, i).join("/") : "";
     if (i !== -1 && partes[i + 1]) {
-      location.replace(base + "/invitacion.html?i=" + encodeURIComponent(partes[i + 1]));
+      let destino = base + "/invitacion.html?i=" + encodeURIComponent(partes[i + 1]);
+      if (partes[i + 2]) destino += "&g=" + encodeURIComponent(partes[i + 2]);
+      location.replace(destino);
     } else {
       document.getElementById("msg").innerHTML =
         'Página no encontrada. <a href="' + (base || "/") + '">Ir al inicio</a>';
