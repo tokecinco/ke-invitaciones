@@ -11,6 +11,7 @@
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input:disabled{background:#eee}
     textarea{min-height:70px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
@@ -35,12 +36,17 @@
   </section>
 
   <section id="panel" hidden>
-    <p><a href="confirmaciones.html">Confirmaciones</a> - <a href="pagos.html">Pagos</a></p>
+    <p><a href="dashboard.html">Menú</a> - <a href="confirmaciones.html">Confirmaciones</a> - <a href="pagos.html">Pagos</a> - <a href="paquetes.html">Paquetes</a></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
 
     <h2 id="titulo-form">Nueva invitación</h2>
     <p id="aviso-edicion" class="aviso" hidden></p>
     <form id="form" novalidate>
+      <label>Paquete</label>
+      <select id="f-paquete">
+        <option value="basico">Básico</option>
+        <option value="premium">Premium</option>
+      </select>
       <label>Plantilla</label>
       <select id="f-template">
         <option value="cumple">Cumpleaños infantil</option>
@@ -57,9 +63,11 @@
       <input id="f-bienvenida" placeholder="Texto de bienvenida" maxlength="120">
       <textarea id="f-mensaje" placeholder="Mensaje personalizado" maxlength="400"></textarea>
       <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
+      <input id="f-dress" placeholder="Dress code (ej: Elegante sport)" maxlength="120">
+      <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
       <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
       <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
-      <label id="lbl-fotos">Fotos (hasta 4, la primera es la portada)</label>
+      <label id="lbl-fotos">Fotos (la primera es la portada)</label>
       <input id="f-fotos" type="file" accept="image/*" multiple>
       <div id="vista-fotos" class="fotos"></div>
       <button id="btn-crear" type="submit">Crear invitación</button>
@@ -86,6 +94,11 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
+    let paquetes = {
+      basico:  { maxPhotos: 2, music: false },
+      premium: { maxPhotos: 6, music: true }
+    };
     let fotos = [];
     let fotosExistentes = [];
     let editId = null;
@@ -105,8 +118,34 @@
     onAuthStateChanged(auth, (u) => {
       $("login").hidden = !!u;
       $("panel").hidden = !u;
-      if (u) listar();
+      if (u) { cargarPaquetes(); listar(); }
     });
+
+    async function cargarPaquetes() {
+      try {
+        const s = await getDoc(doc(db, "settings", "packages"));
+        if (s.exists()) {
+          const g = s.data();
+          ["basico", "premium"].forEach((k) => {
+            if (g[k]) paquetes[k] = { maxPhotos: g[k].maxPhotos || paquetes[k].maxPhotos, music: !!g[k].music };
+          });
+        }
+      } catch (e) { console.error(e); }
+      aplicarLimites();
+    }
+
+    function limites() { return paquetes[$("f-paquete").value] || paquetes.basico; }
+
+    function aplicarLimites() {
+      const l = limites();
+      $("lbl-fotos").textContent = "Fotos (hasta " + l.maxPhotos + ", la primera es la portada)";
+      $("f-musica").disabled = !l.music;
+      $("f-musica").placeholder = l.music
+        ? "Enlace de música (https://... .mp3) opcional"
+        : "Música: solo en el paquete Premium";
+      if (!l.music) $("f-musica").value = "";
+    }
+    $("f-paquete").addEventListener("change", aplicarLimites);
 
     function slug(t) {
       return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -146,14 +185,17 @@
     }
 
     $("f-fotos").addEventListener("change", async (e) => {
-      const archivos = Array.from(e.target.files).slice(0, 4);
+      const max = limites().maxPhotos;
+      const elegidas = Array.from(e.target.files);
+      const archivos = elegidas.slice(0, max);
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
         for (const a of archivos) fotos.push(await comprimir(a));
         verFotos(fotos);
-        $("f-msg").textContent = fotos.length + " foto(s) nueva(s) lista(s)" +
-          (editId ? " (reemplazan a las anteriores)." : ".");
+        let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
+        if (elegidas.length > max) t += " Este paquete permite hasta " + max + ", se usaron las primeras.";
+        $("f-msg").textContent = t;
       } catch (err) {
         fotos = [];
         $("f-msg").textContent = "No se pudo leer una de las fotos.";
@@ -168,6 +210,7 @@
       $("btn-crear").textContent = "Crear invitación";
       $("btn-cancelar").hidden = true;
       $("aviso-edicion").hidden = true;
+      aplicarLimites();
     }
     $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
 
@@ -175,6 +218,7 @@
       salirDeEdicion();
       editId = id;
       fotosExistentes = Array.isArray(x.photos) ? x.photos : [];
+      $("f-paquete").value = x.package || "basico";
       $("f-template").value = x.template || "cumple";
       $("f-honoree").value = x.honoree || "";
       $("f-tipo").value = x.eventType || "";
@@ -186,13 +230,20 @@
       $("f-bienvenida").value = x.welcome || "";
       $("f-mensaje").value = x.message || "";
       $("f-info").value = x.info || "";
+      $("f-dress").value = x.dressCode || "";
+      $("f-regalo").value = x.gift || "";
       $("f-whatsapp").value = x.whatsapp || "";
       $("f-musica").value = x.music || "";
+      aplicarLimites();
       verFotos(fotosExistentes);
       $("titulo-form").textContent = "Editar invitación";
       $("btn-crear").textContent = "Guardar cambios";
       $("btn-cancelar").hidden = false;
-      $("aviso-edicion").textContent = "Editando: " + id + ". Si no elegís fotos nuevas, se mantienen las actuales.";
+      let aviso = "Editando: " + id + ". Si no elegís fotos nuevas, se mantienen las actuales.";
+      if (x.music && !limites().music) {
+        aviso += " Ojo: este paquete no incluye música y se va a quitar al guardar. Cambiá a Premium para conservarla.";
+      }
+      $("aviso-edicion").textContent = aviso;
       $("aviso-edicion").hidden = false;
       $("f-msg").textContent = "";
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -206,6 +257,7 @@
       const fecha = $("f-fecha").value;
       const maps = $("f-maps").value.trim();
       const musica = $("f-musica").value.trim();
+      const l = limites();
 
       if (!honoree) { msg.textContent = "Falta el nombre del homenajeado."; return; }
       if (!fecha) { msg.textContent = "Falta la fecha."; return; }
@@ -213,9 +265,13 @@
       if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
 
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
+      if (fotosFinal.length > l.maxPhotos) {
+        msg.textContent = "Este paquete permite hasta " + l.maxPhotos + " fotos. Elegí fotos nuevas o cambiá a Premium."; return;
+      }
       if (fotosFinal.join("").length > 900000) { msg.textContent = "Las fotos pesan demasiado. Usá menos fotos."; return; }
 
       const datos = {
+        package: $("f-paquete").value,
         template: $("f-template").value,
         honoree: honoree,
         eventType: tipo,
@@ -227,8 +283,10 @@
         welcome: $("f-bienvenida").value.trim(),
         message: $("f-mensaje").value.trim(),
         info: $("f-info").value.trim(),
+        dressCode: $("f-dress").value.trim(),
+        gift: $("f-regalo").value.trim(),
         whatsapp: $("f-whatsapp").value.trim(),
-        music: musica,
+        music: l.music ? musica : "",
         photos: fotosFinal
       };
 
@@ -322,7 +380,8 @@
         const t = document.createElement("div"); t.className = "tarjeta";
         const n = document.createElement("b"); n.textContent = x.honoree || id;
         const est = document.createElement("div");
-        est.textContent = (x.active ? "Activa" : "Desactivada") + " - " + (x.date || "");
+        est.textContent = (x.active ? "Activa" : "Desactivada") + " - " +
+          (ETIQ_PAQ[x.package] || "Básico") + " - " + (x.date || "");
         const a = document.createElement("a");
         a.href = linkDe(id); a.textContent = linkDe(id); a.target = "_blank";
         a.style.wordBreak = "break-all";
@@ -359,4 +418,4 @@
   </script>
   <script type="module" src="js/plantillas-select.js"></script>
 </body>
-</html>
+  </html>
