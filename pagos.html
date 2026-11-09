@@ -12,6 +12,7 @@
     h1,h2{color:#c9a24b}
     input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
     label{font-size:.9rem;display:block;margin-top:8px}
     a{color:#c9a24b}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -22,12 +23,13 @@
     .fila.pagado{border-left-color:#4caf50}
     .fila.senado{border-left-color:#e0a800}
     .fila.pendiente{border-left-color:#c0392b}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
     .msg{min-height:1.4em}
   </style>
 </head>
 <body>
   <h1>Pagos</h1>
-  <p><a href="admin.html">Panel</a> - <a href="confirmaciones.html">Confirmaciones</a></p>
+  <p><a href="dashboard.html">Menú</a> - <a href="paquetes.html">Paquetes y precios</a> - <a href="confirmaciones.html">Confirmaciones</a></p>
 
   <section id="login">
     <input id="email" type="email" placeholder="Email" autocomplete="username">
@@ -47,22 +49,14 @@
       <div class="stat"><b id="s-total">0</b>Invitaciones</div>
     </div>
 
-    <h2>Precios</h2>
-    <div class="caja">
-      <label>Precio de la invitación ($)</label>
-      <input id="p-precio" type="number" min="0" inputmode="numeric">
-      <label>Seña ($)</label>
-      <input id="p-sena" type="number" min="0" inputmode="numeric">
-      <button id="btn-precios" type="button">Guardar precios</button>
-      <p id="p-msg" class="msg"></p>
-    </div>
-
     <h2>Registrar pago</h2>
     <div class="caja">
       <label>Invitación</label>
       <select id="sel"></select>
+      <p id="info-paq" class="aviso"></p>
       <label>Precio acordado ($)</label>
       <input id="f-precio" type="number" min="0" inputmode="numeric">
+      <button id="btn-usar" class="sec" type="button">Usar el precio del paquete</button>
       <label>Cobrado hasta ahora ($)</label>
       <input id="f-cobrado" type="number" min="0" inputmode="numeric">
       <label>Estado</label>
@@ -91,8 +85,9 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
 
-    let ajustes = { price: 15000, deposit: 5000 };
+    let paquetes = { basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 } };
     let invitaciones = {};
     let pagos = {};
 
@@ -112,16 +107,25 @@
 
     async function iniciar() {
       try {
-        const s = await getDoc(doc(db, "settings", "pricing"));
-        if (s.exists()) ajustes = { ...ajustes, ...s.data() };
-        $("p-precio").value = ajustes.price;
-        $("p-sena").value = ajustes.deposit;
+        const s = await getDoc(doc(db, "settings", "packages"));
+        if (s.exists()) {
+          const g = s.data();
+          ["basico", "premium"].forEach((k) => {
+            if (g[k]) paquetes[k] = { price: g[k].price || 0, deposit: g[k].deposit || 0 };
+          });
+        } else {
+          const p = await getDoc(doc(db, "settings", "pricing"));
+          if (p.exists()) paquetes.basico = { price: p.data().price || 0, deposit: p.data().deposit || 0 };
+        }
         await cargarDatos();
       } catch (e) {
         console.error(e);
         $("lista").textContent = "No se pudieron cargar los datos.";
       }
     }
+
+    const pk = (id) => (invitaciones[id] && invitaciones[id].package) || "basico";
+    const precioPaq = (id) => (paquetes[pk(id)] || {}).price || 0;
 
     async function cargarDatos() {
       const [inv, pag] = await Promise.all([
@@ -137,7 +141,7 @@
       Object.keys(invitaciones).forEach((id) => {
         const o = document.createElement("option");
         o.value = id;
-        o.textContent = (invitaciones[id].honoree || id) + " (" + id + ")";
+        o.textContent = (invitaciones[id].honoree || id) + " - " + ETIQ_PAQ[pk(id)];
         $("sel").appendChild(o);
       });
       if (actual && invitaciones[actual]) $("sel").value = actual;
@@ -148,7 +152,7 @@
     function datosDe(id) {
       const p = pagos[id];
       return {
-        price: p ? p.price : ajustes.price,
+        price: p ? p.price : precioPaq(id),
         received: p ? p.received : 0,
         status: p ? p.status : "pendiente",
         note: p ? (p.note || "") : ""
@@ -159,6 +163,11 @@
       const id = $("sel").value;
       if (!id) return;
       const d = datosDe(id);
+      const k = pk(id);
+      const pq = paquetes[k] || {};
+      $("info-paq").textContent = pq.price
+        ? "Paquete " + ETIQ_PAQ[k] + ": precio " + $$(pq.price) + " - seña " + $$(pq.deposit)
+        : "El paquete " + ETIQ_PAQ[k] + " todavía no tiene precio. Cargalo en Paquetes y precios.";
       $("f-precio").value = d.price;
       $("f-cobrado").value = d.received;
       $("f-estado").value = d.status;
@@ -174,6 +183,12 @@
 
     $("sel").addEventListener("change", llenarForm);
     $("f-precio").addEventListener("input", saldo);
+    $("btn-usar").addEventListener("click", () => {
+      const id = $("sel").value;
+      if (!id) return;
+      $("f-precio").value = precioPaq(id);
+      saldo();
+    });
     $("f-cobrado").addEventListener("input", () => {
       saldo();
       const precio = parseInt($("f-precio").value, 10) || 0;
@@ -181,23 +196,6 @@
       if (precio > 0 && cobrado >= precio) $("f-estado").value = "pagado";
       else if (cobrado > 0) $("f-estado").value = "senado";
       else $("f-estado").value = "pendiente";
-    });
-
-    $("btn-precios").addEventListener("click", async () => {
-      const price = parseInt($("p-precio").value, 10);
-      const deposit = parseInt($("p-sena").value, 10);
-      if (!(price >= 0) || !(deposit >= 0) || deposit > price) {
-        $("p-msg").textContent = "Revisá los importes (la seña no puede superar el precio).";
-        return;
-      }
-      try {
-        await setDoc(doc(db, "settings", "pricing"), { price, deposit, updatedAt: serverTimestamp() });
-        ajustes = { price, deposit };
-        $("p-msg").textContent = "Precios guardados. Se usan para los pagos nuevos.";
-      } catch (e) {
-        console.error(e);
-        $("p-msg").textContent = "No se pudo guardar.";
-      }
     });
 
     $("btn-guardar").addEventListener("click", async () => {
@@ -213,6 +211,7 @@
           invitationId: id,
           ownerId: invitaciones[id].ownerId || auth.currentUser.uid,
           honoree: invitaciones[id].honoree || "",
+          package: pk(id),
           price: price,
           received: received,
           status: $("f-estado").value,
@@ -241,7 +240,7 @@
         const t = document.createElement("div");
         t.className = "caja fila " + d.status;
         const n = document.createElement("b");
-        n.textContent = invitaciones[id].honoree || id;
+        n.textContent = (invitaciones[id].honoree || id) + " - " + ETIQ_PAQ[pk(id)];
         const e = document.createElement("div");
         e.textContent = ETIQ[d.status] + " - Cobrado " + $$(d.received) + " de " + $$(d.price) +
           " - Saldo " + $$(Math.max(d.price - d.received, 0));
@@ -263,4 +262,4 @@
     }
   </script>
 </body>
-  </html>
+                                                                                  </html>
