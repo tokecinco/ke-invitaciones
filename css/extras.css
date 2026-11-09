@@ -1,0 +1,48 @@
+/* Álbum: fotos tipo polaroid que entran una a una */
+.galeria { gap:12px; }
+.galeria img { border:7px solid #fff; border-bottom-width:22px; border-radius:4px;
+  background:#fff; box-shadow:0 8px 20px rgba(0,0,0,.18); }
+.galeria img:nth-child(odd) { transform:rotate(-2deg); }
+.galeria img:nth-child(even) { transform:rotate(2deg); }
+.galeria img:first-child { transform:rotate(-1deg); }
+.galeria.reveal img { opacity:0; }
+.galeria.reveal.visible img { animation:entraFoto .8s cubic-bezier(.2,.8,.2,1) both; }
+.galeria.visible img:nth-child(1) { animation-delay:.05s; }
+.galeria.visible img:nth-child(2) { animation-delay:.2s; }
+.galeria.visible img:nth-child(3) { animation-delay:.35s; }
+.galeria.visible img:nth-child(4) { animation-delay:.5s; }
+.galeria.visible img:nth-child(5) { animation-delay:.65s; }
+@keyframes entraFoto {
+  from { opacity:0; translate:0 34px; scale:.85; }
+  to   { opacity:1; translate:0 0; scale:1; }
+}
+
+#lightbox.abierto img { animation:zoomFoto .4s ease; }
+#lightbox img.cambia { animation:cambiaFoto .35s ease; }
+@keyframes zoomFoto { from { opacity:0; transform:scale(.88); } to { opacity:1; transform:scale(1); } }
+@keyframes cambiaFoto { from { opacity:.25; transform:scale(.96); } to { opacity:1; transform:scale(1); } }
+
+/* Iconos con efecto suave */
+.icono { position:relative; width:46px; height:46px; margin:0 auto 10px; border-radius:50%;
+  background:var(--suave); color:var(--acento);
+  display:flex; align-items:center; justify-content:center; }
+.icono::before { content:""; position:absolute; inset:0; border-radius:50%;
+  border:1px solid var(--acento); opacity:0; animation:ondaIcono 3.4s ease-out infinite; }
+.icono svg { width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8;
+  stroke-linecap:round; stroke-linejoin:round; animation:suaveIcono 4s ease-in-out infinite; }
+@keyframes ondaIcono { 0% { transform:scale(1); opacity:.6; } 70%, 100% { transform:scale(1.7); opacity:0; } }
+@keyframes suaveIcono { 0%, 100% { transform:translateY(0) rotate(0deg); } 50% { transform:translateY(-2px) rotate(4deg); } }
+
+#btn-musica:not(.sonando) { animation:brilloSuave 3.2s ease-in-out infinite; }
+@keyframes brilloSuave { 0%, 100% { opacity:.8; } 50% { opacity:1; } }
+
+/* Decoraciones flotantes (plantillas con "deco") */
+body[class*="deco-"] .brillo { background:none !important; border-radius:0; box-shadow:none;
+  width:auto !important; height:auto !important; color:var(--acento); line-height:1; }
+body[class*="deco-"] .brillo::before { font-size:18px; opacity:.85; }
+body[class*="deco-"] .brillo:nth-child(3n)::before { font-size:26px; }
+body[class*="deco-"] .brillo:nth-child(4n)::before { font-size:14px; }
+body.deco-corazones .brillo::before { content:"\2665\FE0E"; }
+body.deco-estrellas .brillo::before { content:"\2605\FE0E"; }
+body.deco-nubes .brillo::before { content:"\2601\FE0E"; }
+body.deco-burbujas .brillo::before { content:"\25EF\FE0E"; }
