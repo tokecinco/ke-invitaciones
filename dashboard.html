@@ -2,50 +2,16 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <title>Panel de Administración Pro | KE Invitaciones</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      overflow-x: hidden !important;
-      max-width: 100vw !important;
-    }
-    .admin-container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 16px 14px 60px;
-      overflow-x: hidden;
-    }
-    .search-bar-wrap {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 16px;
-      width: 100%;
-    }
-    .search-bar-wrap input {
-      min-width: 0;
-      flex: 1;
-    }
-    .checkin-badge-counter {
-      background: #e8f5e9;
-      color: #1b5e20;
-      border: 1px solid #c8e6c9;
-      border-radius: 12px;
-      padding: 10px 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 16px;
-      font-weight: bold;
-    }
-  </style>
 </head>
-<body style="background: #faf6f0;">
+<body style="background: #faf5ed;">
 
-  <!-- NAVBAR RESPONSIVA (CON LOGO OFICIAL DE KE INVITACIONES) -->
+  <!-- NAVBAR RESPONSIVA CON LOGO OFICIAL (NUNCA CORTADA) -->
   <nav class="navbar">
     <a href="index.html" class="brand">
       <img src="img/logo.png" alt="KE Invitaciones" class="brand-logo-img">
@@ -54,133 +20,202 @@
       <a href="invitacion.html" target="_blank" class="nav-link hide-mobile" style="font-size: 0.82rem;">Ver Invitación</a>
       <a href="cliente.html" class="nav-link hide-mobile" style="font-size: 0.82rem;">Mi Cuenta</a>
       <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde" style="padding: 6px 10px;">👁 Ver</a>
-      <button class="btn btn-sm" id="btn-top-nueva" style="padding: 6px 10px;">+ Crear</button>
+      <button class="btn btn-sm" id="btn-top-nueva" style="padding: 6px 12px;">+ Crear</button>
     </div>
   </nav>
 
-  <main class="admin-container">
+  <!-- CONTENEDOR PRINCIPAL DEL DASHBOARD -->
+  <main class="admin-shell">
 
-    <!-- CABECERA PRINCIPAL -->
-    <div style="margin-bottom: 18px;">
-      <h1 style="font-size: 1.85rem; color: var(--negro); font-family: 'Playfair Display', serif; font-weight: 700;">
-        Panel de Control & Recepción
-      </h1>
-      <p style="font-size: 0.88rem; color: var(--texto-suave);">
-        Gestión integral de eventos, ingresos en puerta por QR y finanzas.
-      </p>
+    <!-- BARRA DE CONTEXTO DEL EVENTO ACTIVO -->
+    <div class="admin-event-bar">
+      <div>
+        <div style="font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700;">
+          EVENTO ACTIVO EN GESTIÓN
+        </div>
+        <div style="font-size: 1.25rem; font-weight: 700; color: var(--negro); font-family: 'Playfair Display', serif;" id="current-event-title">
+          Mis 15 Valentina
+        </div>
+        <div style="font-size: 0.82rem; color: var(--texto-suave);">
+          📅 Sábado 19 de Diciembre de 2026 · 🏰 Palacio San Martín
+        </div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: center;">
+        <span class="event-live-pill">En línea</span>
+        <button type="button" class="btn btn-sm btn-borde" id="btn-switch-event" style="padding: 5px 10px; font-size: 0.76rem;">
+          Cambiar
+        </button>
+      </div>
     </div>
 
-    <!-- MÉTRICAS EN VIVO -->
-    <div class="stats-grid" id="stats-dashboard">
+    <!-- MÉTRICAS EN VIVO (KPI CARDS CON PROGRESO) -->
+    <div class="admin-kpi-grid" id="stats-dashboard">
       <!-- Renderizado dinámico -->
     </div>
 
-    <!-- TABS DE NAVEGACIÓN ADAPTABLES AL PULGAR EN MÓVIL -->
-    <div class="admin-tabs">
-      <button class="admin-tab-btn active" data-tab="tab-checkin">🚪 Puerta / Check-in QR</button>
-      <button class="admin-tab-btn" data-tab="tab-invitaciones">📑 Invitaciones</button>
-      <button class="admin-tab-btn" data-tab="tab-invitados">👥 Invitados & Pases VIP</button>
-      <button class="admin-tab-btn" data-tab="tab-pagos">💵 Pagos & Señas</button>
-      <button class="admin-tab-btn" data-tab="tab-qr">📱 Códigos QR</button>
+    <!-- PESTAÑAS SEGMENTADAS TÁCTILES (MOBILE FIRST) -->
+    <div class="admin-nav-tabs">
+      <button class="admin-tab-item active" data-tab="tab-checkin">
+        🚪 Puerta / Check-in QR
+      </button>
+      <button class="admin-tab-item" data-tab="tab-invitados">
+        👥 Lista de Invitados
+      </button>
+      <button class="admin-tab-item" data-tab="tab-invitaciones">
+        📑 Mis Eventos
+      </button>
+      <button class="admin-tab-item" data-tab="tab-pagos">
+        💵 Finanzas & Señas
+      </button>
+      <button class="admin-tab-item" data-tab="tab-qr">
+        📱 Generador QR
+      </button>
     </div>
 
-    <!-- TAB 1: CHECK-IN EN PUERTA CON SCANNER / BÚSQUEDA RÁPIDA -->
-    <section id="tab-checkin" class="admin-tab-content admin-panel">
-      <div class="checkin-badge-counter">
-        <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Control de Ingreso en Salón:</span>
-        <span id="checkin-live-count" style="font-size: 1.25rem;">0 / 0 personas</span>
-      </div>
+    <!-- ====================================================================
+         TAB 1: PUERTA / CHECK-IN EN VIVO (MODO RECEPCIÓN VIP)
+         ==================================================================== -->
+    <section id="tab-checkin" class="admin-tab-view">
+      <!-- Buscador y filtro rápido -->
+      <div class="search-filter-box">
+        <div style="font-size: 0.78rem; text-transform: uppercase; letter-spacing: 1px; color: var(--oro-oscuro); font-weight: 700; margin-bottom: 8px;">
+          🔍 Validación Rápida de Entrada
+        </div>
+        
+        <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+          <input type="text" id="checkin-search-input" class="form-ctrl" placeholder="Ingresá código de ticket o apellido..." style="font-size: 0.92rem; font-weight: 600;">
+          <button type="button" class="btn btn-sm" id="btn-search-validate" style="white-space: nowrap; padding: 0 16px;">
+            Validar
+          </button>
+        </div>
 
-      <!-- Buscador en tiempo real optimizado para móvil -->
-      <div class="search-bar-wrap">
-        <input type="text" id="checkin-quick-search" class="form-input" placeholder="Buscar por ticket (ej: TKT-VALEN-001) o apellido..." style="font-size: 0.95rem;">
-        <button type="button" class="btn" id="btn-search-trigger" style="white-space: nowrap;">Validar</button>
+        <!-- Chips de filtrado rápido -->
+        <div class="filter-chips-row">
+          <button type="button" class="filter-chip active" data-checkin-filter="all">Todos (<span id="count-all">0</span>)</button>
+          <button type="button" class="filter-chip" data-checkin-filter="pending">⏳ Pendientes (<span id="count-pending">0</span>)</button>
+          <button type="button" class="filter-chip" data-checkin-filter="entered">✓ En Salón (<span id="count-entered">0</span>)</button>
+        </div>
       </div>
 
       <!-- Lista de pases para móvil & desktop -->
-      <div id="checkin-cards-container">
-        <!-- Renderizado dinámico con botones grandes para pulgar -->
+      <div id="checkin-guest-list">
+        <!-- Renderizado dinámicamente -->
       </div>
     </section>
 
-    <!-- TAB 2: GESTOR DE EVENTOS E INVITACIONES -->
-    <section id="tab-invitaciones" class="admin-tab-content admin-panel" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-        <h2 style="font-size: 1.3rem; color: var(--negro);">Eventos Creados</h2>
-        <button class="btn btn-sm" id="btn-add-inv-tab">+ Nueva Invitación</button>
-      </div>
-      <div id="invitations-container">
-        <!-- Renderizado dinámico -->
-      </div>
-    </section>
+    <!-- ====================================================================
+         TAB 2: LISTA DE INVITADOS & PASES VIP
+         ==================================================================== -->
+    <section id="tab-invitados" class="admin-tab-view" style="display: none;">
+      <div class="admin-card-view">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 1.35rem; color: var(--negro); font-family: 'Playfair Display', serif;">Lista de Invitados & Pases</h2>
+            <p style="font-size: 0.82rem; color: var(--texto-suave);">Asignación de cupos, confirmaciones y enlaces VIP individuales.</p>
+          </div>
+          <div style="display: flex; gap: 8px;">
+            <button type="button" class="btn btn-sm btn-borde" id="btn-export-csv-2">📥 Exportar CSV</button>
+            <button type="button" class="btn btn-sm" id="btn-open-add-guest">+ Cargar Invitado</button>
+          </div>
+        </div>
 
-    <!-- TAB 3: LISTA DE INVITADOS & PASES VIP -->
-    <section id="tab-invitados" class="admin-tab-content admin-panel" style="display: none;">
-      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
-        <h2 style="font-size: 1.3rem; color: var(--negro);">Invitados Asignados</h2>
-        <div style="display: flex; gap: 8px;">
-          <button class="btn btn-sm btn-borde" id="btn-export-csv">📥 Exportar CSV</button>
-          <button class="btn btn-sm" id="btn-open-guest-modal">+ Cargar Invitado</button>
+        <div id="full-guests-list">
+          <!-- Renderizado dinámicamente -->
         </div>
       </div>
-      <div id="guests-container">
-        <!-- Renderizado dinámico -->
+    </section>
+
+    <!-- ====================================================================
+         TAB 3: GESTOR DE EVENTOS E INVITACIONES
+         ==================================================================== -->
+    <section id="tab-invitaciones" class="admin-tab-view" style="display: none;">
+      <div class="admin-card-view">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+          <div>
+            <h2 style="font-size: 1.35rem; color: var(--negro); font-family: 'Playfair Display', serif;">Invitaciones Creadas</h2>
+            <p style="font-size: 0.82rem; color: var(--texto-suave);">Administración de celebraciones, enlaces web y paquetes contratados.</p>
+          </div>
+          <button type="button" class="btn btn-sm" id="btn-open-create-inv">+ Nueva Invitación</button>
+        </div>
+
+        <div id="events-list-container">
+          <!-- Renderizado dinámicamente -->
+        </div>
       </div>
     </section>
 
-    <!-- TAB 4: CONTROL FINANCIERO & SALDOS -->
-    <section id="tab-pagos" class="admin-tab-content admin-panel" style="display: none;">
-      <h2 style="font-size: 1.3rem; color: var(--negro); margin-bottom: 16px;">Finanzas, Señas y Saldos</h2>
-      <div id="payments-container">
-        <!-- Renderizado dinámico -->
+    <!-- ====================================================================
+         TAB 4: CONTROL FINANCIERO, SEÑAS Y SALDOS
+         ==================================================================== -->
+    <section id="tab-pagos" class="admin-tab-view" style="display: none;">
+      <div class="admin-card-view">
+        <div style="margin-bottom: 18px;">
+          <h2 style="font-size: 1.35rem; color: var(--negro); font-family: 'Playfair Display', serif;">Control Financiero & Saldos</h2>
+          <p style="font-size: 0.82rem; color: var(--texto-suave);">Seguimiento de presupuestos, señas abonadas y saldos por cobrar.</p>
+        </div>
+
+        <div id="finances-list-container">
+          <!-- Renderizado dinámicamente -->
+        </div>
       </div>
     </section>
 
-    <!-- TAB 5: GENERADOR DE QR PARA IMPRENTA -->
-    <section id="tab-qr" class="admin-tab-content admin-panel" style="display: none; text-align: center;">
-      <h2 style="font-size: 1.4rem; color: var(--oro-oscuro); margin-bottom: 6px;">Códigos QR de Alta Calidad</h2>
-      <p style="font-size: 0.88rem; color: var(--texto-suave); margin-bottom: 18px;">
-        Generá el código QR listo para imprimir en tarjetas de invitación físicas o sobres.
-      </p>
+    <!-- ====================================================================
+         TAB 5: GENERADOR DE QR PARA IMPRENTA
+         ==================================================================== -->
+    <section id="tab-qr" class="admin-tab-view" style="display: none;">
+      <div class="admin-card-view" style="text-align: center;">
+        <h2 style="font-size: 1.4rem; color: var(--oro-oscuro); margin-bottom: 6px; font-family: 'Playfair Display', serif;">
+          Generador de Códigos QR en Alta Resolución
+        </h2>
+        <p style="font-size: 0.85rem; color: var(--texto-suave); margin-bottom: 18px;">
+          Creá el código QR listo para imprimir en tarjetas de invitación físicas, sobres o souvenirs.
+        </p>
 
-      <div class="form-group" style="max-width: 380px; margin: 0 auto 16px; text-align: left;">
-        <label class="form-label">Seleccionar Invitación:</label>
-        <select id="select-qr-inv" class="form-select"></select>
-      </div>
+        <div style="max-width: 360px; margin: 0 auto 16px; text-align: left;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Seleccionar Evento:</label>
+          <select id="select-event-qr" class="form-ctrl"></select>
+        </div>
 
-      <div style="background: #ffffff; padding: 20px; border-radius: 18px; border: 1.5px solid var(--borde); display: inline-block; margin-bottom: 18px; box-shadow: var(--sombra-suave);">
-        <div id="qr-live-preview"></div>
-        <div style="margin-top: 10px; font-weight: 700;" id="qr-title-preview">Mis 15 Valentina</div>
-        <div style="font-size: 0.78rem; color: #888; word-break: break-all;" id="qr-url-preview"></div>
-      </div>
+        <div style="background: #ffffff; padding: 22px; border-radius: 20px; border: 1.5px solid var(--borde); display: inline-block; margin-bottom: 18px; box-shadow: var(--sombra-card);">
+          <div id="qr-canvas-preview"></div>
+          <div style="margin-top: 12px; font-weight: 700; font-size: 1.1rem; color: var(--negro);" id="qr-preview-title-text">
+            Mis 15 Valentina
+          </div>
+          <div style="font-size: 0.76rem; color: #888; word-break: break-all; max-width: 280px; margin: 4px auto 0;" id="qr-preview-url-text"></div>
+        </div>
 
-      <div style="display: flex; gap: 10px; justify-content: center;">
-        <button class="btn" id="btn-download-qr-file">Descargar PNG</button>
-        <button class="btn btn-borde" onclick="window.print()">Imprimir Ficha</button>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+          <button type="button" class="btn" id="btn-download-qr-file">Descargar PNG (Alta Calidad)</button>
+          <button type="button" class="btn btn-borde" onclick="window.print()">Imprimir Ficha</button>
+        </div>
       </div>
     </section>
 
   </main>
 
+  <!-- ====================================================================
+       MODALES CON ANIMACIÓN BOTTOM-SHEET EN MÓVIL
+       ==================================================================== -->
   <!-- MODAL: NUEVA INVITACIÓN -->
   <div class="modal-overlay" id="modal-inv">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
-        <h3 style="font-size: 1.25rem;">Nueva Invitación Digital</h3>
+        <h3 style="font-size: 1.25rem; font-family: 'Playfair Display', serif;">Nueva Invitación Digital</h3>
         <button type="button" class="btn-borde" style="border:none; font-size:1.4rem; cursor:pointer;" id="modal-inv-close">&times;</button>
       </div>
       <form id="form-create-inv">
-        <div class="form-group">
-          <label class="form-label">Título del Evento *</label>
-          <input type="text" id="new-inv-title" class="form-input" required placeholder="Ej: Mis 15 Sofía">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Título del Evento *</label>
+          <input type="text" id="new-inv-title" class="form-ctrl" required placeholder="Ej: Mis 15 Sofía">
         </div>
-        <div class="form-group">
-          <label class="form-label">Agasajado/a o Pareja *</label>
-          <input type="text" id="new-inv-celebrant" class="form-input" required placeholder="Ej: Sofía Gómez">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Agasajado/a o Pareja *</label>
+          <input type="text" id="new-inv-celebrant" class="form-ctrl" required placeholder="Ej: Sofía Gómez">
         </div>
-        <div class="form-group">
-          <label class="form-label">Tipo de Evento *</label>
-          <select id="new-inv-type" class="form-select">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Tipo de Evento *</label>
+          <select id="new-inv-type" class="form-ctrl">
             <option value="15 Años">15 Años</option>
             <option value="Casamiento">Casamiento</option>
             <option value="Cumpleaños Infantil">Cumpleaños Infantil</option>
@@ -189,28 +224,28 @@
             <option value="Aniversario">Aniversario</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">Fecha y Hora *</label>
-          <input type="datetime-local" id="new-inv-date" class="form-input" required value="2026-12-19T21:00">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Fecha y Hora *</label>
+          <input type="datetime-local" id="new-inv-date" class="form-ctrl" required value="2026-12-19T21:00">
         </div>
-        <div class="form-group">
-          <label class="form-label">Salón y Dirección *</label>
-          <input type="text" id="new-inv-venue" class="form-input" required placeholder="Salón Palacio San Martín, Palermo">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Salón y Dirección *</label>
+          <input type="text" id="new-inv-venue" class="form-ctrl" required placeholder="Salón Palacio San Martín, Palermo">
         </div>
-        <div class="form-group">
-          <label class="form-label">Paquete *</label>
-          <select id="new-inv-package" class="form-select">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Paquete *</label>
+          <select id="new-inv-package" class="form-ctrl">
             <option value="Premium" selected>Premium VIP (Pase QR, Itinerario, Spotify, Instagram)</option>
             <option value="Básico">Básico</option>
           </select>
         </div>
-        <div class="form-group">
-          <label class="form-label">URL Playlist Spotify</label>
-          <input type="url" id="new-inv-spotify" class="form-input" placeholder="https://open.spotify.com/playlist/...">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">URL Playlist Spotify</label>
+          <input type="url" id="new-inv-spotify" class="form-ctrl" placeholder="https://open.spotify.com/playlist/...">
         </div>
-        <div class="form-group">
-          <label class="form-label">Hashtag de Instagram</label>
-          <input type="text" id="new-inv-hashtag" class="form-input" placeholder="#Mis15Sofi">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Hashtag de Instagram</label>
+          <input type="text" id="new-inv-hashtag" class="form-ctrl" placeholder="#Mis15Sofi">
         </div>
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px;">
           <button type="button" class="btn btn-borde" id="modal-inv-cancel">Cancelar</button>
@@ -224,21 +259,21 @@
   <div class="modal-overlay" id="modal-guest">
     <div class="modal-box">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
-        <h3 style="font-size: 1.25rem;">Cargar Invitado / Pase VIP</h3>
+        <h3 style="font-size: 1.25rem; font-family: 'Playfair Display', serif;">Cargar Invitado / Pase VIP</h3>
         <button type="button" class="btn-borde" style="border:none; font-size:1.4rem; cursor:pointer;" id="modal-guest-close">&times;</button>
       </div>
       <form id="form-create-guest">
-        <div class="form-group">
-          <label class="form-label">Nombre del Invitado o Familia *</label>
-          <input type="text" id="new-guest-name" class="form-input" required placeholder="Ej: Familia Rossi">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Nombre del Invitado o Familia *</label>
+          <input type="text" id="new-guest-name" class="form-ctrl" required placeholder="Ej: Familia Rossi">
         </div>
-        <div class="form-group">
-          <label class="form-label">Cupos Reservados *</label>
-          <input type="number" id="new-guest-seats" class="form-input" required min="1" max="10" value="2">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Cupos Asignados *</label>
+          <input type="number" id="new-guest-seats" class="form-ctrl" required min="1" max="10" value="2">
         </div>
-        <div class="form-group">
-          <label class="form-label">Teléfono WhatsApp</label>
-          <input type="tel" id="new-guest-phone" class="form-input" placeholder="+54 9 11 ...">
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Teléfono WhatsApp</label>
+          <input type="tel" id="new-guest-phone" class="form-ctrl" placeholder="+54 9 11 ...">
         </div>
         <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px;">
           <button type="button" class="btn btn-borde" id="modal-guest-cancel">Cancelar</button>
@@ -252,7 +287,9 @@
   <script src="js/app.js"></script>
   <script>
     document.addEventListener("DOMContentLoaded", function () {
-      // Audio Chime con Web Audio API (efecto sonoro táctil sin dependencias de red)
+      let currentCheckinFilter = "all";
+
+      // Sonido de confirmación con Web Audio API
       function playChime(success = true) {
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -262,8 +299,8 @@
           gain.connect(ctx.destination);
           osc.type = "sine";
           if (success) {
-            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
-            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime);
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1);
           } else {
             osc.frequency.setValueAtTime(300, ctx.currentTime);
           }
@@ -271,118 +308,160 @@
           gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
           osc.start();
           osc.stop(ctx.currentTime + 0.35);
-        } catch (e) {
-          // Si el audio está bloqueado, no interrumpe la UI
-        }
+        } catch (e) {}
       }
 
       // Tabs
-      const tabBtns = document.querySelectorAll(".admin-tab-btn");
-      const tabContents = document.querySelectorAll(".admin-tab-content");
-      tabBtns.forEach(btn => {
-        btn.addEventListener("click", () => {
-          tabBtns.forEach(b => b.classList.remove("active"));
-          tabContents.forEach(c => c.style.display = "none");
-          btn.classList.add("active");
-          const target = document.getElementById(btn.dataset.tab);
+      const tabItems = document.querySelectorAll(".admin-tab-item");
+      const tabViews = document.querySelectorAll(".admin-tab-view");
+      tabItems.forEach(item => {
+        item.addEventListener("click", () => {
+          tabItems.forEach(b => b.classList.remove("active"));
+          tabViews.forEach(v => v.style.display = "none");
+          item.classList.add("active");
+          const target = document.getElementById(item.dataset.tab);
           if (target) target.style.display = "block";
         });
       });
 
+      // Filtros de check-in
+      const filterChips = document.querySelectorAll("[data-checkin-filter]");
+      filterChips.forEach(chip => {
+        chip.addEventListener("click", () => {
+          filterChips.forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          currentCheckinFilter = chip.dataset.checkinFilter;
+          renderCheckinView();
+        });
+      });
+
       function renderDashboard() {
-        renderStats();
-        renderCheckinList();
-        renderInvitations();
-        renderGuests();
-        renderPayments();
-        renderQr();
+        renderKPIs();
+        renderCheckinView();
+        renderGuestsTab();
+        renderEventsTab();
+        renderFinancesTab();
+        renderQrTab();
       }
 
-      function renderStats() {
+      function renderKPIs() {
         const m = KE.Store.getMetrics();
+        const percentEntered = m.totalAttendingSeats > 0 ? Math.round((m.checkedInSeats / m.totalAttendingSeats) * 100) : 0;
+        
         const el = document.getElementById("stats-dashboard");
         el.innerHTML = `
-          <div class="stat-card featured">
-            <div class="stat-label">Eventos</div>
-            <div class="stat-value">${m.totalInvitations}</div>
-            <div style="font-size:0.75rem; color:#2e7d32; margin-top:2px;">${m.activeInvitations} en línea</div>
+          <div class="kpi-card highlight">
+            <div class="kpi-title">Asistencia en Puerta</div>
+            <div class="kpi-number" style="color:#2e7d32;">${m.checkedInSeats} <small style="font-size:1rem; color:#888;">/ ${m.totalAttendingSeats}</small></div>
+            <div class="kpi-subtitle">${percentEntered}% del salón presente</div>
+            <div class="progress-container">
+              <div class="progress-bar" style="width: ${percentEntered}%;"></div>
+            </div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Confirmados</div>
-            <div class="stat-value">${m.totalAttendingSeats}</div>
-            <div style="font-size:0.75rem; color:var(--texto-suave); margin-top:2px;">lugares</div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Confirmados</div>
+            <div class="kpi-number">${m.totalAttendingSeats}</div>
+            <div class="kpi-subtitle">en ${m.confirmedGuests} familias registradas</div>
           </div>
-          <div class="stat-card featured">
-            <div class="stat-label">En Salón</div>
-            <div class="stat-value" style="color:#2e7d32;">${m.checkedInSeats}</div>
-            <div style="font-size:0.75rem; color:#2e7d32; margin-top:2px;">de ${m.totalAttendingSeats} esperados</div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Facturación</div>
+            <div class="kpi-number">$${(m.totalRevenue / 1000).toFixed(0)}k</div>
+            <div class="kpi-subtitle">Señas cobradas: $${(m.totalDeposits / 1000).toFixed(0)}k</div>
           </div>
-          <div class="stat-card">
-            <div class="stat-label">Ingresos</div>
-            <div class="stat-value">$${(m.totalRevenue / 1000).toFixed(0)}k</div>
-            <div style="font-size:0.75rem; color:var(--oro-oscuro); margin-top:2px;">Señas: $${(m.totalDeposits / 1000).toFixed(0)}k</div>
+
+          <div class="kpi-card">
+            <div class="kpi-title">Eventos Activos</div>
+            <div class="kpi-number">${m.activeInvitations}</div>
+            <div class="kpi-subtitle">de ${m.totalInvitations} invitaciones</div>
           </div>
         `;
       }
 
-      function renderCheckinList(filterText = "") {
+      function renderCheckinView(filterQuery = "") {
         const guests = KE.Store.getGuests();
-        const container = document.getElementById("checkin-cards-container");
+        const container = document.getElementById("checkin-guest-list");
         
+        // Conteo para los chips
+        const enteredCount = guests.filter(g => g.checkIn).length;
+        const pendingCount = guests.length - enteredCount;
+        document.getElementById("count-all").textContent = guests.length;
+        document.getElementById("count-pending").textContent = pendingCount;
+        document.getElementById("count-entered").textContent = enteredCount;
+
         let filtered = guests;
-        if (filterText) {
-          const q = filterText.toUpperCase();
-          filtered = guests.filter(g => g.name.toUpperCase().includes(q) || g.ticketCode.toUpperCase().includes(q));
+        if (currentCheckinFilter === "entered") {
+          filtered = guests.filter(g => g.checkIn);
+        } else if (currentCheckinFilter === "pending") {
+          filtered = guests.filter(g => !g.checkIn);
         }
 
-        const totalConfirmed = guests.filter(g => g.status === "confirmed").reduce((s, g) => s + (g.attendingCount || g.seatsAllocated), 0);
-        const checkedInSeats = guests.filter(g => g.checkIn).reduce((s, g) => s + (g.attendingCount || g.seatsAllocated), 0);
-        document.getElementById("checkin-live-count").textContent = `${checkedInSeats} / ${totalConfirmed} personas`;
+        if (filterQuery) {
+          const q = filterQuery.toUpperCase();
+          filtered = filtered.filter(g => g.name.toUpperCase().includes(q) || g.ticketCode.toUpperCase().includes(q));
+        }
 
         if (filtered.length === 0) {
-          container.innerHTML = `<p style="text-align:center; padding:20px; color:#888;">No se encontraron invitados con ese criterio.</p>`;
+          container.innerHTML = `
+            <div style="background:#fff; border:1px solid var(--borde); border-radius:14px; padding:30px; text-align:center; color:#888;">
+              No se encontraron invitados en esta sección.
+            </div>`;
           return;
         }
 
         container.innerHTML = filtered.map(g => {
-          const isConfirmed = g.status === "confirmed";
           const seats = g.attendingCount || g.seatsAllocated;
+          const initials = g.name.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
           return `
-            <div class="guest-card-mobile ${g.checkIn ? 'checked-in' : ''}">
-              <div class="guest-card-top">
-                <div>
-                  <b style="font-size:1.05rem; color:var(--negro);">${g.name}</b>
-                  <div style="font-family:monospace; font-size:0.8rem; color:var(--oro-oscuro); font-weight:bold;">${g.ticketCode}</div>
+            <div class="guest-checkin-card ${g.checkIn ? 'is-entered' : ''}">
+              <div class="guest-header-row">
+                <div style="display:flex; gap:10px; align-items:center;">
+                  <div class="guest-avatar">${initials}</div>
+                  <div>
+                    <b style="font-size:1.05rem; color:var(--negro); display:block;">${g.name}</b>
+                    <span style="font-family:monospace; font-size:0.78rem; color:var(--oro-oscuro); font-weight:bold; letter-spacing:1px;">
+                      ${g.ticketCode}
+                    </span>
+                  </div>
                 </div>
                 <div style="text-align:right;">
-                  <span class="badge ${g.checkIn ? 'badge-green' : 'badge-gold'}" style="font-size:0.72rem;">
-                    ${g.checkIn ? '✓ INGRESÓ (' + g.checkInTime + ')' : 'PENDIENTE INGRESO'}
+                  <span class="badge ${g.checkIn ? 'badge-green' : 'badge-gold'}">
+                    ${g.checkIn ? '✓ EN SALÓN' : 'PENDIENTE'}
                   </span>
-                  <div style="font-size:0.8rem; font-weight:bold; margin-top:2px;">${seats} personas</div>
+                  <div style="font-size:0.8rem; font-weight:700; color:var(--negro); margin-top:2px;">
+                    ${seats} lugares
+                  </div>
                 </div>
               </div>
 
-              ${g.dietary ? `<div style="font-size:0.78rem; color:#d32f2f;">🥗 Menú especial: ${g.dietary}</div>` : ''}
+              ${g.dietary ? `<div style="font-size:0.78rem; color:#b78103; background:#fff8e1; border:1px solid #ffe082; padding:4px 8px; border-radius:8px;">🥗 Menú: ${g.dietary}</div>` : ''}
 
               <div style="display:flex; gap:8px; margin-top:4px;">
-                <button type="button" class="btn btn-sm ${g.checkIn ? 'btn-borde' : ''}" style="flex:1;" onclick="doCheckIn('${g.id}')">
-                  ${g.checkIn ? '✕ Anular Ingreso' : '✓ Marcar Ingreso'}
+                <button type="button" class="btn btn-sm ${g.checkIn ? 'btn-borde' : 'btn-verde'}" style="flex:1;" onclick="toggleEntrance('${g.id}')">
+                  ${g.checkIn ? '✕ Anular Ingreso' : '✓ Registrar Ingreso'}
                 </button>
                 <button type="button" class="btn btn-borde btn-sm" onclick="copyVipLink('${g.ticketCode}')" title="Copiar enlace de pase VIP">
-                  🔗 Link
+                  🔗 Pase QR
                 </button>
+                ${g.phone ? `
+                  <a href="https://wa.me/${g.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('¡Hola ' + g.name + '! Tu mesa te espera en la recepción de Mis 15 Valentina: ' + window.location.origin + '/invitacion.html?ticket=' + g.ticketCode)}" target="_blank" class="btn btn-borde btn-sm" title="Escribir por WhatsApp">
+                    💬 WhatsApp
+                  </a>` : ''}
               </div>
+
+              ${g.checkIn ? `<div style="font-size:0.72rem; color:#2e7d32; text-align:right;">Ingreso registrado a las <b>${g.checkInTime}</b></div>` : ''}
             </div>
           `;
         }).join("");
       }
 
-      window.doCheckIn = function (id) {
+      window.toggleEntrance = function (id) {
         const guest = KE.Store.toggleCheckIn(id);
         if (guest) {
           if (guest.checkIn) {
             playChime(true);
-            KE.showToast(`✓ INGRESO REGISTRADO: ${guest.name} (${guest.seatsAllocated} personas)`);
+            KE.showToast(`✓ INGRESO REGISTRADO: ${guest.name}`);
           } else {
             KE.showToast(`Ingreso anulado para ${guest.name}`);
           }
@@ -393,17 +472,17 @@
       window.copyVipLink = function (ticket) {
         const url = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?ticket=" + ticket;
         navigator.clipboard.writeText(url);
-        KE.showToast("Enlace al Pase VIP copiado");
+        KE.showToast("Enlace de Pase VIP copiado");
       };
 
-      // Búsqueda rápida
-      const searchInput = document.getElementById("checkin-quick-search");
-      searchInput.addEventListener("input", function () {
-        renderCheckinList(this.value.trim());
+      // Búsqueda en check-in
+      const searchBox = document.getElementById("checkin-search-input");
+      searchBox.addEventListener("input", function () {
+        renderCheckinView(this.value.trim());
       });
 
-      document.getElementById("btn-search-trigger").addEventListener("click", function () {
-        const val = searchInput.value.trim().toUpperCase();
+      document.getElementById("btn-search-validate").addEventListener("click", function () {
+        const val = searchBox.value.trim().toUpperCase();
         if (!val) return;
         const match = KE.Store.getGuestByTicket(val) || KE.Store.getGuests().find(g => g.name.toUpperCase().includes(val));
         if (match) {
@@ -414,34 +493,62 @@
           } else {
             KE.showToast(`⚠️ Este ticket ya ingresó a las ${match.checkInTime}`);
           }
-          searchInput.value = "";
+          searchBox.value = "";
           renderDashboard();
         } else {
           playChime(false);
-          KE.showToast("❌ Ticket no encontrado.");
+          KE.showToast("❌ Ticket no encontrado. Verifique el código.");
         }
       });
 
-      function renderInvitations() {
+      function renderGuestsTab() {
+        const guests = KE.Store.getGuests();
+        const cont = document.getElementById("full-guests-list");
+        cont.innerHTML = guests.map(g => `
+          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:12px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <b style="font-size:1.05rem; color:var(--negro);">${g.name}</b>
+                <div style="font-family:monospace; font-size:0.78rem; color:var(--oro-oscuro); font-weight:bold;">${g.ticketCode}</div>
+              </div>
+              <span class="badge ${g.status === 'confirmed' ? 'badge-green' : 'badge-gold'}">
+                ${g.status === 'confirmed' ? '✓ ' + g.attendingCount + ' cupos confirmados' : '⏳ Pendiente (' + g.seatsAllocated + ')'}
+              </span>
+            </div>
+            ${g.message ? `<div style="font-size:0.84rem; color:#555; font-style:italic; margin:6px 0;">"${g.message}"</div>` : ''}
+            <div style="display:flex; gap:8px; margin-top:8px;">
+              <button class="btn btn-sm btn-borde" style="flex:1;" onclick="copyVipLink('${g.ticketCode}')">
+                🔗 Copiar Pase VIP
+              </button>
+              ${g.phone ? `
+                <a href="https://wa.me/${g.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('¡Hola ' + g.name + '! Te compartimos tu Pase VIP para el evento: ' + window.location.origin + '/invitacion.html?ticket=' + g.ticketCode)}" target="_blank" class="btn btn-sm btn-negro">
+                  Enviar WhatsApp
+                </a>` : ''}
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderEventsTab() {
         const invs = KE.Store.getData().invitations;
-        const cont = document.getElementById("invitations-container");
+        const cont = document.getElementById("events-list-container");
         cont.innerHTML = invs.map(i => `
-          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:12px; background:#fff;">
+          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:14px; background:#fff;">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
               <div>
-                <b style="font-size:1.1rem; color:var(--negro);">${i.title}</b>
-                <div style="font-size:0.85rem; color:var(--oro-oscuro);">${i.celebrant} · ${i.eventType}</div>
+                <h3 style="font-size:1.15rem; color:var(--negro); font-family:'Playfair Display', serif;">${i.title}</h3>
+                <div style="font-size:0.84rem; color:var(--oro-oscuro); font-weight:600;">${i.celebrant} · ${i.eventType}</div>
               </div>
               <span class="badge ${i.packageType === 'Premium' ? 'badge-premium' : 'badge-gold'}">${i.packageType}</span>
             </div>
-            <div style="font-size:0.85rem; color:var(--texto-suave); margin-bottom:12px;">
+            <div style="font-size:0.84rem; color:var(--texto-suave); margin-bottom:12px;">
               📅 ${new Date(i.date).toLocaleDateString("es-AR")} · 🏰 ${i.venueName}
             </div>
             <div style="display:flex; gap:8px;">
-              <a href="invitacion.html?slug=${i.slug}" target="_blank" class="btn btn-sm btn-borde" style="flex:1;">
+              <a href="invitacion.html?slug=${i.slug}" target="_blank" class="btn btn-sm" style="flex:1;">
                 👁 Abrir Invitación
               </a>
-              <button type="button" class="btn btn-sm btn-borde" onclick="copyGeneralLink('${i.slug}')">
+              <button type="button" class="btn btn-sm btn-borde" onclick="copyEventLink('${i.slug}')">
                 Copiar Enlace
               </button>
             </div>
@@ -449,52 +556,27 @@
         `).join("");
       }
 
-      window.copyGeneralLink = function(slug) {
+      window.copyEventLink = function(slug) {
         const url = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?slug=" + slug;
         navigator.clipboard.writeText(url);
         KE.showToast("Enlace de la invitación copiado");
       };
 
-      function renderGuests() {
-        const guests = KE.Store.getGuests();
-        const cont = document.getElementById("guests-container");
-        cont.innerHTML = guests.map(g => `
-          <div style="border:1px solid var(--borde); border-radius:12px; padding:12px; margin-bottom:10px; background:#fff;">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-              <div>
-                <b>${g.name}</b>
-                <div style="font-family:monospace; font-size:0.8rem; color:#888;">${g.ticketCode}</div>
-              </div>
-              <span class="badge ${g.status === 'confirmed' ? 'badge-green' : 'badge-gold'}">
-                ${g.status === 'confirmed' ? '✓ ' + g.attendingCount + ' cupos' : 'Pendiente (' + g.seatsAllocated + ')'}
-              </span>
-            </div>
-            ${g.message ? `<div style="font-size:0.82rem; color:#666; font-style:italic; margin-top:6px;">"${g.message}"</div>` : ''}
-            <div style="margin-top:8px; display:flex; gap:8px;">
-              <button class="btn btn-sm btn-borde" style="flex:1;" onclick="copyVipLink('${g.ticketCode}')">
-                Copiar Pase VIP
-              </button>
-              ${g.phone ? `<a href="https://wa.me/${g.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('¡Hola! Te compartimos tu Pase VIP para el evento: ' + window.location.origin + '/invitacion.html?ticket=' + g.ticketCode)}" target="_blank" class="btn btn-sm btn-negro">Enviar WhatsApp</a>` : ''}
-            </div>
-          </div>
-        `).join("");
-      }
-
-      function renderPayments() {
+      function renderFinancesTab() {
         const invs = KE.Store.getData().invitations;
-        const cont = document.getElementById("payments-container");
+        const cont = document.getElementById("finances-list-container");
         cont.innerHTML = invs.map(i => `
-          <div style="border:1px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:12px; background:#fff;">
-            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:14px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
               <b>${i.title}</b>
               <span class="badge ${i.isFullyPaid ? 'badge-green' : 'badge-gold'}">
-                ${i.isFullyPaid ? 'Total Pagado' : 'Con Seña'}
+                ${i.isFullyPaid ? 'Total Cancelado' : 'Seña Abonada'}
               </span>
             </div>
             <div style="font-size:0.9rem; margin-bottom:10px;">
-              Total: <b>$${i.price.toLocaleString("es-AR")}</b> · Seña: <span style="color:#2e7d32; font-weight:bold;">$${i.depositPaid.toLocaleString("es-AR")}</span> · Saldo: <span style="color:${i.balancePending > 0 ? '#d32f2f' : '#2e7d32'}; font-weight:bold;">$${i.balancePending.toLocaleString("es-AR")}</span>
+              Precio: <b>$${i.price.toLocaleString("es-AR")}</b> · Seña: <span style="color:#2e7d32; font-weight:bold;">$${i.depositPaid.toLocaleString("es-AR")}</span> · Saldo: <span style="color:${i.balancePending > 0 ? '#d32f2f' : '#2e7d32'}; font-weight:bold;">$${i.balancePending.toLocaleString("es-AR")}</span>
             </div>
-            ${i.balancePending > 0 ? `<button class="btn btn-sm" onclick="payBalance('${i.id}')">Registrar Pago del Saldo ($${i.balancePending.toLocaleString("es-AR")})</button>` : '<span style="color:#2e7d32; font-size:0.85rem;">✓ Saldo completamente cancelado</span>'}
+            ${i.balancePending > 0 ? `<button class="btn btn-sm" onclick="payBalance('${i.id}')">Registrar Pago del Saldo ($${i.balancePending.toLocaleString("es-AR")})</button>` : '<span style="color:#2e7d32; font-size:0.85rem; font-weight:bold;">✓ Saldo completamente cobrado</span>'}
           </div>
         `).join("");
       }
@@ -511,18 +593,18 @@
         }
       };
 
-      function renderQr() {
+      function renderQrTab() {
         const invs = KE.Store.getData().invitations;
-        const select = document.getElementById("select-qr-inv");
+        const select = document.getElementById("select-event-qr");
         select.innerHTML = invs.map(i => `<option value="${i.slug}">${i.title}</option>`).join("");
 
         function redraw() {
           const slug = select.value;
           const inv = KE.Store.getInvitation(slug);
           const fullUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?slug=" + slug;
-          document.getElementById("qr-title-preview").textContent = inv.title;
-          document.getElementById("qr-url-preview").textContent = fullUrl;
-          KE_QR.render("qr-live-preview", fullUrl, 200, "#121212");
+          document.getElementById("qr-preview-title-text").textContent = inv.title;
+          document.getElementById("qr-preview-url-text").textContent = fullUrl;
+          KE_QR.render("qr-canvas-preview", fullUrl, 200, "#121212");
         }
 
         select.addEventListener("change", redraw);
@@ -532,7 +614,7 @@
       // Modales
       const modalInv = document.getElementById("modal-inv");
       document.getElementById("btn-top-nueva").addEventListener("click", () => modalInv.classList.add("active"));
-      document.getElementById("btn-add-inv-tab").addEventListener("click", () => modalInv.classList.add("active"));
+      document.getElementById("btn-open-create-inv").addEventListener("click", () => modalInv.classList.add("active"));
       document.getElementById("modal-inv-close").addEventListener("click", () => modalInv.classList.remove("active"));
       document.getElementById("modal-inv-cancel").addEventListener("click", () => modalInv.classList.remove("active"));
 
@@ -565,10 +647,10 @@
           balancePending: 17500,
           isFullyPaid: false,
           itinerary: [
-            { time: "21:00 hs", title: "Recepción", desc: "Bienvenida" },
-            { time: "22:30 hs", title: "Entrada & Vals", desc: "Ingreso solemne" },
+            { time: "21:00 hs", title: "Recepción", desc: "Bienvenida en el salón" },
+            { time: "22:30 hs", title: "Entrada & Vals", desc: "Momento solemne" },
             { time: "23:15 hs", title: "Cena & Brindis", desc: "Plato principal" },
-            { time: "01:00 hs", title: "Fiesta", desc: "Apertura de pista" }
+            { time: "01:00 hs", title: "Fiesta & Baile", desc: "Apertura de pista" }
           ],
           photos: ["https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80"]
         });
@@ -580,7 +662,7 @@
 
       // Modal Invitado
       const modalGuest = document.getElementById("modal-guest");
-      document.getElementById("btn-open-guest-modal").addEventListener("click", () => modalGuest.classList.add("active"));
+      document.getElementById("btn-open-add-guest").addEventListener("click", () => modalGuest.classList.add("active"));
       document.getElementById("modal-guest-close").addEventListener("click", () => modalGuest.classList.remove("active"));
       document.getElementById("modal-guest-cancel").addEventListener("click", () => modalGuest.classList.remove("active"));
 
@@ -600,7 +682,7 @@
       });
 
       // Exportar CSV
-      document.getElementById("btn-export-csv").addEventListener("click", function () {
+      document.getElementById("btn-export-csv-2").addEventListener("click", function () {
         const guests = KE.Store.getGuests();
         let csv = "Ticket,Nombre,Cupos,Estado,Ingreso,Hora\n";
         guests.forEach(g => {
@@ -616,7 +698,7 @@
 
       // Descargar QR
       document.getElementById("btn-download-qr-file").addEventListener("click", function () {
-        const img = document.querySelector("#qr-live-preview img");
+        const img = document.querySelector("#qr-canvas-preview img");
         if (img) {
           const a = document.createElement("a");
           a.href = img.src;

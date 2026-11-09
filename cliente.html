@@ -8,21 +8,10 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    body {
-      overflow-x: hidden !important;
-      max-width: 100vw !important;
-    }
-    .client-main {
-      max-width: 900px;
-      margin: 0 auto;
-      padding: 16px 14px 60px;
-      overflow-x: hidden;
-    }
-  </style>
 </head>
-<body>
+<body style="background: #faf5ed;">
 
+  <!-- NAVBAR CON LOGO OFICIAL -->
   <nav class="navbar">
     <a href="index.html" class="brand">
       <img src="img/logo.png" alt="KE Invitaciones" class="brand-logo-img">
@@ -34,97 +23,96 @@
     </div>
   </nav>
 
-  <main class="client-main">
+  <main class="admin-shell">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 24px;">
+    <!-- CABECERA -->
+    <div class="admin-event-bar">
       <div>
-        <h2 style="font-size: 2rem; color: var(--oro); margin-bottom: 4px;">Mi Cuenta: Mis 15 Valentina</h2>
-        <p style="color: var(--texto-suave);">Seguimiento de confirmaciones en vivo y personalización de tu invitación.</p>
+        <div style="font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700;">
+          PORTAL DEL ANFITRIÓN
+        </div>
+        <h1 style="font-size: 1.5rem; color: var(--negro); font-family: 'Playfair Display', serif;" id="client-title">
+          Mis 15 Valentina
+        </h1>
+        <p style="font-size: 0.82rem; color: var(--texto-suave);">Seguimiento de confirmaciones en vivo y personalización de tu invitación.</p>
       </div>
       <div>
-        <a href="invitacion.html" target="_blank" class="btn">
+        <a href="invitacion.html" target="_blank" class="btn btn-sm">
           👁 Ver Invitación en Vivo
         </a>
       </div>
     </div>
 
-    <!-- Métricas del Evento -->
-    <div class="stats-grid">
-      <div class="stat-card featured">
-        <div class="stat-label">Total Confirmados</div>
-        <div class="stat-value" id="client-total-confirmed">0</div>
-        <div style="font-size: 0.85rem; color: #2e7d32; margin-top: 4px;">personas confirmadas</div>
+    <!-- MÉTRICAS EN VIVO -->
+    <div class="admin-kpi-grid">
+      <div class="kpi-card highlight">
+        <div class="kpi-title">Personas Confirmadas</div>
+        <div class="kpi-number" id="client-total-confirmed" style="color: #2e7d32;">0</div>
+        <div class="kpi-subtitle">asistirán a tu fiesta</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Familias / Respuestas</div>
-        <div class="stat-value" id="client-total-replies">0</div>
-        <div style="font-size: 0.85rem; color: var(--texto-suave); margin-top: 4px;">invitados que respondieron</div>
+      <div class="kpi-card">
+        <div class="kpi-title">Familias que respondieron</div>
+        <div class="kpi-number" id="client-total-replies">0</div>
+        <div class="kpi-subtitle">respuestas registradas</div>
       </div>
-      <div class="stat-card">
-        <div class="stat-label">Ingresos Registrados</div>
-        <div class="stat-value" id="client-checked-in" style="color: #2e7d32;">0</div>
-        <div style="font-size: 0.85rem; color: var(--texto-suave); margin-top: 4px;">en recepción con Pase VIP</div>
-      </div>
-    </div>
-
-    <!-- Respuestas de Invitados -->
-    <div class="card">
-      <h3 style="font-size: 1.4rem; color: var(--negro); margin-bottom: 14px;">Confirmaciones Recibidas</h3>
-      <div class="table-responsive">
-        <table class="custom-table">
-          <thead>
-            <tr>
-              <th>Invitado / Familia</th>
-              <th>Respuesta</th>
-              <th>Asistentes</th>
-              <th>Restricción Menú</th>
-              <th>Dedicatoria / Mensaje</th>
-            </tr>
-          </thead>
-          <tbody id="client-guests-body">
-            <!-- Renderizado dinámico -->
-          </tbody>
-        </table>
+      <div class="kpi-card">
+        <div class="kpi-title">Ingresaron al Salón</div>
+        <div class="kpi-number" id="client-checked-in" style="color: var(--oro-oscuro);">0</div>
+        <div class="kpi-subtitle">check-in con Pase VIP</div>
       </div>
     </div>
 
-    <!-- Personalización de Detalles del Evento -->
-    <div class="card card-oro">
-      <h3 style="font-size: 1.4rem; color: var(--oro); margin-bottom: 6px;">Personalizar Mi Invitación</h3>
-      <p style="color: var(--texto-suave); margin-bottom: 20px; font-size: 0.95rem;">Podés actualizar los textos, tu lista de Spotify y tu hashtag de Instagram en tiempo real.</p>
+    <!-- RESPUESTAS RECIBIDAS (CARDS MÓVILES) -->
+    <div class="admin-card-view">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <h2 style="font-size: 1.25rem; color: var(--negro); font-family: 'Playfair Display', serif;">Confirmaciones de Invitados</h2>
+        <span class="badge badge-gold" id="client-badge-total">0 registros</span>
+      </div>
+
+      <div id="client-guests-cards">
+        <!-- Renderizado dinámico -->
+      </div>
+    </div>
+
+    <!-- PERSONALIZAR DETALLES -->
+    <div class="admin-card-view" style="border-color: var(--oro); background: linear-gradient(180deg, #fffcf5 0%, #ffffff 100%);">
+      <div style="margin-bottom: 16px;">
+        <h2 style="font-size: 1.25rem; color: var(--oro-oscuro); font-family: 'Playfair Display', serif;">Personalizar Mi Invitación</h2>
+        <p style="font-size: 0.84rem; color: var(--texto-suave);">Podés actualizar los textos, tu lista de Spotify y tu hashtag de Instagram en tiempo real.</p>
+      </div>
       
       <form id="client-edit-form">
-        <div class="form-group">
-          <label class="form-label">Mensaje de Bienvenida</label>
-          <textarea id="edit-welcome" class="form-textarea" rows="2"></textarea>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Mensaje de Bienvenida</label>
+          <textarea id="edit-welcome" class="form-ctrl" rows="2"></textarea>
         </div>
-        <div class="form-group">
-          <label class="form-label">Dress Code (Código de Vestimenta)</label>
-          <input type="text" id="edit-dress" class="form-input">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Dress Code (Código de Vestimenta)</label>
+          <input type="text" id="edit-dress" class="form-ctrl">
         </div>
-        <div class="form-group">
-          <label class="form-label">Alias Bancario para Regalos</label>
-          <input type="text" id="edit-alias" class="form-input">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Alias Bancario para Regalos</label>
+          <input type="text" id="edit-alias" class="form-ctrl">
         </div>
-        <div class="form-group">
-          <label class="form-label">URL Playlist Spotify</label>
-          <input type="url" id="edit-spotify" class="form-input">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">URL Playlist Spotify</label>
+          <input type="url" id="edit-spotify" class="form-ctrl">
         </div>
-        <div class="form-group">
-          <label class="form-label">Hashtag Oficial de Instagram</label>
-          <input type="text" id="edit-hashtag" class="form-input">
+        <div style="margin-bottom: 16px;">
+          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Hashtag Oficial de Instagram</label>
+          <input type="text" id="edit-hashtag" class="form-ctrl">
         </div>
-        <button type="submit" class="btn">Guardar Cambios</button>
+        <button type="submit" class="btn btn-block">Guardar Cambios en Vivo</button>
       </form>
     </div>
 
   </main>
 
   <footer>
-    <div style="font-size: 1.3rem; letter-spacing: 2px; color: var(--oro); margin-bottom: 6px;">
-      KE <b>INVITACIONES</b>
+    <div style="margin-bottom: 8px;">
+      <img src="img/logo.png" alt="KE Invitaciones" style="max-height: 32px; width: auto; margin: 0 auto; opacity: 0.9;">
     </div>
-    <p style="font-size: 0.9rem; color: #888;">Invitaciones digitales interactivas para momentos inolvidables</p>
+    <p style="font-size: 0.82rem; color: #aaa;">Invitaciones digitales interactivas para momentos inolvidables</p>
   </footer>
 
   <script src="js/app.js"></script>
@@ -140,23 +128,30 @@
 
       document.getElementById("client-total-confirmed").textContent = totalSeats;
       document.getElementById("client-total-replies").textContent = guests.filter(g => g.status !== 'pending').length;
-      document.getElementById("client-checked-in").textContent = `${checkedInSeats} personas`;
+      document.getElementById("client-checked-in").textContent = `${checkedInSeats} pers.`;
+      document.getElementById("client-badge-total").textContent = `${guests.length} invitados`;
 
-      // Tabla de invitados
-      const tbody = document.getElementById("client-guests-body");
-      tbody.innerHTML = guests.map(g => `
-        <tr>
-          <td><b>${g.name}</b></td>
-          <td>
-            <span class="badge ${g.status === 'confirmed' ? 'badge-green' : 'badge-gold'}">
-              ${g.status === 'confirmed' ? '✓ Asistirá' : (g.status === 'declined' ? '✗ No asiste' : 'Pendiente')}
-            </span>
-          </td>
-          <td><b>${g.attendingCount}</b> pers.</td>
-          <td>${g.dietary || '-'}</td>
-          <td><i>${g.message || '-'}</i></td>
-        </tr>
-      `).join("");
+      // Tarjetas móviles de invitados
+      const container = document.getElementById("client-guests-cards");
+      container.innerHTML = guests.map(g => {
+        const isConfirmed = g.status === "confirmed";
+        return `
+          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:10px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+              <div>
+                <b style="font-size:1.05rem; color:var(--negro);">${g.name}</b>
+                <div style="font-size:0.8rem; color:#888;">${g.ticketCode}</div>
+              </div>
+              <span class="badge ${isConfirmed ? 'badge-green' : (g.status === 'declined' ? 'badge-gold' : 'badge-gold')}">
+                ${isConfirmed ? '✓ Confirmó ' + g.attendingCount + ' personas' : (g.status === 'declined' ? '✕ No asiste' : '⏳ Pendiente')}
+              </span>
+            </div>
+            ${g.dietary ? `<div style="font-size:0.78rem; color:#b78103; margin-top:4px;">🥗 Menú: ${g.dietary}</div>` : ''}
+            ${g.message ? `<div style="font-size:0.82rem; color:#555; font-style:italic; margin-top:4px;">"${g.message}"</div>` : ''}
+            ${g.checkIn ? `<div style="font-size:0.75rem; color:#2e7d32; font-weight:bold; margin-top:6px;">✓ Ingresó a las ${g.checkInTime}</div>` : ''}
+          </div>
+        `;
+      }).join("");
 
       // Rellenar formulario de edición
       document.getElementById("edit-welcome").value = inv.welcomeText;
@@ -174,7 +169,7 @@
         inv.instagramHashtag = document.getElementById("edit-hashtag").value;
 
         KE.Store.saveInvitation(inv);
-        KE.showToast("✓ Datos de la invitación actualizados con éxito");
+        KE.showToast("✓ Datos actualizados en vivo");
       });
     });
   </script>

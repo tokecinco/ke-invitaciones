@@ -1,6 +1,6 @@
 /* ==========================================================================
-   KE INVITACIONES - ESTILO PROFESIONAL DE ALTA GAMA & MOBILE-FIRST
-   Logo Oficial + Sobre 3D con Sonido + Iconos Minimalistas con Efectos + Cero Desborde
+   KE INVITACIONES - ESTILO EDITORIAL DE LUJO & MOBILE-FIRST
+   Logo Oficial + Sobre 3D con Sonido + Iconos Minimalistas + Panel Admin Premium
    ========================================================================== */
 
 :root {
@@ -25,11 +25,18 @@
   
   --negro: #121212;
   --negro-ticket: #181613;
+  --negro-tarjeta: #1c1a17;
+  
   --verde: #2e7d32;
+  --verde-fondo: #e8f5e9;
+  --verde-borde: #c8e6c9;
+  --ambar: #b78103;
+  --ambar-fondo: #fff8e1;
   
   --sombra-suave: 0 4px 18px rgba(0, 0, 0, 0.04);
   --sombra-card: 0 8px 24px rgba(201, 162, 75, 0.14);
   --sombra-oro: 0 10px 32px rgba(201, 162, 75, 0.28);
+  --sombra-oscura: 0 15px 40px rgba(0, 0, 0, 0.35);
   
   --radio-sm: 8px;
   --radio-md: 16px;
@@ -69,7 +76,7 @@ body {
 }
 
 /* Tipografía sans-serif para controles e inputs */
-button, input, select, textarea, .sans, .badge, .btn, .time-tag, .stat-value {
+button, input, select, textarea, .sans, .badge, .btn, .time-tag, .stat-value, .filter-chip {
   font-family: 'Montserrat', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
@@ -80,12 +87,12 @@ img, svg, video, canvas {
 }
 
 /* ==========================================================================
-   LOGO OFICIAL DE KE INVITACIONES (NUNCA CORTADO)
+   LOGO OFICIAL DE KE INVITACIONES (RESPONSIVO Y NUNCA CORTADO)
    ========================================================================== */
 .brand-logo-img {
-  height: 38px;
+  height: 36px;
   width: auto;
-  max-width: 220px;
+  max-width: 200px;
   object-fit: contain;
   transition: transform 0.2s ease;
 }
@@ -95,8 +102,8 @@ img, svg, video, canvas {
 
 @media (max-width: 480px) {
   .brand-logo-img {
-    height: 30px;
-    max-width: 160px;
+    height: 28px;
+    max-width: 150px;
   }
 }
 
@@ -186,7 +193,7 @@ img, svg, video, canvas {
 }
 
 /* ==========================================================================
-   BOTONES PRO CON EFECTOS MICRO-INTERACTIVOS
+   BOTONES PRO
    ========================================================================== */
 .btn {
   display: inline-flex;
@@ -227,6 +234,7 @@ img, svg, video, canvas {
 .btn-borde:hover {
   border-color: var(--oro);
   color: var(--oro-oscuro) !important;
+  background: #fffcf7;
 }
 
 .btn-negro {
@@ -237,6 +245,15 @@ img, svg, video, canvas {
 .btn-negro:hover {
   background: #25221d;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+
+.btn-verde {
+  background: linear-gradient(135deg, #388e3c 0%, #2e7d32 100%);
+  color: #fff !important;
+  box-shadow: 0 4px 14px rgba(46, 125, 50, 0.3);
+}
+.btn-verde:hover {
+  box-shadow: 0 6px 18px rgba(46, 125, 50, 0.4);
 }
 
 .btn-spotify {
@@ -258,91 +275,288 @@ img, svg, video, canvas {
   width: 100%;
 }
 
+/* Badges */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.badge-gold {
+  background: #fbf3df;
+  color: var(--oro-oscuro);
+  border: 1px solid var(--borde);
+}
+.badge-premium {
+  background: var(--oro-gradiente);
+  color: #fff;
+}
+.badge-green {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.badge-amber {
+  background: #fff8e1;
+  color: #b78103;
+  border: 1px solid #ffe082;
+}
+
 /* ==========================================================================
-   EFECTOS EN ICONOS Y SECCIONES (NUEVO)
+   DISEÑO PRO DEL PANEL DE ADMINISTRACIÓN (MÓVIL & ESCRITORIO)
    ========================================================================== */
-.icon-circle-badge {
-  width: 54px;
-  height: 54px;
+.admin-shell {
+  width: 100%;
+  max-width: 1060px;
+  margin: 0 auto;
+  padding: 16px 14px 60px;
+  overflow-x: hidden;
+}
+
+/* Barra de Contexto del Evento */
+.admin-event-bar {
+  background: #ffffff;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-md);
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  box-shadow: var(--sombra-suave);
+}
+
+.event-live-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #e8f5e9;
+  color: #1b5e20;
+  border: 1px solid #c8e6c9;
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.event-live-pill::before {
+  content: '';
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #fffdf8;
+  background: #2e7d32;
+  animation: pulseDot 1.6s infinite;
+}
+
+@keyframes pulseDot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Grid de Métricas KPI */
+.admin-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.kpi-card {
+  background: #ffffff;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-md);
+  padding: 16px 14px;
+  box-shadow: var(--sombra-suave);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, border-color 0.2s ease;
+}
+.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--oro);
+}
+
+.kpi-card.highlight {
+  border-color: var(--oro);
+  background: linear-gradient(180deg, #fffcf5 0%, #ffffff 100%);
+  box-shadow: var(--sombra-card);
+}
+
+.kpi-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--texto-suave);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.kpi-number {
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--negro);
+  margin: 4px 0 2px;
+  line-height: 1.1;
+}
+.kpi-card.highlight .kpi-number {
+  color: var(--oro-oscuro);
+}
+
+.kpi-subtitle {
+  font-size: 0.75rem;
+  color: var(--texto-claro);
+  font-weight: 500;
+}
+
+/* Barra de progreso de asistencia */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: #f0e7d5;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 8px;
+}
+.progress-bar {
+  height: 100%;
+  background: var(--oro-gradiente);
+  border-radius: 10px;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Pestañas Segmentadas Táctiles (Mobile First) */
+.admin-nav-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.admin-nav-tabs::-webkit-scrollbar { display: none; }
+
+.admin-tab-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1.5px solid var(--borde);
+  color: var(--texto-suave);
+  padding: 8px 14px;
+  border-radius: 20px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.admin-tab-item.active {
+  background: var(--oro-gradiente);
+  color: #ffffff;
+  border-color: transparent;
+  box-shadow: 0 4px 12px rgba(201, 162, 75, 0.35);
+}
+
+/* Tarjeta Principal de la Vista */
+.admin-card-view {
+  background: #ffffff;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-lg);
+  padding: 20px 16px;
+  box-shadow: var(--sombra-suave);
+  margin-bottom: 20px;
+}
+
+/* Buscador y Filtros */
+.search-filter-box {
+  background: #faf4e8;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-md);
+  padding: 14px;
+  margin-bottom: 18px;
+}
+
+.filter-chips-row {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-top: 8px;
+  scrollbar-width: none;
+}
+.filter-chips-row::-webkit-scrollbar { display: none; }
+
+.filter-chip {
+  background: #ffffff;
+  border: 1px solid var(--borde);
+  padding: 5px 12px;
+  border-radius: 14px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--texto-suave);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+.filter-chip.active {
+  background: var(--oro-oscuro);
+  color: #ffffff;
+  border-color: var(--oro-oscuro);
+}
+
+/* Tarjetas Individuales de Invitados para Check-in */
+.guest-checkin-card {
+  background: #ffffff;
+  border: 1.5px solid var(--borde);
+  border-radius: var(--radio-md);
+  padding: 14px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  transition: all 0.2s ease;
+}
+
+.guest-checkin-card:hover {
+  border-color: var(--oro);
+  box-shadow: 0 4px 14px rgba(201, 162, 75, 0.12);
+}
+
+.guest-checkin-card.is-entered {
+  background: #f4faf4;
+  border-color: #a5d6a7;
+}
+
+.guest-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.guest-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #fff8e6;
   border: 1.5px solid var(--oro);
+  color: var(--oro-oscuro);
+  font-size: 0.95rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto 12px;
-  box-shadow: 0 4px 14px rgba(201, 162, 75, 0.16);
-  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
-  position: relative;
-}
-
-.icon-circle-badge::after {
-  content: '';
-  position: absolute;
-  inset: -4px;
-  border-radius: 50%;
-  border: 1px dashed rgba(201, 162, 75, 0.35);
-  animation: rotateDashed 20s linear infinite;
-}
-
-@keyframes rotateDashed {
-  100% { transform: rotate(360deg); }
-}
-
-.icon-circle-badge:hover, .icon-circle-badge:active {
-  transform: scale(1.12) rotate(6deg);
-  box-shadow: 0 6px 22px rgba(201, 162, 75, 0.4);
-}
-
-.icon-svg {
-  width: 24px;
-  height: 24px;
-  stroke: var(--oro);
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  fill: none;
-  transition: stroke 0.2s ease, transform 0.2s ease;
-}
-
-.icon-circle-badge:hover .icon-svg {
-  stroke: var(--oro-oscuro);
-  transform: scale(1.08);
-}
-
-.icon-svg-lg {
-  width: 32px;
-  height: 32px;
-}
-
-/* Efectos de Revelación en Scroll */
-.scroll-reveal {
-  opacity: 0;
-  transform: translateY(24px) scale(0.98);
-  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-.scroll-reveal.is-visible {
-  opacity: 1;
-  transform: translateY(0) scale(1);
-}
-
-/* Efecto Shimmer de Oro */
-.gold-shimmer {
-  background: linear-gradient(90deg, #c9a24b 0%, #fff0b8 50%, #c9a24b 100%);
-  background-size: 200% auto;
-  color: transparent !important;
-  -webkit-background-clip: text !important;
-  background-clip: text !important;
-  animation: shineGold 4s linear infinite;
-}
-
-@keyframes shineGold {
-  to { background-position: 200% center; }
+  flex-shrink: 0;
 }
 
 /* ==========================================================================
-   SOBRE DIGITAL REALISTA 3D CON SONIDO & SOLAPAS
+   SOBRE DIGITAL 3D REALISTA CON SONIDO
    ========================================================================== */
 .envelope-overlay-3d {
   position: fixed;
@@ -379,7 +593,6 @@ img, svg, video, canvas {
   transform: scale(1.02);
 }
 
-/* Cuerpo base del sobre */
 .envelope-3d-body {
   position: absolute;
   inset: 0;
@@ -390,7 +603,6 @@ img, svg, video, canvas {
   overflow: hidden;
 }
 
-/* Solapas triangulares */
 .flap-left {
   position: absolute;
   top: 0;
@@ -432,7 +644,6 @@ img, svg, video, canvas {
   filter: drop-shadow(0 -3px 4px rgba(0,0,0,0.06));
 }
 
-/* Solapa superior abatible en 3D */
 .flap-top {
   position: absolute;
   top: 0;
@@ -455,7 +666,6 @@ img, svg, video, canvas {
   z-index: 1;
 }
 
-/* Carta interior que sube */
 .letter-inside {
   position: absolute;
   top: 10px;
@@ -480,7 +690,6 @@ img, svg, video, canvas {
   transform: translateY(-90px);
 }
 
-/* Sello de cera con monograma y corazón */
 .wax-seal-monogram {
   position: absolute;
   top: 102px;
@@ -513,23 +722,6 @@ img, svg, video, canvas {
 .envelope-3d-wrapper.opening .wax-seal-monogram {
   opacity: 0;
   transform: translate(-50%, -120%) scale(0.6);
-}
-
-/* Partículas de destellos */
-.sparkle-particle {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  background: var(--oro-brillante);
-  border-radius: 50%;
-  pointer-events: none;
-  opacity: 0;
-  animation: sparkleFly 0.8s ease-out forwards;
-}
-
-@keyframes sparkleFly {
-  0% { opacity: 1; transform: translate(0, 0) scale(1); }
-  100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.2); }
 }
 
 /* ==========================================================================
@@ -646,7 +838,62 @@ img, svg, video, canvas {
   width: 100%;
 }
 
-/* Itinerario Cronológico con micro-animaciones */
+/* Iconos Minimalistas Monocolor con Halo Dorado */
+.icon-circle-badge {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #fffdf8;
+  border: 1.5px solid var(--oro);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  box-shadow: 0 4px 14px rgba(201, 162, 75, 0.16);
+  transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+  position: relative;
+}
+
+.icon-circle-badge::after {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  border: 1px dashed rgba(201, 162, 75, 0.35);
+  animation: rotateDashed 20s linear infinite;
+}
+
+@keyframes rotateDashed {
+  100% { transform: rotate(360deg); }
+}
+
+.icon-circle-badge:hover, .icon-circle-badge:active {
+  transform: scale(1.1) rotate(6deg);
+  box-shadow: 0 6px 20px rgba(201, 162, 75, 0.38);
+}
+
+.icon-svg {
+  width: 24px;
+  height: 24px;
+  stroke: var(--oro);
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+  transition: stroke 0.2s ease, transform 0.2s ease;
+}
+
+.icon-circle-badge:hover .icon-svg {
+  stroke: var(--oro-oscuro);
+  transform: scale(1.06);
+}
+
+.icon-svg-lg {
+  width: 30px;
+  height: 30px;
+}
+
+/* Itinerario Cronológico */
 .timeline-clean {
   position: relative;
   text-align: left;
@@ -707,7 +954,7 @@ img, svg, video, canvas {
   font-family: 'Montserrat', sans-serif;
 }
 
-/* Boleto VIP (Protección estricta de desborde) */
+/* Boleto VIP */
 .ticket-gala {
   background: var(--negro-ticket);
   color: #ffffff;
@@ -820,22 +1067,48 @@ img, svg, video, canvas {
   transform: translateX(-50%) translateY(0);
 }
 
-/* Galería */
-.gallery-2col {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  width: 100%;
-  margin: 14px 0;
+/* Modales */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: none;
+  align-items: flex-end; /* En móvil se desliza desde abajo como Bottom Sheet */
+  justify-content: center;
+  z-index: 10000;
 }
-.gallery-2col img {
-  width: 100%;
-  height: 145px;
-  object-fit: cover;
-  border-radius: 12px;
-  border: 1px solid var(--borde);
-  transition: transform 0.3s ease;
+.modal-overlay.active {
+  display: flex;
 }
-.gallery-2col img:hover {
-  transform: scale(1.04);
+.modal-box {
+  background: #ffffff;
+  border-radius: 24px 24px 0 0;
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: 24px 18px 30px;
+  box-shadow: var(--sombra-oscura);
+  animation: slideUpSheet 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 560px) {
+  .modal-overlay {
+    align-items: center;
+    padding: 16px;
+  }
+  .modal-box {
+    border-radius: 24px;
+    animation: zoomModal 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+
+@keyframes slideUpSheet {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+@keyframes zoomModal {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
