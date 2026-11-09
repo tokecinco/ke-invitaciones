@@ -1,0 +1,72 @@
+/* Sobre animado */
+#sobre { position:relative; overflow:hidden;
+  background:radial-gradient(circle at 50% 35%, var(--suave), var(--fondo) 70%); }
+#sobre .sobre-caja { border:0; background:none; padding:0; box-shadow:none;
+  position:relative; z-index:2; animation:aparece .9s ease; }
+#sobre .sobre-caja.saliendo { animation:salirSobre .6s ease forwards; }
+@keyframes salirSobre { to { opacity:0; transform:scale(1.15) translateY(-24px); } }
+
+.sobre3d { position:relative; width:min(86vw, 340px); aspect-ratio:1.15; margin:0 auto;
+  perspective:900px; animation:flotaSobre 4s ease-in-out infinite; }
+.sobre3d.abierto { animation:none; }
+@keyframes flotaSobre { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
+
+.sobre3d::before { content:""; position:absolute; inset:0; border-radius:8px; z-index:0;
+  border:1.5px solid var(--acento);
+  background:linear-gradient(rgba(0,0,0,.14), rgba(0,0,0,.14)), var(--suave);
+  box-shadow:0 16px 30px rgba(0,0,0,.2); }
+
+.carta { position:absolute; left:7%; right:7%; top:8%; bottom:8%; z-index:1;
+  background:#fffdf8; border-radius:8px; box-shadow:0 2px 8px rgba(0,0,0,.15);
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  gap:4px; padding:10px; color:#1a1a1a; }
+.carta-adorno { color:var(--acento); font-size:1.4rem; }
+.carta-tipo { margin:0; font-size:1.05rem; letter-spacing:2px; text-transform:uppercase; }
+.carta-esp { margin:0; font-style:italic; font-size:.95rem; }
+
+.sobre-frente { position:absolute; inset:0; z-index:2; border-radius:8px;
+  clip-path:polygon(0 0, 50% 50%, 100% 0, 100% 100%, 0 100%);
+  background:linear-gradient(180deg, rgba(0,0,0,.02), rgba(0,0,0,.12)), var(--suave); }
+
+.solapa { position:absolute; left:0; right:0; top:0; height:50%; z-index:4;
+  transform-origin:50% 0; clip-path:polygon(0 0, 100% 0, 50% 100%);
+  background:linear-gradient(180deg, rgba(255,255,255,.4), rgba(0,0,0,.06)), var(--suave); }
+.abierto .solapa { animation:abreSolapa .8s ease forwards; }
+@keyframes abreSolapa {
+  0%   { transform:rotateX(0deg);   z-index:4; }
+  49%  { z-index:4; }
+  50%  { transform:rotateX(90deg);  z-index:0; }
+  100% { transform:rotateX(180deg); z-index:0; }
+}
+.abierto .carta { animation:subeCarta 1s ease .45s forwards; }
+@keyframes subeCarta { to { transform:translateY(-58%) scale(1.03); } }
+
+.sobre-texto { position:absolute; left:6%; right:6%; top:62%; bottom:5%; z-index:3;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.sobre-pre { margin:0; font-size:.75rem; letter-spacing:2px; text-transform:uppercase; }
+.sobre-texto #sobre-nombre { font-size:clamp(1.25rem, 6.5vw, 1.7rem); margin:2px 0;
+  line-height:1.15; overflow-wrap:anywhere; }
+.sobre-texto .para { margin:2px 0 0; font-size:.85rem; }
+
+.sello { position:absolute; left:50%; top:50%; width:56px; height:56px; margin:-28px 0 0 -28px;
+  z-index:5; border:0; border-radius:50%; color:#fff; font-family:inherit; font-size:1rem;
+  letter-spacing:1px; cursor:pointer;
+  background:radial-gradient(circle at 35% 30%, rgba(255,255,255,.55), transparent 45%), var(--acento);
+  box-shadow:0 4px 10px rgba(0,0,0,.35), inset 0 -3px 6px rgba(0,0,0,.25);
+  animation:latido 1.8s ease-in-out infinite; }
+.abierto .sello { animation:rompe .5s ease forwards; pointer-events:none; }
+@keyframes latido { 0%,100% { transform:scale(1); } 50% { transform:scale(1.1); } }
+@keyframes rompe { 40% { transform:scale(1.35); } 100% { transform:scale(0); opacity:0; } }
+
+.toca { margin:22px 0 0; font-size:.9rem; letter-spacing:1px;
+  animation:parpadeo 2s ease-in-out infinite; }
+.sobre3d.abierto ~ .toca { opacity:0; animation:none; }
+@keyframes parpadeo { 0%,100% { opacity:.5; } 50% { opacity:1; } }
+
+.chispa { position:absolute; left:50%; top:50%; width:8px; height:8px; margin:-4px 0 0 -4px;
+  border-radius:50%; background:var(--acento); box-shadow:0 0 8px var(--acento);
+  z-index:6; animation:chispa .9s ease-out forwards; }
+@keyframes chispa {
+  from { transform:translate(0, 0) scale(1); opacity:1; }
+  to   { transform:translate(var(--dx), var(--dy)) scale(.2); opacity:0; }
+                            }
