@@ -9,10 +9,25 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    body {
+      overflow-x: hidden !important;
+      max-width: 100vw !important;
+    }
+    .admin-container {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 16px 14px 60px;
+      overflow-x: hidden;
+    }
     .search-bar-wrap {
       display: flex;
       gap: 8px;
       margin-bottom: 16px;
+      width: 100%;
+    }
+    .search-bar-wrap input {
+      min-width: 0;
+      flex: 1;
     }
     .checkin-badge-counter {
       background: #e8f5e9;
@@ -30,16 +45,16 @@
 </head>
 <body style="background: #faf6f0;">
 
-  <!-- NAVBAR RESPONSIVA -->
+  <!-- NAVBAR RESPONSIVA (CON LOGO OFICIAL DE KE INVITACIONES) -->
   <nav class="navbar">
     <a href="index.html" class="brand">
-      <div class="brand-monogram">KE</div>
-      <div class="brand-text">KE <b>ADMIN</b></div>
+      <img src="img/logo.png" alt="KE Invitaciones" class="brand-logo-img">
     </a>
     <div class="nav-links">
-      <a href="invitacion.html" target="_blank" class="nav-link" style="font-size: 0.85rem;">👁 Ver Invitación</a>
-      <a href="cliente.html" class="nav-link" style="font-size: 0.85rem;">Mi Cuenta</a>
-      <button class="btn btn-sm" id="btn-top-nueva">+ Crear</button>
+      <a href="invitacion.html" target="_blank" class="nav-link hide-mobile" style="font-size: 0.82rem;">Ver Invitación</a>
+      <a href="cliente.html" class="nav-link hide-mobile" style="font-size: 0.82rem;">Mi Cuenta</a>
+      <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde" style="padding: 6px 10px;">👁 Ver</a>
+      <button class="btn btn-sm" id="btn-top-nueva" style="padding: 6px 10px;">+ Crear</button>
     </div>
   </nav>
 

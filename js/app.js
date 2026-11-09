@@ -317,10 +317,10 @@
         const el = typeof sel === "string" ? document.querySelector(sel) : sel;
         if (!el) return;
         el.innerHTML = `
-          <div class="countdown-box"><div class="num">${d}</div><div class="label">Días</div></div>
-          <div class="countdown-box"><div class="num">${String(h).padStart(2, '0')}</div><div class="label">Horas</div></div>
-          <div class="countdown-box"><div class="num">${String(m).padStart(2, '0')}</div><div class="label">Min</div></div>
-          <div class="countdown-box"><div class="num">${String(s).padStart(2, '0')}</div><div class="label">Seg</div></div>
+          <div class="countdown-box-mini"><div class="val">${d}</div><div class="lbl">Días</div></div>
+          <div class="countdown-box-mini"><div class="val">${String(h).padStart(2, '0')}</div><div class="lbl">Horas</div></div>
+          <div class="countdown-box-mini"><div class="val">${String(m).padStart(2, '0')}</div><div class="lbl">Min</div></div>
+          <div class="countdown-box-mini"><div class="val">${String(s).padStart(2, '0')}</div><div class="lbl">Seg</div></div>
         `;
       });
     }
@@ -335,14 +335,14 @@
     if (!toast) {
       toast = document.createElement("div");
       toast.id = "ke-toast";
-      toast.className = "toast";
+      toast.className = "toast-msg";
       document.body.appendChild(toast);
     }
     toast.textContent = message;
     toast.classList.add("show");
     setTimeout(() => {
       toast.classList.remove("show");
-    }, 3000);
+    }, 2800);
   }
 
   global.KE = {
