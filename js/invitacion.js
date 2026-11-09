@@ -4,9 +4,14 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const $ = (id) => document.getElementById(id);
-const idInvitacion = new URLSearchParams(location.search).get("i");
+const params = new URLSearchParams(location.search);
+const idInvitacion = params.get("i");
+const idInvitado = params.get("g");
 const REDUCIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
-const LIMITES = { basico: { maxPhotos: 2, music: false }, premium: { maxPhotos: 6, music: true } };
+const LIMITES = {
+  basico: { maxPhotos: 2, music: false, personalized: false },
+  premium: { maxPhotos: 6, music: true, personalized: true }
+};
 
 function mostrarError(texto) {
   $("cargando").hidden = true;
@@ -40,14 +45,28 @@ async function cargar() {
     const p = await getDoc(doc(db, "settings", "packages"));
     if (p.exists() && p.data()[clave]) {
       const g = p.data()[clave];
-      lim = { maxPhotos: g.maxPhotos || lim.maxPhotos, music: !!g.music };
+      lim = {
+        maxPhotos: g.maxPhotos || lim.maxPhotos,
+        music: !!g.music,
+        personalized: !!g.personalized
+      };
     }
   } catch (e) { console.error(e); }
 
-  mostrar(d, lim);
+  let invitado = null;
+  if (idInvitado && lim.personalized) {
+    try {
+      const gs = await getDoc(doc(db, "guests", idInvitado));
+      if (gs.exists() && gs.data().invitationId === idInvitacion) {
+        invitado = { id: idInvitado, ...gs.data() };
+      }
+    } catch (e) { console.error(e); }
+  }
+
+  mostrar(d, lim, invitado);
 }
 
-function mostrar(d, lim) {
+function mostrar(d, lim, invitado) {
   const plantillas = ["cumple", "quince", "boda"];
   if (plantillas.includes(d.template)) document.body.classList.add("tpl-" + d.template);
 
@@ -58,6 +77,8 @@ function mostrar(d, lim) {
   $("tipo").textContent = d.eventType || "";
   $("bienvenida").textContent = d.welcome || "";
   $("mensaje").textContent = d.message || "";
+
+  if (invitado) personalizar(invitado);
 
   const fotos = (Array.isArray(d.photos) ? d.photos.filter(imagenSegura) : []).slice(0, lim.maxPhotos);
   if (fotos.length) {
@@ -95,7 +116,7 @@ function mostrar(d, lim) {
 
   const hayMusica = lim.music && urlSegura(d.music);
   if (hayMusica) configurarMusica(d.music);
-  configurarRsvp(d);
+  configurarRsvp(d, invitado);
   configurarCompartir(nombre);
 
   $("cargando").hidden = true;
@@ -111,6 +132,34 @@ function mostrar(d, lim) {
       if (hayMusica) reproducir();
     }, REDUCIR ? 0 : 600);
   });
+}
+
+function personalizar(invitado) {
+  const estilo = document.createElement("style");
+  estilo.textContent =
+    ".para{margin:14px 0 0;font-size:1.05rem;line-height:1.4}" +
+    ".para b{color:var(--acento);font-size:1.25rem}" +
+    ".portada .para{opacity:0;animation:subir 1s ease 2s forwards}" +
+    ".portada.con-foto .para b{color:#fff}";
+  document.head.appendChild(estilo);
+
+  const enSobre = document.createElement("p");
+  enSobre.className = "para";
+  enSobre.append("Para ");
+  const b1 = document.createElement("b");
+  b1.textContent = invitado.name;
+  enSobre.appendChild(b1);
+  $("sobre-nombre").insertAdjacentElement("afterend", enSobre);
+
+  const enPortada = document.createElement("p");
+  enPortada.className = "para";
+  enPortada.append("Invitación para ");
+  const b2 = document.createElement("b");
+  b2.textContent = invitado.name;
+  enPortada.appendChild(b2);
+  enPortada.appendChild(document.createElement("br"));
+  enPortada.append("Lugares reservados: " + invitado.seats);
+  $("bienvenida").insertAdjacentElement("afterend", enPortada);
 }
 
 function decorarPortada() {
@@ -299,7 +348,17 @@ function mostrarBotonWhatsapp(d, nombre, asiste, cantidad) {
   a.href = "https://wa.me/" + numero + "?text=" + encodeURIComponent(texto);
 }
 
-function configurarRsvp(d) {
+function configurarRsvp(d, invitado) {
+  const maximo = invitado ? invitado.seats : 20;
+
+  const completar = () => {
+    if (!invitado) return;
+    $("r-nombre").value = invitado.name;
+    $("r-cantidad").max = invitado.seats;
+    $("r-cantidad").value = invitado.seats;
+  };
+  completar();
+
   $("form-rsvp").addEventListener("submit", async (e) => {
     e.preventDefault();
     const estado = $("r-estado");
@@ -309,8 +368,11 @@ function configurarRsvp(d) {
     const mensaje = $("r-mensaje").value.trim();
 
     if (!nombre) { estado.textContent = "Escribí tu nombre."; return; }
-    if (asiste && (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > 20)) {
-      estado.textContent = "La cantidad debe ser entre 1 y 20."; return;
+    if (asiste && (!Number.isInteger(cantidad) || cantidad < 1 || cantidad > maximo)) {
+      estado.textContent = invitado
+        ? "Tenés " + invitado.seats + " lugar(es) reservado(s). Elegí entre 1 y " + invitado.seats + "."
+        : "La cantidad debe ser entre 1 y 20.";
+      return;
     }
     if (!asiste) cantidad = 0;
 
@@ -322,6 +384,7 @@ function configurarRsvp(d) {
       createdAt: serverTimestamp()
     };
     if (mensaje) datos.message = mensaje;
+    if (invitado) datos.guestId = invitado.id;
 
     const boton = e.target.querySelector("button");
     boton.disabled = true;
@@ -330,6 +393,7 @@ function configurarRsvp(d) {
       await addDoc(collection(db, "rsvps"), datos);
       estado.textContent = "¡Gracias! Tu respuesta fue enviada.";
       e.target.reset();
+      completar();
       mostrarBotonWhatsapp(d, nombre, asiste, cantidad);
     } catch (err) {
       console.error(err);
