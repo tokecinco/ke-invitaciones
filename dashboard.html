@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Panel de Administración Pro | KE Invitaciones</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .search-bar-wrap {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .checkin-badge-counter {
+      background: #e8f5e9;
+      color: #1b5e20;
+      border: 1px solid #c8e6c9;
+      border-radius: 12px;
+      padding: 10px 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body style="background: #faf6f0;">
+
+  <!-- NAVBAR RESPONSIVA -->
+  <nav class="navbar">
+    <a href="index.html" class="brand">
+      <div class="brand-monogram">KE</div>
+      <div class="brand-text">KE <b>ADMIN</b></div>
+    </a>
+    <div class="nav-links">
+      <a href="invitacion.html" target="_blank" class="nav-link" style="font-size: 0.85rem;">👁 Ver Invitación</a>
+      <a href="cliente.html" class="nav-link" style="font-size: 0.85rem;">Mi Cuenta</a>
+      <button class="btn btn-sm" id="btn-top-nueva">+ Crear</button>
+    </div>
+  </nav>
+
+  <main class="admin-container">
+
+    <!-- CABECERA PRINCIPAL -->
+    <div style="margin-bottom: 18px;">
+      <h1 style="font-size: 1.85rem; color: var(--negro); font-family: 'Playfair Display', serif; font-weight: 700;">
+        Panel de Control & Recepción
+      </h1>
+      <p style="font-size: 0.88rem; color: var(--texto-suave);">
+        Gestión integral de eventos, ingresos en puerta por QR y finanzas.
+      </p>
+    </div>
+
+    <!-- MÉTRICAS EN VIVO -->
+    <div class="stats-grid" id="stats-dashboard">
+      <!-- Renderizado dinámico -->
+    </div>
+
+    <!-- TABS DE NAVEGACIÓN ADAPTABLES AL PULGAR EN MÓVIL -->
+    <div class="admin-tabs">
+      <button class="admin-tab-btn active" data-tab="tab-checkin">🚪 Puerta / Check-in QR</button>
+      <button class="admin-tab-btn" data-tab="tab-invitaciones">📑 Invitaciones</button>
+      <button class="admin-tab-btn" data-tab="tab-invitados">👥 Invitados & Pases VIP</button>
+      <button class="admin-tab-btn" data-tab="tab-pagos">💵 Pagos & Señas</button>
+      <button class="admin-tab-btn" data-tab="tab-qr">📱 Códigos QR</button>
+    </div>
+
+    <!-- TAB 1: CHECK-IN EN PUERTA CON SCANNER / BÚSQUEDA RÁPIDA -->
+    <section id="tab-checkin" class="admin-tab-content admin-panel">
+      <div class="checkin-badge-counter">
+        <span style="font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px;">Control de Ingreso en Salón:</span>
+        <span id="checkin-live-count" style="font-size: 1.25rem;">0 / 0 personas</span>
+      </div>
+
+      <!-- Buscador en tiempo real optimizado para móvil -->
+      <div class="search-bar-wrap">
+        <input type="text" id="checkin-quick-search" class="form-input" placeholder="Buscar por ticket (ej: TKT-VALEN-001) o apellido..." style="font-size: 0.95rem;">
+        <button type="button" class="btn" id="btn-search-trigger" style="white-space: nowrap;">Validar</button>
+      </div>
+
+      <!-- Lista de pases para móvil & desktop -->
+      <div id="checkin-cards-container">
+        <!-- Renderizado dinámico con botones grandes para pulgar -->
+      </div>
+    </section>
+
+    <!-- TAB 2: GESTOR DE EVENTOS E INVITACIONES -->
+    <section id="tab-invitaciones" class="admin-tab-content admin-panel" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 style="font-size: 1.3rem; color: var(--negro);">Eventos Creados</h2>
+        <button class="btn btn-sm" id="btn-add-inv-tab">+ Nueva Invitación</button>
+      </div>
+      <div id="invitations-container">
+        <!-- Renderizado dinámico -->
+      </div>
+    </section>
+
+    <!-- TAB 3: LISTA DE INVITADOS & PASES VIP -->
+    <section id="tab-invitados" class="admin-tab-content admin-panel" style="display: none;">
+      <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 16px;">
+        <h2 style="font-size: 1.3rem; color: var(--negro);">Invitados Asignados</h2>
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-sm btn-borde" id="btn-export-csv">📥 Exportar CSV</button>
+          <button class="btn btn-sm" id="btn-open-guest-modal">+ Cargar Invitado</button>
+        </div>
+      </div>
+      <div id="guests-container">
+        <!-- Renderizado dinámico -->
+      </div>
+    </section>
+
+    <!-- TAB 4: CONTROL FINANCIERO & SALDOS -->
+    <section id="tab-pagos" class="admin-tab-content admin-panel" style="display: none;">
+      <h2 style="font-size: 1.3rem; color: var(--negro); margin-bottom: 16px;">Finanzas, Señas y Saldos</h2>
+      <div id="payments-container">
+        <!-- Renderizado dinámico -->
+      </div>
+    </section>
+
+    <!-- TAB 5: GENERADOR DE QR PARA IMPRENTA -->
+    <section id="tab-qr" class="admin-tab-content admin-panel" style="display: none; text-align: center;">
+      <h2 style="font-size: 1.4rem; color: var(--oro-oscuro); margin-bottom: 6px;">Códigos QR de Alta Calidad</h2>
+      <p style="font-size: 0.88rem; color: var(--texto-suave); margin-bottom: 18px;">
+        Generá el código QR listo para imprimir en tarjetas de invitación físicas o sobres.
+      </p>
+
+      <div class="form-group" style="max-width: 380px; margin: 0 auto 16px; text-align: left;">
+        <label class="form-label">Seleccionar Invitación:</label>
+        <select id="select-qr-inv" class="form-select"></select>
+      </div>
+
+      <div style="background: #ffffff; padding: 20px; border-radius: 18px; border: 1.5px solid var(--borde); display: inline-block; margin-bottom: 18px; box-shadow: var(--sombra-suave);">
+        <div id="qr-live-preview"></div>
+        <div style="margin-top: 10px; font-weight: 700;" id="qr-title-preview">Mis 15 Valentina</div>
+        <div style="font-size: 0.78rem; color: #888; word-break: break-all;" id="qr-url-preview"></div>
+      </div>
+
+      <div style="display: flex; gap: 10px; justify-content: center;">
+        <button class="btn" id="btn-download-qr-file">Descargar PNG</button>
+        <button class="btn btn-borde" onclick="window.print()">Imprimir Ficha</button>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: NUEVA INVITACIÓN -->
+  <div class="modal-overlay" id="modal-inv">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
+        <h3 style="font-size: 1.25rem;">Nueva Invitación Digital</h3>
+        <button type="button" class="btn-borde" style="border:none; font-size:1.4rem; cursor:pointer;" id="modal-inv-close">&times;</button>
+      </div>
+      <form id="form-create-inv">
+        <div class="form-group">
+          <label class="form-label">Título del Evento *</label>
+          <input type="text" id="new-inv-title" class="form-input" required placeholder="Ej: Mis 15 Sofía">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Agasajado/a o Pareja *</label>
+          <input type="text" id="new-inv-celebrant" class="form-input" required placeholder="Ej: Sofía Gómez">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tipo de Evento *</label>
+          <select id="new-inv-type" class="form-select">
+            <option value="15 Años">15 Años</option>
+            <option value="Casamiento">Casamiento</option>
+            <option value="Cumpleaños Infantil">Cumpleaños Infantil</option>
+            <option value="Bautismo">Bautismo</option>
+            <option value="Baby Shower">Baby Shower</option>
+            <option value="Aniversario">Aniversario</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fecha y Hora *</label>
+          <input type="datetime-local" id="new-inv-date" class="form-input" required value="2026-12-19T21:00">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Salón y Dirección *</label>
+          <input type="text" id="new-inv-venue" class="form-input" required placeholder="Salón Palacio San Martín, Palermo">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Paquete *</label>
+          <select id="new-inv-package" class="form-select">
+            <option value="Premium" selected>Premium VIP (Pase QR, Itinerario, Spotify, Instagram)</option>
+            <option value="Básico">Básico</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">URL Playlist Spotify</label>
+          <input type="url" id="new-inv-spotify" class="form-input" placeholder="https://open.spotify.com/playlist/...">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Hashtag de Instagram</label>
+          <input type="text" id="new-inv-hashtag" class="form-input" placeholder="#Mis15Sofi">
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px;">
+          <button type="button" class="btn btn-borde" id="modal-inv-cancel">Cancelar</button>
+          <button type="submit" class="btn">Guardar Evento</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL: AGREGAR INVITADO -->
+  <div class="modal-overlay" id="modal-guest">
+    <div class="modal-box">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; border-bottom: 1px solid var(--borde); padding-bottom: 10px;">
+        <h3 style="font-size: 1.25rem;">Cargar Invitado / Pase VIP</h3>
+        <button type="button" class="btn-borde" style="border:none; font-size:1.4rem; cursor:pointer;" id="modal-guest-close">&times;</button>
+      </div>
+      <form id="form-create-guest">
+        <div class="form-group">
+          <label class="form-label">Nombre del Invitado o Familia *</label>
+          <input type="text" id="new-guest-name" class="form-input" required placeholder="Ej: Familia Rossi">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Cupos Reservados *</label>
+          <input type="number" id="new-guest-seats" class="form-input" required min="1" max="10" value="2">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Teléfono WhatsApp</label>
+          <input type="tel" id="new-guest-phone" class="form-input" placeholder="+54 9 11 ...">
+        </div>
+        <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 18px;">
+          <button type="button" class="btn btn-borde" id="modal-guest-cancel">Cancelar</button>
+          <button type="submit" class="btn">Crear Pase VIP</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/qr.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      // Audio Chime con Web Audio API (efecto sonoro táctil sin dependencias de red)
+      function playChime(success = true) {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = ctx.createOscillator();
+          const gain = ctx.createGain();
+          osc.connect(gain);
+          gain.connect(ctx.destination);
+          osc.type = "sine";
+          if (success) {
+            osc.frequency.setValueAtTime(587.33, ctx.currentTime); // D5
+            osc.frequency.setValueAtTime(880, ctx.currentTime + 0.1); // A5
+          } else {
+            osc.frequency.setValueAtTime(300, ctx.currentTime);
+          }
+          gain.gain.setValueAtTime(0.2, ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.35);
+          osc.start();
+          osc.stop(ctx.currentTime + 0.35);
+        } catch (e) {
+          // Si el audio está bloqueado, no interrumpe la UI
+        }
+      }
+
+      // Tabs
+      const tabBtns = document.querySelectorAll(".admin-tab-btn");
+      const tabContents = document.querySelectorAll(".admin-tab-content");
+      tabBtns.forEach(btn => {
+        btn.addEventListener("click", () => {
+          tabBtns.forEach(b => b.classList.remove("active"));
+          tabContents.forEach(c => c.style.display = "none");
+          btn.classList.add("active");
+          const target = document.getElementById(btn.dataset.tab);
+          if (target) target.style.display = "block";
+        });
+      });
+
+      function renderDashboard() {
+        renderStats();
+        renderCheckinList();
+        renderInvitations();
+        renderGuests();
+        renderPayments();
+        renderQr();
+      }
+
+      function renderStats() {
+        const m = KE.Store.getMetrics();
+        const el = document.getElementById("stats-dashboard");
+        el.innerHTML = `
+          <div class="stat-card featured">
+            <div class="stat-label">Eventos</div>
+            <div class="stat-value">${m.totalInvitations}</div>
+            <div style="font-size:0.75rem; color:#2e7d32; margin-top:2px;">${m.activeInvitations} en línea</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Confirmados</div>
+            <div class="stat-value">${m.totalAttendingSeats}</div>
+            <div style="font-size:0.75rem; color:var(--texto-suave); margin-top:2px;">lugares</div>
+          </div>
+          <div class="stat-card featured">
+            <div class="stat-label">En Salón</div>
+            <div class="stat-value" style="color:#2e7d32;">${m.checkedInSeats}</div>
+            <div style="font-size:0.75rem; color:#2e7d32; margin-top:2px;">de ${m.totalAttendingSeats} esperados</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Ingresos</div>
+            <div class="stat-value">$${(m.totalRevenue / 1000).toFixed(0)}k</div>
+            <div style="font-size:0.75rem; color:var(--oro-oscuro); margin-top:2px;">Señas: $${(m.totalDeposits / 1000).toFixed(0)}k</div>
+          </div>
+        `;
+      }
+
+      function renderCheckinList(filterText = "") {
+        const guests = KE.Store.getGuests();
+        const container = document.getElementById("checkin-cards-container");
+        
+        let filtered = guests;
+        if (filterText) {
+          const q = filterText.toUpperCase();
+          filtered = guests.filter(g => g.name.toUpperCase().includes(q) || g.ticketCode.toUpperCase().includes(q));
+        }
+
+        const totalConfirmed = guests.filter(g => g.status === "confirmed").reduce((s, g) => s + (g.attendingCount || g.seatsAllocated), 0);
+        const checkedInSeats = guests.filter(g => g.checkIn).reduce((s, g) => s + (g.attendingCount || g.seatsAllocated), 0);
+        document.getElementById("checkin-live-count").textContent = `${checkedInSeats} / ${totalConfirmed} personas`;
+
+        if (filtered.length === 0) {
+          container.innerHTML = `<p style="text-align:center; padding:20px; color:#888;">No se encontraron invitados con ese criterio.</p>`;
+          return;
+        }
+
+        container.innerHTML = filtered.map(g => {
+          const isConfirmed = g.status === "confirmed";
+          const seats = g.attendingCount || g.seatsAllocated;
+          return `
+            <div class="guest-card-mobile ${g.checkIn ? 'checked-in' : ''}">
+              <div class="guest-card-top">
+                <div>
+                  <b style="font-size:1.05rem; color:var(--negro);">${g.name}</b>
+                  <div style="font-family:monospace; font-size:0.8rem; color:var(--oro-oscuro); font-weight:bold;">${g.ticketCode}</div>
+                </div>
+                <div style="text-align:right;">
+                  <span class="badge ${g.checkIn ? 'badge-green' : 'badge-gold'}" style="font-size:0.72rem;">
+                    ${g.checkIn ? '✓ INGRESÓ (' + g.checkInTime + ')' : 'PENDIENTE INGRESO'}
+                  </span>
+                  <div style="font-size:0.8rem; font-weight:bold; margin-top:2px;">${seats} personas</div>
+                </div>
+              </div>
+
+              ${g.dietary ? `<div style="font-size:0.78rem; color:#d32f2f;">🥗 Menú especial: ${g.dietary}</div>` : ''}
+
+              <div style="display:flex; gap:8px; margin-top:4px;">
+                <button type="button" class="btn btn-sm ${g.checkIn ? 'btn-borde' : ''}" style="flex:1;" onclick="doCheckIn('${g.id}')">
+                  ${g.checkIn ? '✕ Anular Ingreso' : '✓ Marcar Ingreso'}
+                </button>
+                <button type="button" class="btn btn-borde btn-sm" onclick="copyVipLink('${g.ticketCode}')" title="Copiar enlace de pase VIP">
+                  🔗 Link
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+      }
+
+      window.doCheckIn = function (id) {
+        const guest = KE.Store.toggleCheckIn(id);
+        if (guest) {
+          if (guest.checkIn) {
+            playChime(true);
+            KE.showToast(`✓ INGRESO REGISTRADO: ${guest.name} (${guest.seatsAllocated} personas)`);
+          } else {
+            KE.showToast(`Ingreso anulado para ${guest.name}`);
+          }
+          renderDashboard();
+        }
+      };
+
+      window.copyVipLink = function (ticket) {
+        const url = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?ticket=" + ticket;
+        navigator.clipboard.writeText(url);
+        KE.showToast("Enlace al Pase VIP copiado");
+      };
+
+      // Búsqueda rápida
+      const searchInput = document.getElementById("checkin-quick-search");
+      searchInput.addEventListener("input", function () {
+        renderCheckinList(this.value.trim());
+      });
+
+      document.getElementById("btn-search-trigger").addEventListener("click", function () {
+        const val = searchInput.value.trim().toUpperCase();
+        if (!val) return;
+        const match = KE.Store.getGuestByTicket(val) || KE.Store.getGuests().find(g => g.name.toUpperCase().includes(val));
+        if (match) {
+          if (!match.checkIn) {
+            KE.Store.toggleCheckIn(match.id);
+            playChime(true);
+            KE.showToast(`✓ ¡ACCESO CONCEDIDO! ${match.name}`);
+          } else {
+            KE.showToast(`⚠️ Este ticket ya ingresó a las ${match.checkInTime}`);
+          }
+          searchInput.value = "";
+          renderDashboard();
+        } else {
+          playChime(false);
+          KE.showToast("❌ Ticket no encontrado.");
+        }
+      });
+
+      function renderInvitations() {
+        const invs = KE.Store.getData().invitations;
+        const cont = document.getElementById("invitations-container");
+        cont.innerHTML = invs.map(i => `
+          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:12px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:8px;">
+              <div>
+                <b style="font-size:1.1rem; color:var(--negro);">${i.title}</b>
+                <div style="font-size:0.85rem; color:var(--oro-oscuro);">${i.celebrant} · ${i.eventType}</div>
+              </div>
+              <span class="badge ${i.packageType === 'Premium' ? 'badge-premium' : 'badge-gold'}">${i.packageType}</span>
+            </div>
+            <div style="font-size:0.85rem; color:var(--texto-suave); margin-bottom:12px;">
+              📅 ${new Date(i.date).toLocaleDateString("es-AR")} · 🏰 ${i.venueName}
+            </div>
+            <div style="display:flex; gap:8px;">
+              <a href="invitacion.html?slug=${i.slug}" target="_blank" class="btn btn-sm btn-borde" style="flex:1;">
+                👁 Abrir Invitación
+              </a>
+              <button type="button" class="btn btn-sm btn-borde" onclick="copyGeneralLink('${i.slug}')">
+                Copiar Enlace
+              </button>
+            </div>
+          </div>
+        `).join("");
+      }
+
+      window.copyGeneralLink = function(slug) {
+        const url = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?slug=" + slug;
+        navigator.clipboard.writeText(url);
+        KE.showToast("Enlace de la invitación copiado");
+      };
+
+      function renderGuests() {
+        const guests = KE.Store.getGuests();
+        const cont = document.getElementById("guests-container");
+        cont.innerHTML = guests.map(g => `
+          <div style="border:1px solid var(--borde); border-radius:12px; padding:12px; margin-bottom:10px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <b>${g.name}</b>
+                <div style="font-family:monospace; font-size:0.8rem; color:#888;">${g.ticketCode}</div>
+              </div>
+              <span class="badge ${g.status === 'confirmed' ? 'badge-green' : 'badge-gold'}">
+                ${g.status === 'confirmed' ? '✓ ' + g.attendingCount + ' cupos' : 'Pendiente (' + g.seatsAllocated + ')'}
+              </span>
+            </div>
+            ${g.message ? `<div style="font-size:0.82rem; color:#666; font-style:italic; margin-top:6px;">"${g.message}"</div>` : ''}
+            <div style="margin-top:8px; display:flex; gap:8px;">
+              <button class="btn btn-sm btn-borde" style="flex:1;" onclick="copyVipLink('${g.ticketCode}')">
+                Copiar Pase VIP
+              </button>
+              ${g.phone ? `<a href="https://wa.me/${g.phone.replace(/[^0-9]/g,'')}?text=${encodeURIComponent('¡Hola! Te compartimos tu Pase VIP para el evento: ' + window.location.origin + '/invitacion.html?ticket=' + g.ticketCode)}" target="_blank" class="btn btn-sm btn-negro">Enviar WhatsApp</a>` : ''}
+            </div>
+          </div>
+        `).join("");
+      }
+
+      function renderPayments() {
+        const invs = KE.Store.getData().invitations;
+        const cont = document.getElementById("payments-container");
+        cont.innerHTML = invs.map(i => `
+          <div style="border:1px solid var(--borde); border-radius:14px; padding:16px; margin-bottom:12px; background:#fff;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+              <b>${i.title}</b>
+              <span class="badge ${i.isFullyPaid ? 'badge-green' : 'badge-gold'}">
+                ${i.isFullyPaid ? 'Total Pagado' : 'Con Seña'}
+              </span>
+            </div>
+            <div style="font-size:0.9rem; margin-bottom:10px;">
+              Total: <b>$${i.price.toLocaleString("es-AR")}</b> · Seña: <span style="color:#2e7d32; font-weight:bold;">$${i.depositPaid.toLocaleString("es-AR")}</span> · Saldo: <span style="color:${i.balancePending > 0 ? '#d32f2f' : '#2e7d32'}; font-weight:bold;">$${i.balancePending.toLocaleString("es-AR")}</span>
+            </div>
+            ${i.balancePending > 0 ? `<button class="btn btn-sm" onclick="payBalance('${i.id}')">Registrar Pago del Saldo ($${i.balancePending.toLocaleString("es-AR")})</button>` : '<span style="color:#2e7d32; font-size:0.85rem;">✓ Saldo completamente cancelado</span>'}
+          </div>
+        `).join("");
+      }
+
+      window.payBalance = function(id) {
+        const inv = KE.Store.getInvitation(id);
+        if (inv) {
+          inv.depositPaid = inv.price;
+          inv.balancePending = 0;
+          inv.isFullyPaid = true;
+          KE.Store.saveInvitation(inv);
+          KE.showToast("✓ Pago cancelado y registrado con éxito.");
+          renderDashboard();
+        }
+      };
+
+      function renderQr() {
+        const invs = KE.Store.getData().invitations;
+        const select = document.getElementById("select-qr-inv");
+        select.innerHTML = invs.map(i => `<option value="${i.slug}">${i.title}</option>`).join("");
+
+        function redraw() {
+          const slug = select.value;
+          const inv = KE.Store.getInvitation(slug);
+          const fullUrl = window.location.origin + window.location.pathname.replace("dashboard.html", "invitacion.html") + "?slug=" + slug;
+          document.getElementById("qr-title-preview").textContent = inv.title;
+          document.getElementById("qr-url-preview").textContent = fullUrl;
+          KE_QR.render("qr-live-preview", fullUrl, 200, "#121212");
+        }
+
+        select.addEventListener("change", redraw);
+        redraw();
+      }
+
+      // Modales
+      const modalInv = document.getElementById("modal-inv");
+      document.getElementById("btn-top-nueva").addEventListener("click", () => modalInv.classList.add("active"));
+      document.getElementById("btn-add-inv-tab").addEventListener("click", () => modalInv.classList.add("active"));
+      document.getElementById("modal-inv-close").addEventListener("click", () => modalInv.classList.remove("active"));
+      document.getElementById("modal-inv-cancel").addEventListener("click", () => modalInv.classList.remove("active"));
+
+      document.getElementById("form-create-inv").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const title = document.getElementById("new-inv-title").value;
+        const celebrant = document.getElementById("new-inv-celebrant").value;
+        const type = document.getElementById("new-inv-type").value;
+        const date = document.getElementById("new-inv-date").value;
+        const venue = document.getElementById("new-inv-venue").value;
+        const pkg = document.getElementById("new-inv-package").value;
+        const spotify = document.getElementById("new-inv-spotify").value;
+        const insta = document.getElementById("new-inv-hashtag").value;
+
+        KE.Store.saveInvitation({
+          id: "inv-" + Date.now().toString(36),
+          slug: title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
+          title: title,
+          celebrant: celebrant,
+          eventType: type,
+          date: date,
+          venueName: venue,
+          venueAddress: venue,
+          packageType: pkg,
+          spotifyPlaylistUrl: spotify || "https://open.spotify.com",
+          instagramHashtag: insta || "#Mis15",
+          isActive: true,
+          price: 35000,
+          depositPaid: 17500,
+          balancePending: 17500,
+          isFullyPaid: false,
+          itinerary: [
+            { time: "21:00 hs", title: "Recepción", desc: "Bienvenida" },
+            { time: "22:30 hs", title: "Entrada & Vals", desc: "Ingreso solemne" },
+            { time: "23:15 hs", title: "Cena & Brindis", desc: "Plato principal" },
+            { time: "01:00 hs", title: "Fiesta", desc: "Apertura de pista" }
+          ],
+          photos: ["https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80"]
+        });
+
+        modalInv.classList.remove("active");
+        KE.showToast("✓ Invitación creada exitosamente");
+        renderDashboard();
+      });
+
+      // Modal Invitado
+      const modalGuest = document.getElementById("modal-guest");
+      document.getElementById("btn-open-guest-modal").addEventListener("click", () => modalGuest.classList.add("active"));
+      document.getElementById("modal-guest-close").addEventListener("click", () => modalGuest.classList.remove("active"));
+      document.getElementById("modal-guest-cancel").addEventListener("click", () => modalGuest.classList.remove("active"));
+
+      document.getElementById("form-create-guest").addEventListener("submit", function (e) {
+        e.preventDefault();
+        const codeNum = Math.floor(100 + Math.random() * 900);
+        KE.Store.addGuest({
+          invitationId: "valen-15",
+          name: document.getElementById("new-guest-name").value,
+          seatsAllocated: parseInt(document.getElementById("new-guest-seats").value, 10),
+          phone: document.getElementById("new-guest-phone").value,
+          ticketCode: "TKT-VALEN-" + codeNum
+        });
+        modalGuest.classList.remove("active");
+        KE.showToast("✓ Invitado agregado y Pase VIP creado");
+        renderDashboard();
+      });
+
+      // Exportar CSV
+      document.getElementById("btn-export-csv").addEventListener("click", function () {
+        const guests = KE.Store.getGuests();
+        let csv = "Ticket,Nombre,Cupos,Estado,Ingreso,Hora\n";
+        guests.forEach(g => {
+          csv += `"${g.ticketCode}","${g.name}",${g.seatsAllocated},"${g.status}","${g.checkIn ? 'SI' : 'NO'}","${g.checkInTime || ''}"\n`;
+        });
+        const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "lista-invitados-ke.csv";
+        a.click();
+        KE.showToast("Archivo CSV descargado");
+      });
+
+      // Descargar QR
+      document.getElementById("btn-download-qr-file").addEventListener("click", function () {
+        const img = document.querySelector("#qr-live-preview img");
+        if (img) {
+          const a = document.createElement("a");
+          a.href = img.src;
+          a.download = "qr-invitacion.png";
+          a.click();
+          KE.showToast("Código QR descargado");
+        }
+      });
+
+      renderDashboard();
+    });
+  </script>
+</body>
+</html>

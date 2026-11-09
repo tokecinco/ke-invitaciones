@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>KE Invitaciones - Invitaciones Digitales Interactivas</title>
+  <meta name="description" content="Invitaciones digitales interactivas para tus momentos especiales: 15 años, casamientos, cumpleaños infantiles, aniversarios y galas.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    .catalog-chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 10px 0 16px;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+    }
+    .catalog-chips::-webkit-scrollbar { display: none; }
+
+    .chip-btn {
+      background: #ffffff;
+      border: 1.5px solid var(--borde);
+      color: var(--texto);
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+    .chip-btn.active, .chip-btn:hover {
+      background: var(--oro-gradiente);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 4px 12px rgba(201, 162, 75, 0.3);
+    }
+
+    .models-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 18px;
+      margin: 20px 0;
+    }
+
+    .model-card {
+      background: #ffffff;
+      border: 1.5px solid var(--borde);
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: var(--sombra-suave);
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .model-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--sombra-card);
+    }
+    .model-thumb {
+      height: 200px;
+      position: relative;
+      overflow: hidden;
+      background: #fdf5f7;
+    }
+    .model-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .model-body {
+      padding: 18px 16px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Barra de Navegación -->
+  <nav class="navbar">
+    <a href="index.html" class="brand">
+      <div class="brand-monogram">KE</div>
+      <div class="brand-text">KE <b>INVITACIONES</b></div>
+    </a>
+    <div class="nav-links">
+      <a href="invitacion.html" class="nav-link" target="_blank">Demo VIP</a>
+      <a href="cliente.html" class="nav-link">Mi Cuenta</a>
+      <a href="dashboard.html" class="btn btn-sm btn-borde">Panel Admin</a>
+    </div>
+  </nav>
+
+  <!-- Hero Principal -->
+  <header style="text-align: center; padding: 50px 18px 36px; background: linear-gradient(180deg, var(--rosa-suave) 0%, var(--fondo) 100%); border-bottom: 1px solid var(--borde);">
+    <div style="max-width: 680px; margin: 0 auto;">
+      <div class="badge badge-gold" style="margin-bottom: 14px;">Invitaciones Digitales de Alta Gama</div>
+      <h1 style="font-size: 2.5rem; color: var(--negro); line-height: 1.15; margin-bottom: 14px; font-family: 'Playfair Display', serif;">
+        Una invitación especial para un momento <span style="color: var(--oro); font-style: italic;">inolvidable</span>
+      </h1>
+      <p style="font-size: 1.1rem; color: var(--texto-suave); margin-bottom: 24px; line-height: 1.6;">
+        Diseño exclusivo con sobre digital interactivo, pases VIP con código QR para recepción, itinerario en vivo, música, Spotify e Instagram.
+      </p>
+
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <a href="invitacion.html" target="_blank" class="btn" style="font-size: 0.95rem;">
+          ✨ Ver Demostración VIP en Vivo
+        </a>
+        <a href="dashboard.html" class="btn btn-negro" style="font-size: 0.95rem;">
+          🚪 Panel Admin & Check-in
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main style="max-width: 960px; margin: 0 auto; padding: 30px 18px;">
+
+    <!-- CÓMO FUNCIONA -->
+    <section style="margin-bottom: 40px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.9rem; color: var(--oro); font-family: 'Playfair Display', serif;">Cómo Funciona</h2>
+        <p style="color: var(--texto-suave); font-size: 0.95rem;">Tu evento listo en 4 simples pasos</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
+        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px; text-align: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--oro-gradiente); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold;">1</div>
+          <h3 style="font-size: 1.15rem; color: var(--negro); margin-bottom: 6px;">Elegí el Modelo</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">Mirá las demostraciones y elegí el estilo que mejor representa tu festejo.</p>
+        </div>
+
+        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px; text-align: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--oro-gradiente); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold;">2</div>
+          <h3 style="font-size: 1.15rem; color: var(--negro); margin-bottom: 6px;">Pasanos los Datos</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">Fecha, salón, itinerario, fotos, tu playlist de Spotify y hashtag de Instagram.</p>
+        </div>
+
+        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px; text-align: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--oro-gradiente); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold;">3</div>
+          <h3 style="font-size: 1.15rem; color: var(--negro); margin-bottom: 6px;">Recibí tu Enlace y QR</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">Generamos tu invitación web interactiva y código QR en alta calidad para compartir por WhatsApp.</p>
+        </div>
+
+        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px; text-align: center;">
+          <div style="width: 38px; height: 38px; border-radius: 50%; background: var(--oro-gradiente); color: #fff; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; font-weight: bold;">4</div>
+          <h3 style="font-size: 1.15rem; color: var(--negro); margin-bottom: 6px;">Control en Puerta</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">Tus invitados presentan su Pase VIP con QR y los recepcionistas registran el ingreso.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CATÁLOGO DE MODELOS POR CATEGORÍA -->
+    <section style="margin-bottom: 40px;">
+      <div style="text-align: center; margin-bottom: 12px;">
+        <h2 style="font-size: 1.9rem; color: var(--oro); font-family: 'Playfair Display', serif;">Catálogo de Modelos</h2>
+        <p style="color: var(--texto-suave); font-size: 0.95rem;">Explorá los diseños exclusivos por tipo de evento</p>
+      </div>
+
+      <!-- Filtros por Chips móviles -->
+      <div class="catalog-chips" id="catalog-chips">
+        <button type="button" class="chip-btn active" data-cat="all">Todas</button>
+        <button type="button" class="chip-btn" data-cat="quince">15 Años</button>
+        <button type="button" class="chip-btn" data-cat="boda">Casamientos</button>
+        <button type="button" class="chip-btn" data-cat="cumpleanos">Cumpleaños Infantiles</button>
+        <button type="button" class="chip-btn" data-cat="bautismo">Bautismos</button>
+        <button type="button" class="chip-btn" data-cat="babyshower">Baby Shower</button>
+        <button type="button" class="chip-btn" data-cat="especial">Galas & Aniversarios</button>
+      </div>
+
+      <!-- Grid de modelos -->
+      <div class="models-grid" id="models-grid">
+        <!-- 15 Años -->
+        <div class="model-card" data-category="quince">
+          <div class="model-thumb">
+            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" alt="15 Años Gala">
+          </div>
+          <div class="model-body">
+            <div>
+              <span class="badge badge-premium" style="font-size:0.7rem; margin-bottom:6px;">Premium VIP</span>
+              <h3 style="font-size:1.25rem; color:var(--negro); margin-bottom:4px;">Mis 15 Valentina</h3>
+              <p style="font-size:0.85rem; color:var(--texto-suave); margin-bottom:12px;">Paleta oro rosa, sobre con lacre KE, pase digital QR, itinerario y Spotify.</p>
+            </div>
+            <a href="invitacion.html" target="_blank" class="btn btn-sm">Ver Demostración</a>
+          </div>
+        </div>
+
+        <!-- Casamiento -->
+        <div class="model-card" data-category="boda">
+          <div class="model-thumb">
+            <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80" alt="Boda Sofía & Mateo">
+          </div>
+          <div class="model-body">
+            <div>
+              <span class="badge badge-gold" style="font-size:0.7rem; margin-bottom:6px;">Elegancia Floral</span>
+              <h3 style="font-size:1.25rem; color:var(--negro); margin-bottom:4px;">Boda Sofía & Mateo</h3>
+              <p style="font-size:0.85rem; color:var(--texto-suave); margin-bottom:12px;">Estilo romántico campestre, ceremonia al atardecer, dress code y regalos.</p>
+            </div>
+            <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde">Ver Demostración</a>
+          </div>
+        </div>
+
+        <!-- Infantil -->
+        <div class="model-card" data-category="cumpleanos">
+          <div class="model-thumb">
+            <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80" alt="Cumpleaños Infantil">
+          </div>
+          <div class="model-body">
+            <div>
+              <span class="badge badge-gold" style="font-size:0.7rem; margin-bottom:6px;">Colorido & Divertido</span>
+              <h3 style="font-size:1.25rem; color:var(--negro); margin-bottom:4px;">Cumpleaños Temático</h3>
+              <p style="font-size:0.85rem; color:var(--texto-suave); margin-bottom:12px;">Diseño alegre con animación interactiva, confirmación de niños y adultos.</p>
+            </div>
+            <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde">Ver Demostración</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PAQUETES DE PRECIOS -->
+    <section style="margin-bottom: 40px;">
+      <div style="text-align: center; margin-bottom: 20px;">
+        <h2 style="font-size: 1.9rem; color: var(--oro); font-family: 'Playfair Display', serif;">Paquetes & Precios</h2>
+        <p style="color: var(--texto-suave); font-size: 0.95rem;">Elegí el plan perfecto para tu evento</p>
+      </div>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+        <!-- Básico -->
+        <div style="background: #ffffff; border: 1.5px solid var(--borde); border-radius: 20px; padding: 26px 20px;">
+          <h3 style="font-size: 1.4rem; color: var(--negro); margin-bottom: 4px;">Paquete Básico</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave); margin-bottom: 14px;">Ideal para reuniones íntimas y cumpleaños familiares.</p>
+          <div style="font-size: 2.2rem; font-weight: 700; color: var(--negro); margin-bottom: 16px;">
+            $22.000 <small style="font-size: 0.8rem; color: #888;">AR$</small>
+          </div>
+          <ul style="list-style: none; padding: 0; font-size: 0.88rem; line-height: 2; margin-bottom: 20px;">
+            <li>✓ Sobre digital con monograma</li>
+            <li>✓ Portada con foto y cuenta regresiva</li>
+            <li>✓ Ubicación y mapa Google Maps</li>
+            <li>✓ Confirmación de asistencia (RSVP)</li>
+            <li>✓ Dress Code y datos de cuenta</li>
+          </ul>
+          <a href="https://wa.me/5491198765432?text=Hola,%20me%20interesa%20el%20Paquete%20B%C3%A1sico" target="_blank" class="btn btn-borde btn-block">
+            Consultar por WhatsApp
+          </a>
+        </div>
+
+        <!-- Premium VIP -->
+        <div style="background: linear-gradient(180deg, #fffcf5 0%, #ffffff 100%); border: 2px solid var(--oro); border-radius: 20px; padding: 26px 20px; box-shadow: var(--sombra-card); position: relative;">
+          <div style="display: inline-block; background: var(--oro); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 3px 12px; border-radius: 12px; text-transform: uppercase; margin-bottom: 8px;">
+            ★ MÁS COMPLETO ★
+          </div>
+          <h3 style="font-size: 1.4rem; color: var(--oro-oscuro); margin-bottom: 4px;">Paquete Premium VIP</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave); margin-bottom: 14px;">La experiencia definitiva para 15 años, bodas y grandes festejos.</p>
+          <div style="font-size: 2.2rem; font-weight: 700; color: var(--oro); margin-bottom: 16px;">
+            $35.000 <small style="font-size: 0.8rem; color: #888;">AR$</small>
+          </div>
+          <ul style="list-style: none; padding: 0; font-size: 0.88rem; line-height: 2; margin-bottom: 20px;">
+            <li><b>★ Pase Digital VIP con QR para Recepción</b></li>
+            <li><b>★ Itinerario completo con horarios</b></li>
+            <li><b>★ Integración oficial con Spotify Playlist</b></li>
+            <li><b>★ Hashtag de Instagram con botón de copia</b></li>
+            <li><b>★ "¡Nos vemos en!" con doble cuenta regresiva</b></li>
+            <li>✓ Música de fondo con reproductor</li>
+            <li>✓ Panel de Control en Puerta (Check-in)</li>
+          </ul>
+          <a href="invitacion.html" target="_blank" class="btn btn-block">
+            Ver Demo Premium
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer>
+    <div style="font-size: 1.3rem; letter-spacing: 2px; color: var(--oro); margin-bottom: 6px;">
+      KE <b>INVITACIONES</b>
+    </div>
+    <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 14px;">Invitaciones digitales interactivas para momentos inolvidables</p>
+    <div style="display: flex; gap: 14px; justify-content: center; font-size: 0.85rem;">
+      <a href="index.html">Inicio</a>
+      <a href="invitacion.html">Demo VIP</a>
+      <a href="cliente.html">Mi Cuenta</a>
+      <a href="dashboard.html">Panel Administrador</a>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const chips = document.querySelectorAll(".chip-btn");
+      const models = document.querySelectorAll(".model-card");
+
+      chips.forEach(chip => {
+        chip.addEventListener("click", () => {
+          chips.forEach(c => c.classList.remove("active"));
+          chip.classList.add("active");
+          const cat = chip.dataset.cat;
+
+          models.forEach(m => {
+            if (cat === "all" || m.dataset.category === cat) {
+              m.style.display = "flex";
+            } else {
+              m.style.display = "none";
+            }
+          });
+        });
+      });
+    });
+  </script>
+</body>
+</html>

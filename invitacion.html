@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Mis 15 Valentina - Invitación Digital VIP | KE Invitaciones</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <!-- SOBRE DIGITAL INTERACTIVO (Experiencia de Apertura de Lujo) -->
+  <div class="envelope-screen" id="envelope-screen">
+    <div class="envelope-card" id="envelope-card">
+      <div style="font-size: 0.72rem; letter-spacing: 3px; color: var(--oro-oscuro); text-transform: uppercase; margin-bottom: 8px; font-weight: 700;">
+        INVITACIÓN EXCLUSIVA
+      </div>
+      <div class="wax-seal-btn" id="wax-seal">
+        KE
+      </div>
+      <div style="margin-top: 14px; font-size: 1.25rem; font-weight: 600; color: var(--negro); font-family: 'Playfair Display', serif; font-style: italic;">
+        Valentina Gómez
+      </div>
+      <div style="font-size: 0.75rem; color: #777; letter-spacing: 2px; text-transform: uppercase; margin-top: 2px;">
+        Mis 15 Años
+      </div>
+    </div>
+    <div class="envelope-label">
+      ✉ Tocá el sello dorado para abrir
+    </div>
+  </div>
+
+  <!-- REPRODUCTOR DE MÚSICA FLOTANTE -->
+  <div class="audio-player-pill" id="audio-pill">
+    <div class="audio-disc" id="audio-disc">♬</div>
+    <span id="audio-text">Música: <b>Vals de las Mariposas</b></span>
+  </div>
+
+  <!-- NAVEGACIÓN RÁPIDA SUPERIOR -->
+  <nav class="navbar">
+    <a href="index.html" class="brand">
+      <div class="brand-monogram">KE</div>
+      <div class="brand-text">KE <b>INVITACIONES</b></div>
+    </a>
+    <div class="nav-links">
+      <a href="cliente.html" class="nav-link">Mi Cuenta</a>
+      <a href="dashboard.html" class="btn btn-sm btn-borde">Panel Admin</a>
+    </div>
+  </nav>
+
+  <!-- CONTENEDOR PRINCIPAL MOBILE-FIRST (Estilo Smartphone de Gala) -->
+  <main class="mobile-invitation-wrapper">
+
+    <!-- SECCIÓN 1: PORTADA HERO -->
+    <header class="inv-hero">
+      <div class="inv-badge">★ Edición Premium VIP ★</div>
+      <h1 class="inv-names">Mis 15 Años</h1>
+      <div class="inv-subtitle">Valentina Gómez</div>
+
+      <!-- Marco de foto con borde arqueado de oro -->
+      <div class="inv-frame">
+        <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" alt="Valentina" loading="lazy">
+      </div>
+
+      <p class="inv-phrase">
+        "Hay momentos inolvidables que se guardan para siempre en el corazón, y compartirlos con las personas que más quiero los hace mágicos. Te espero para celebrar juntos mi noche tan soñada."
+      </p>
+
+      <!-- CUENTA REGRESIVA PRINCIPAL -->
+      <div class="countdown-container">
+        <div class="countdown-title">Faltan exactamente</div>
+        <div class="countdown-grid" id="main-countdown"></div>
+      </div>
+    </header>
+
+    <!-- SECCIÓN 2: DÓNDE Y CUÁNDO -->
+    <section class="inv-section">
+      <div class="venue-card">
+        <div class="venue-icon">🏰</div>
+        <div style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700; margin-bottom: 4px;">
+          Lugar y Fecha
+        </div>
+        <h2 style="font-size: 1.55rem; color: var(--negro); margin-bottom: 6px;">Salón Dorado</h2>
+        <div style="font-size: 1.15rem; color: var(--oro-oscuro); font-weight: 700; margin-bottom: 8px;">
+          Palacio San Martín
+        </div>
+        <div style="font-size: 1.05rem; font-weight: 600; color: var(--negro); margin-bottom: 6px;">
+          Sábado 19 de Diciembre de 2026
+        </div>
+        <div style="font-size: 0.95rem; color: var(--texto-suave); margin-bottom: 18px;">
+          21:00 hs puntual · Av. del Libertador 4500, Palermo
+        </div>
+        
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <a href="https://maps.google.com/?q=Palacio+San+Martin+Buenos+Aires" target="_blank" rel="noopener" class="btn btn-block">
+            📍 Abrir en Google Maps
+          </a>
+          <button type="button" class="btn btn-borde btn-block btn-sm" id="btn-calendar">
+            📅 Agendar en mi Calendario
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 3: PASE DIGITAL VIP CON CÓDIGO QR (Requerimiento Premium) -->
+    <section class="inv-section" style="padding-top: 10px;">
+      <div style="font-size: 0.85rem; letter-spacing: 2px; color: var(--oro-oscuro); text-transform: uppercase; font-weight: 700; margin-bottom: 6px;">
+        Acceso Exclusivo Recepción
+      </div>
+      <h3 style="font-size: 1.6rem; color: var(--negro); margin-bottom: 14px;">Tu Pase Digital VIP</h3>
+
+      <div class="ticket-vip-card">
+        <div class="ticket-header">
+          <span class="ticket-tag">★ VIP PASS ★</span>
+          <div style="font-size: 0.72rem; color: var(--oro-suave); letter-spacing: 2px; margin-top: 6px;">CONTROL DE PUERTA</div>
+        </div>
+
+        <div class="ticket-guest-name" id="ticket-guest-name">Familia Martínez</div>
+        <div class="ticket-seats" id="ticket-seats">4 Lugares Reservados</div>
+
+        <div class="ticket-qr-box">
+          <div id="ticket-qr-container"></div>
+        </div>
+
+        <div class="ticket-code" id="ticket-code">TKT-VALEN-001</div>
+        <p class="ticket-instructions">
+          Mostrá este código QR en la entrada del salón para que los recepcionistas registren tu ingreso.
+        </p>
+      </div>
+
+      <button type="button" class="btn btn-borde btn-sm" id="btn-save-pass" style="margin-top: 8px;">
+        💾 Guardar Pase en mi celular
+      </button>
+    </section>
+
+    <!-- SECCIÓN 4: ITINERARIO DEL EVENTO (Requerimiento) -->
+    <section class="inv-section">
+      <div style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700; margin-bottom: 4px;">
+        Cronograma
+      </div>
+      <h3 style="font-size: 1.7rem; color: var(--negro); margin-bottom: 10px;">Itinerario de la Noche</h3>
+      <p style="color: var(--texto-suave); font-size: 0.9rem; margin-bottom: 16px;">
+        Preparate para disfrutar cada instante de esta fiesta inolvidable:
+      </p>
+
+      <div class="timeline" id="timeline-list">
+        <!-- Renderizado dinámicamente -->
+      </div>
+    </section>
+
+    <!-- SECCIÓN 5: PLAYLIST SPOTIFY (Requerimiento) -->
+    <section class="inv-section">
+      <div class="media-card spotify-card">
+        <div style="font-size: 2rem; margin-bottom: 4px;">🎵</div>
+        <div style="font-size: 0.75rem; letter-spacing: 2px; color: #1db954; font-weight: 700; text-transform: uppercase;">
+          Música de la Fiesta
+        </div>
+        <h3 style="font-size: 1.35rem; color: var(--negro); margin: 4px 0 8px;">Nuestra Playlist en Spotify</h3>
+        <p style="font-size: 0.88rem; color: var(--texto-suave); margin-bottom: 14px;">
+          ¡Queremos que no pares de bailar! Escuchá los hits que van a sonar y sumá tus canciones favoritas.
+        </p>
+        <a href="https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M" target="_blank" rel="noopener" class="btn btn-spotify btn-block">
+          ▶ Escuchar en Spotify
+        </a>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 6: HASHTAG INSTAGRAM (Requerimiento) -->
+    <section class="inv-section">
+      <div class="media-card instagram-card">
+        <div style="font-size: 2rem; margin-bottom: 4px;">📸</div>
+        <div style="font-size: 0.75rem; letter-spacing: 2px; color: #e1306c; font-weight: 700; text-transform: uppercase;">
+          Fotos & Recuerdos
+        </div>
+        <h3 style="font-size: 1.35rem; color: var(--negro); margin: 4px 0 6px;">Etiquetanos en Instagram</h3>
+        <p style="font-size: 0.88rem; color: var(--texto-suave); margin-bottom: 8px;">
+          Compartí tus fotos e historias con nuestro hashtag oficial:
+        </p>
+        
+        <div>
+          <div class="hashtag-pill" id="hashtag-display">#Mis15Valen</div>
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: center;">
+          <button type="button" class="btn btn-borde btn-sm" id="btn-copy-tag">
+            📋 Copiar Hashtag
+          </button>
+          <a href="https://www.instagram.com/explore/tags/Mis15Valen/" target="_blank" rel="noopener" class="btn btn-instagram btn-sm">
+            Ver en Instagram
+          </a>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 7: DRESS CODE & REGALOS -->
+    <section class="inv-section">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <!-- Dress Code -->
+        <div style="background: #ffffff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px;">
+          <div style="font-size: 1.8rem; margin-bottom: 4px;">👗 👔</div>
+          <h4 style="font-size: 1.25rem; color: var(--oro-oscuro); margin-bottom: 4px;">Dress Code</h4>
+          <div style="font-weight: 700; font-size: 1.05rem; margin-bottom: 4px;">Elegante</div>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">
+            Agradecemos reservar los colores blanco y rosa suave exclusivamente para Valentina.
+          </p>
+        </div>
+
+        <!-- Regalos -->
+        <div style="background: #ffffff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 20px 16px;">
+          <div style="font-size: 1.8rem; margin-bottom: 4px;">🎁</div>
+          <h4 style="font-size: 1.25rem; color: var(--oro-oscuro); margin-bottom: 4px;">Regalos</h4>
+          <p style="font-size: 0.88rem; color: var(--texto-suave); margin-bottom: 10px;">
+            Tu presencia es nuestro mejor obsequio. Si deseás hacernos una atención:
+          </p>
+          <div style="background: #faf4e8; border: 1px dashed var(--oro); border-radius: 10px; padding: 10px; margin-bottom: 10px; font-size: 0.9rem;">
+            <b>Alias:</b> <span id="bank-alias-text" style="font-family: monospace; font-weight: bold; color: var(--oro-oscuro);">VALEN.MIS15.BANCO</span>
+          </div>
+          <button type="button" class="btn btn-borde btn-sm" id="btn-copy-alias">
+            Copiar Datos Bancarios
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECCIÓN 8: GALERÍA DE FOTOS -->
+    <section class="inv-section">
+      <div style="font-size: 0.8rem; letter-spacing: 2px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700; margin-bottom: 4px;">
+        Momentos Especiales
+      </div>
+      <h3 style="font-size: 1.6rem; color: var(--negro); margin-bottom: 12px;">Galería de Recuerdos</h3>
+      <div class="gallery-grid" id="gallery-container">
+        <!-- Renderizado dinámico -->
+      </div>
+    </section>
+
+    <!-- SECCIÓN 9: CONFIRMACIÓN RSVP -->
+    <section class="inv-section">
+      <div class="rsvp-card">
+        <div style="text-align: center; margin-bottom: 16px;">
+          <div style="font-size: 1.8rem;">✉️</div>
+          <h3 style="font-size: 1.5rem; color: var(--oro-oscuro); margin-bottom: 4px;">Confirmación de Asistencia</h3>
+          <p style="font-size: 0.85rem; color: var(--texto-suave);">
+            Por favor confirmanos antes del 1 de Diciembre para coordinar el catering y tu mesa.
+          </p>
+        </div>
+
+        <form id="mobile-rsvp-form">
+          <div class="form-group">
+            <label class="form-label" for="form-name">Nombre / Familia *</label>
+            <input type="text" id="form-name" class="form-input" required placeholder="Ej: Familia Martínez" value="Familia Martínez">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">¿Asistirás? *</label>
+            <div style="display: flex; gap: 10px;">
+              <label style="flex: 1; border: 1.5px solid var(--borde); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; background: #fff;" id="label-attending-yes">
+                <input type="radio" name="attending" value="yes" checked style="margin-right: 6px;">
+                <span style="font-weight: 600; font-size: 0.9rem;">¡Sí, voy! 🎉</span>
+              </label>
+              <label style="flex: 1; border: 1.5px solid var(--borde); border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; background: #fff;" id="label-attending-no">
+                <input type="radio" name="attending" value="no" style="margin-right: 6px;">
+                <span style="font-weight: 600; font-size: 0.9rem;">No puedo 😢</span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" id="seats-group">
+            <label class="form-label" for="form-seats">Personas que asistirán *</label>
+            <select id="form-seats" class="form-select">
+              <option value="1">1 Persona</option>
+              <option value="2">2 Personas</option>
+              <option value="3">3 Personas</option>
+              <option value="4" selected>4 Personas</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="form-diet">Menú especial (opcional)</label>
+            <input type="text" id="form-diet" class="form-input" placeholder="Ej: Celíaco, Vegetariano">
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="form-msg">Mensaje para Valentina</label>
+            <textarea id="form-msg" class="form-textarea" rows="2" placeholder="¡Escribile unas palabras a la quinceañera!"></textarea>
+          </div>
+
+          <button type="submit" class="btn btn-block" style="font-size: 1rem;">
+            ✓ Confirmar Asistencia
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         REQUERIMIENTO EXPLÍCITO DEL USUARIO:
+         "eliminar el boton de compartir por whatsapp del final de la invitacion,
+          en su lugar la frase: nos vemos en, y otra vez la cuenta regresiva al evento"
+         ====================================================================== -->
+    <section class="see-you-card">
+      <div style="font-size: 0.8rem; letter-spacing: 3px; text-transform: uppercase; color: var(--oro-suave); font-weight: 700; margin-bottom: 6px;">
+        LA CUENTA FINAL
+      </div>
+      <h2 class="see-you-title">¡Nos vemos en!</h2>
+      <p class="see-you-subtitle">La noche más esperada ya está muy cerca...</p>
+
+      <!-- Segunda Cuenta Regresiva al final de la invitación -->
+      <div class="countdown-grid" id="final-countdown"></div>
+
+      <div style="margin-top: 24px; font-size: 0.85rem; color: #b4aa9c; border-top: 1px solid rgba(201, 162, 75, 0.3); padding-top: 16px;">
+        Salón Dorado · Palacio San Martín · Sábado 19 de Diciembre
+      </div>
+    </section>
+
+    <div style="text-align: center; padding: 20px 14px 40px; font-size: 0.8rem; color: #888;">
+      Invitación digital creada por <b>KE Invitaciones</b>
+    </div>
+
+  </main>
+
+  <script src="js/qr.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const inv = KE.Store.getInvitation("valen-15");
+
+      // 1. Apertura de Sobre
+      const envelopeScreen = document.getElementById("envelope-screen");
+      const envelopeCard = document.getElementById("envelope-card");
+      envelopeCard.addEventListener("click", function () {
+        envelopeScreen.classList.add("opened");
+        KE.showToast("¡Bienvenido a la invitación de Valentina!");
+      });
+
+      // 2. Audio Player Toggle
+      let isPlaying = false;
+      const audioPill = document.getElementById("audio-pill");
+      const audioDisc = document.getElementById("audio-disc");
+      const audioText = document.getElementById("audio-text");
+
+      audioPill.addEventListener("click", function () {
+        isPlaying = !isPlaying;
+        if (isPlaying) {
+          audioDisc.classList.add("spinning");
+          audioText.innerHTML = "Reproduciendo: <b>Vals</b>";
+          KE.showToast("Música activada ♬");
+        } else {
+          audioDisc.classList.remove("spinning");
+          audioText.innerHTML = "Música: <b>Pausada</b>";
+          KE.showToast("Música pausada");
+        }
+      });
+
+      // 3. Inicializar AMBOS contadores regresivos (Principal y el final "¡Nos vemos en!")
+      KE.initCountdown(inv.date, ["#main-countdown", "#final-countdown"]);
+
+      // 4. Renderizar Itinerario
+      const timelineList = document.getElementById("timeline-list");
+      timelineList.innerHTML = inv.itinerary.map(item => `
+        <div class="timeline-item">
+          <div class="timeline-dot"></div>
+          <span class="timeline-time">${item.time}</span>
+          <div class="timeline-title">${item.title}</div>
+          <div class="timeline-desc">${item.desc}</div>
+        </div>
+      `).join("");
+
+      // 5. Cargar Pase Digital VIP con QR
+      const params = new URLSearchParams(window.location.search);
+      const ticketParam = params.get("ticket") || "TKT-VALEN-001";
+      const guest = KE.Store.getGuestByTicket(ticketParam) || KE.Store.getGuests(inv.id)[0];
+
+      if (guest) {
+        document.getElementById("ticket-guest-name").textContent = guest.name;
+        document.getElementById("ticket-seats").textContent = `${guest.seatsAllocated} Lugares Reservados`;
+        document.getElementById("ticket-code").textContent = guest.ticketCode;
+        
+        // Renderizar QR en alta definición para el pase
+        const qrData = JSON.stringify({
+          ticket: guest.ticketCode,
+          guest: guest.name,
+          seats: guest.seatsAllocated,
+          event: inv.title
+        });
+        KE_QR.render("ticket-qr-container", qrData, 160, "#121212");
+      }
+
+      // 6. Cargar Galería
+      const gallery = document.getElementById("gallery-container");
+      gallery.innerHTML = inv.photos.map(src => `
+        <div class="gallery-item">
+          <img src="${src}" alt="Valentina 15 Años" loading="lazy">
+        </div>
+      `).join("");
+
+      // 7. Acciones de Copiado
+      document.getElementById("btn-copy-tag").addEventListener("click", function () {
+        const tag = document.getElementById("hashtag-display").textContent;
+        navigator.clipboard.writeText(tag);
+        KE.showToast("Hashtag copiado: " + tag);
+      });
+
+      document.getElementById("btn-copy-alias").addEventListener("click", function () {
+        const alias = document.getElementById("bank-alias-text").textContent;
+        navigator.clipboard.writeText(alias);
+        KE.showToast("Alias copiado: " + alias);
+      });
+
+      document.getElementById("btn-save-pass").addEventListener("click", function () {
+        KE.showToast("Guardado: Podés hacer captura de pantalla de tu Pase VIP.");
+      });
+
+      document.getElementById("btn-calendar").addEventListener("click", function () {
+        const calUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(inv.title)}&dates=20261219T210000Z/20261220T060000Z&details=${encodeURIComponent("Fiesta de 15 de Valentina Gómez en Palacio San Martín")}&location=${encodeURIComponent(inv.venueAddress)}`;
+        window.open(calUrl, '_blank');
+      });
+
+      // 8. Envío de Formulario RSVP
+      const rsvpForm = document.getElementById("mobile-rsvp-form");
+      rsvpForm.addEventListener("submit", function (e) {
+        e.preventDefault();
+        const name = document.getElementById("form-name").value;
+        const attending = document.querySelector('input[name="attending"]:checked').value === "yes";
+        const seats = parseInt(document.getElementById("form-seats").value, 10);
+        const dietary = document.getElementById("form-diet").value;
+        const message = document.getElementById("form-msg").value;
+
+        KE.Store.submitRsvp(inv.id, name, attending, seats, dietary, message);
+        KE.showToast("✓ ¡Muchas gracias! Tu respuesta fue registrada.");
+
+        setTimeout(() => {
+          const respMsg = attending
+            ? `¡Hola Valen! Confirmo que asistiré a tus 15 con ${seats} persona(s). ${message ? 'Mensaje: ' + message : ''}`
+            : `Hola Valen, lamentablemente no podré asistir a tus 15. ¡Te deseo una hermosa fiesta!`;
+          const waUrl = `https://wa.me/${inv.hostWhatsapp}?text=${encodeURIComponent(respMsg)}`;
+          window.open(waUrl, '_blank');
+        }, 1200);
+      });
+    });
+  </script>
+</body>
+</html>
