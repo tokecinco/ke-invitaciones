@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Paquetes - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    textarea{min-height:80px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    .check{display:flex;align-items:center;margin:8px 0;font-size:1rem}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:12px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Paquetes</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Definí el precio y lo que incluye cada paquete. Podés cambiarlo cuando quieras.</p>
+    <div id="paquetes"></div>
+    <button id="btn-guardar" type="button">Guardar paquetes</button>
+    <p id="msg" class="msg"></p>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const PAQ = [["basico", "Paquete Básico"], ["premium", "Paquete Premium"]];
+    const DEFECTO = {
+      basico:  { price: "", deposit: "", maxPhotos: 2, music: false, personalized: false, description: "" },
+      premium: { price: "", deposit: "", maxPhotos: 6, music: true,  personalized: true,  description: "" }
+    };
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    function dibujar(datos) {
+      const cont = $("paquetes");
+      cont.textContent = "";
+      PAQ.forEach(([k, titulo]) => {
+        const d = datos[k];
+        const c = document.createElement("div"); c.className = "caja";
+        c.innerHTML =
+          "<h2></h2>" +
+          "<label>Precio ($)</label><input id='" + k + "-price' type='number' min='0' inputmode='numeric'>" +
+          "<label>Seña ($)</label><input id='" + k + "-deposit' type='number' min='0' inputmode='numeric'>" +
+          "<label>Cantidad máxima de fotos (de 1 a 6)</label><input id='" + k + "-fotos' type='number' min='1' max='6' inputmode='numeric'>" +
+          "<label class='check'><input id='" + k + "-music' type='checkbox'>Incluye música de fondo</label>" +
+          "<label class='check'><input id='" + k + "-guests' type='checkbox'>Incluye invitación personalizada por invitado</label>" +
+          "<label>Texto que se muestra en la página principal (opcional)</label>" +
+          "<textarea id='" + k + "-desc' maxlength='300'></textarea>";
+        c.querySelector("h2").textContent = titulo;
+        cont.appendChild(c);
+        $(k + "-price").value = d.price;
+        $(k + "-deposit").value = d.deposit;
+        $(k + "-fotos").value = d.maxPhotos;
+        $(k + "-music").checked = !!d.music;
+        $(k + "-guests").checked = !!d.personalized;
+        $(k + "-desc").value = d.description || "";
+      });
+    }
+
+    async function cargar() {
+      try {
+        const s = await getDoc(doc(db, "settings", "packages"));
+        const datos = JSON.parse(JSON.stringify(DEFECTO));
+        if (s.exists()) {
+          const g = s.data();
+          PAQ.forEach(([k]) => { if (g[k]) datos[k] = { ...datos[k], ...g[k] }; });
+        } else {
+          const p = await getDoc(doc(db, "settings", "pricing"));
+          if (p.exists()) {
+            datos.basico.price = p.data().price;
+            datos.basico.deposit = p.data().deposit;
+          }
+        }
+        dibujar(datos);
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo cargar.";
+      }
+    }
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const salida = {};
+      for (const [k, titulo] of PAQ) {
+        const price = parseInt($(k + "-price").value, 10);
+        const deposit = parseInt($(k + "-deposit").value, 10);
+        const fotos = parseInt($(k + "-fotos").value, 10);
+        if (!(price >= 0)) { $("msg").textContent = titulo + ": falta el precio."; return; }
+        if (!(deposit >= 0) || deposit > price) { $("msg").textContent = titulo + ": la seña no puede superar el precio."; return; }
+        if (!(fotos >= 1 && fotos <= 6)) { $("msg").textContent = titulo + ": las fotos deben ser entre 1 y 6."; return; }
+        salida[k] = {
+          price: price, deposit: deposit, maxPhotos: fotos,
+          music: $(k + "-music").checked,
+          personalized: $(k + "-guests").checked,
+          description: $(k + "-desc").value.trim()
+        };
+      }
+      $("msg").textContent = "Guardando...";
+      try {
+        salida.updatedAt = serverTimestamp();
+        await setDoc(doc(db, "settings", "packages"), salida);
+        $("msg").textContent = "Paquetes guardados.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+    });
+  </script>
+</body>
+      </html>
