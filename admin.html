@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Panel - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input:disabled{background:#eee}
+    textarea{min-height:70px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .tarjeta{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .tarjeta button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .msg{min-height:1.4em}
+    .fotos img{width:60px;height:60px;object-fit:cover;border-radius:8px;margin:3px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
+  </style>
+</head>
+<body>
+  <h1>KE Invitaciones - Panel</h1>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p><a href="dashboard.html">Menú</a> - <a href="confirmaciones.html">Confirmaciones</a> - <a href="pagos.html">Pagos</a> - <a href="paquetes.html">Paquetes</a></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+
+    <h2 id="titulo-form">Nueva invitación</h2>
+    <p id="aviso-edicion" class="aviso" hidden></p>
+    <form id="form" novalidate>
+      <label>Paquete</label>
+      <select id="f-paquete">
+        <option value="basico">Básico</option>
+        <option value="premium">Premium</option>
+      </select>
+      <label>Plantilla</label>
+      <select id="f-template">
+        <option value="cumple">Cumpleaños infantil</option>
+        <option value="quince">15 años</option>
+        <option value="boda">Casamiento</option>
+      </select>
+      <input id="f-honoree" placeholder="Nombre del homenajeado" maxlength="80">
+      <input id="f-tipo" placeholder="Tipo de evento (ej: Mis 15 años)" maxlength="60">
+      <label>Fecha</label><input id="f-fecha" type="date">
+      <label>Hora</label><input id="f-hora" type="time">
+      <input id="f-salon" placeholder="Nombre del salón" maxlength="80">
+      <input id="f-dir" placeholder="Dirección" maxlength="120">
+      <input id="f-maps" placeholder="Enlace de Google Maps (https://...)">
+      <input id="f-bienvenida" placeholder="Texto de bienvenida" maxlength="120">
+      <textarea id="f-mensaje" placeholder="Mensaje personalizado" maxlength="400"></textarea>
+      <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
+      <input id="f-dress" placeholder="Dress code (ej: Elegante sport)" maxlength="120">
+      <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
+      <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
+      <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
+      <label id="lbl-fotos">Fotos (la primera es la portada)</label>
+      <input id="f-fotos" type="file" accept="image/*" multiple>
+      <div id="vista-fotos" class="fotos"></div>
+      <button id="btn-crear" type="submit">Crear invitación</button>
+      <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
+      <p id="f-msg" class="msg"></p>
+    </form>
+
+    <h2>Mis invitaciones</h2>
+    <input id="buscar" type="search" placeholder="Buscar por nombre">
+    <select id="filtro">
+      <option value="">Todas las plantillas</option>
+      <option value="cumple">Cumpleaños infantil</option>
+      <option value="quince">15 años</option>
+      <option value="boda">Casamiento</option>
+    </select>
+    <div id="lista"></div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
+    let paquetes = {
+      basico:  { maxPhotos: 2, music: false },
+      premium: { maxPhotos: 6, music: true }
+    };
+    let fotos = [];
+    let fotosExistentes = [];
+    let editId = null;
+    let todas = [];
+
+    $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
+      } catch (e) {
+        $("login-msg").textContent = "Email o contraseña incorrectos.";
+      }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) { cargarPaquetes(); listar(); }
+    });
+
+    async function cargarPaquetes() {
+      try {
+        const s = await getDoc(doc(db, "settings", "packages"));
+        if (s.exists()) {
+          const g = s.data();
+          ["basico", "premium"].forEach((k) => {
+            if (g[k]) paquetes[k] = { maxPhotos: g[k].maxPhotos || paquetes[k].maxPhotos, music: !!g[k].music };
+          });
+        }
+      } catch (e) { console.error(e); }
+      aplicarLimites();
+    }
+
+    function limites() { return paquetes[$("f-paquete").value] || paquetes.basico; }
+
+    function aplicarLimites() {
+      const l = limites();
+      $("lbl-fotos").textContent = "Fotos (hasta " + l.maxPhotos + ", la primera es la portada)";
+      $("f-musica").disabled = !l.music;
+      $("f-musica").placeholder = l.music
+        ? "Enlace de música (https://... .mp3) opcional"
+        : "Música: solo en el paquete Premium";
+      if (!l.music) $("f-musica").value = "";
+    }
+    $("f-paquete").addEventListener("change", aplicarLimites);
+
+    function slug(t) {
+      return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 50);
+    }
+    function azar() { return Math.random().toString(36).slice(2, 6); }
+    function linkDe(id) {
+      return location.origin + location.pathname.replace(/admin\.html$/, "") + "i/" + id;
+    }
+
+    function comprimir(archivo) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        const url = URL.createObjectURL(archivo);
+        img.onload = () => {
+          const max = 800;
+          const k = Math.min(1, max / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * k);
+          c.height = Math.round(img.height * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          ok(c.toDataURL("image/jpeg", 0.6));
+        };
+        img.onerror = () => mal(new Error("imagen"));
+        img.src = url;
+      });
+    }
+
+    function verFotos(lista) {
+      $("vista-fotos").innerHTML = "";
+      lista.forEach((src) => {
+        if (!/^(https:\/\/|data:image\/)/i.test(src)) return;
+        const i = document.createElement("img"); i.src = src;
+        $("vista-fotos").appendChild(i);
+      });
+    }
+
+    $("f-fotos").addEventListener("change", async (e) => {
+      const max = limites().maxPhotos;
+      const elegidas = Array.from(e.target.files);
+      const archivos = elegidas.slice(0, max);
+      $("f-msg").textContent = "Procesando fotos...";
+      try {
+        fotos = [];
+        for (const a of archivos) fotos.push(await comprimir(a));
+        verFotos(fotos);
+        let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
+        if (elegidas.length > max) t += " Este paquete permite hasta " + max + ", se usaron las primeras.";
+        $("f-msg").textContent = t;
+      } catch (err) {
+        fotos = [];
+        $("f-msg").textContent = "No se pudo leer una de las fotos.";
+      }
+    });
+
+    function salirDeEdicion() {
+      editId = null; fotos = []; fotosExistentes = [];
+      $("form").reset();
+      $("vista-fotos").innerHTML = "";
+      $("titulo-form").textContent = "Nueva invitación";
+      $("btn-crear").textContent = "Crear invitación";
+      $("btn-cancelar").hidden = true;
+      $("aviso-edicion").hidden = true;
+      aplicarLimites();
+    }
+    $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
+
+    function editar(id, x) {
+      salirDeEdicion();
+      editId = id;
+      fotosExistentes = Array.isArray(x.photos) ? x.photos : [];
+      $("f-paquete").value = x.package || "basico";
+      $("f-template").value = x.template || "cumple";
+      $("f-honoree").value = x.honoree || "";
+      $("f-tipo").value = x.eventType || "";
+      $("f-fecha").value = x.date || "";
+      $("f-hora").value = x.time || "";
+      $("f-salon").value = x.venue || "";
+      $("f-dir").value = x.address || "";
+      $("f-maps").value = x.mapsUrl || "";
+      $("f-bienvenida").value = x.welcome || "";
+      $("f-mensaje").value = x.message || "";
+      $("f-info").value = x.info || "";
+      $("f-dress").value = x.dressCode || "";
+      $("f-regalo").value = x.gift || "";
+      $("f-whatsapp").value = x.whatsapp || "";
+      $("f-musica").value = x.music || "";
+      aplicarLimites();
+      verFotos(fotosExistentes);
+      $("titulo-form").textContent = "Editar invitación";
+      $("btn-crear").textContent = "Guardar cambios";
+      $("btn-cancelar").hidden = false;
+      let aviso = "Editando: " + id + ". Si no elegís fotos nuevas, se mantienen las actuales.";
+      if (x.music && !limites().music) {
+        aviso += " Ojo: este paquete no incluye música y se va a quitar al guardar. Cambiá a Premium para conservarla.";
+      }
+      $("aviso-edicion").textContent = aviso;
+      $("aviso-edicion").hidden = false;
+      $("f-msg").textContent = "";
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("f-msg");
+      const honoree = $("f-honoree").value.trim();
+      const tipo = $("f-tipo").value.trim();
+      const fecha = $("f-fecha").value;
+      const maps = $("f-maps").value.trim();
+      const musica = $("f-musica").value.trim();
+      const l = limites();
+
+      if (!honoree) { msg.textContent = "Falta el nombre del homenajeado."; return; }
+      if (!fecha) { msg.textContent = "Falta la fecha."; return; }
+      if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Maps debe empezar con https://"; return; }
+      if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
+
+      const fotosFinal = fotos.length ? fotos : fotosExistentes;
+      if (fotosFinal.length > l.maxPhotos) {
+        msg.textContent = "Este paquete permite hasta " + l.maxPhotos + " fotos. Elegí fotos nuevas o cambiá a Premium."; return;
+      }
+      if (fotosFinal.join("").length > 900000) { msg.textContent = "Las fotos pesan demasiado. Usá menos fotos."; return; }
+
+      const datos = {
+        package: $("f-paquete").value,
+        template: $("f-template").value,
+        honoree: honoree,
+        eventType: tipo,
+        date: fecha,
+        time: $("f-hora").value,
+        venue: $("f-salon").value.trim(),
+        address: $("f-dir").value.trim(),
+        mapsUrl: maps,
+        welcome: $("f-bienvenida").value.trim(),
+        message: $("f-mensaje").value.trim(),
+        info: $("f-info").value.trim(),
+        dressCode: $("f-dress").value.trim(),
+        gift: $("f-regalo").value.trim(),
+        whatsapp: $("f-whatsapp").value.trim(),
+        music: l.music ? musica : "",
+        photos: fotosFinal
+      };
+
+      $("btn-crear").disabled = true;
+      msg.textContent = editId ? "Guardando..." : "Creando...";
+      try {
+        if (editId) {
+          datos.updatedAt = serverTimestamp();
+          await updateDoc(doc(db, "invitations", editId), datos);
+          const id = editId;
+          salirDeEdicion();
+          msg.textContent = "Cambios guardados. Enlace: " + linkDe(id);
+        } else {
+          let id = slug(honoree + " " + tipo) || "invitacion";
+          const existe = await getDoc(doc(db, "invitations", id));
+          if (existe.exists()) id += "-" + azar();
+          datos.active = true;
+          datos.ownerId = auth.currentUser.uid;
+          datos.createdAt = serverTimestamp();
+          await setDoc(doc(db, "invitations", id), datos);
+          salirDeEdicion();
+          msg.textContent = "Creada. Enlace: " + linkDe(id);
+        }
+        listar();
+      } catch (err) {
+        console.error(err);
+        msg.textContent = "No se pudo guardar. Revisá que hayas entrado con la cuenta administradora.";
+      }
+      $("btn-crear").disabled = false;
+    });
+
+    async function duplicar(id, x) {
+      try {
+        const nuevo = (slug(x.honoree || id) || "invitacion") + "-copia-" + azar();
+        const copia = { ...x, active: false, createdAt: serverTimestamp() };
+        delete copia.updatedAt;
+        await setDoc(doc(db, "invitations", nuevo), copia);
+        $("f-msg").textContent = "Duplicada como " + nuevo + " (queda desactivada hasta que la actives).";
+        listar();
+      } catch (err) {
+        console.error(err);
+        $("f-msg").textContent = "No se pudo duplicar.";
+      }
+    }
+
+    async function eliminar(id, x) {
+      const ok = confirm("¿Eliminar la invitación de " + (x.honoree || id) +
+        "? Se borran también sus confirmaciones y su registro de pago. No se puede deshacer.");
+      if (!ok) return;
+      try {
+        const rs = await getDocs(query(collection(db, "rsvps"), where("invitationId", "==", id)));
+        for (const r of rs.docs) await deleteDoc(r.ref);
+        await deleteDoc(doc(db, "payments", id));
+        await deleteDoc(doc(db, "invitations", id));
+        if (editId === id) salirDeEdicion();
+        $("f-msg").textContent = "Invitación eliminada.";
+        listar();
+      } catch (err) {
+        console.error(err);
+        $("f-msg").textContent = "No se pudo eliminar.";
+      }
+    }
+
+    async function listar() {
+      const cont = $("lista");
+      cont.textContent = "Cargando...";
+      try {
+        const q = query(collection(db, "invitations"), orderBy("createdAt", "desc"));
+        const snap = await getDocs(q);
+        todas = snap.docs.map((d) => ({ id: d.id, x: d.data() }));
+        pintar();
+      } catch (err) {
+        console.error(err);
+        cont.textContent = "No se pudo cargar la lista.";
+      }
+    }
+
+    function pintar() {
+      const cont = $("lista");
+      const txt = $("buscar").value.trim().toLowerCase();
+      const plan = $("filtro").value;
+      const lista = todas.filter(({ id, x }) =>
+        (!plan || x.template === plan) &&
+        (!txt || (x.honoree || "").toLowerCase().includes(txt) || id.includes(txt)));
+
+      cont.textContent = "";
+      if (!todas.length) { cont.textContent = "Todavía no hay invitaciones."; return; }
+      if (!lista.length) { cont.textContent = "No hay resultados."; return; }
+
+      lista.forEach(({ id, x }) => {
+        const t = document.createElement("div"); t.className = "tarjeta";
+        const n = document.createElement("b"); n.textContent = x.honoree || id;
+        const est = document.createElement("div");
+        est.textContent = (x.active ? "Activa" : "Desactivada") + " - " +
+          (ETIQ_PAQ[x.package] || "Básico") + " - " + (x.date || "");
+        const a = document.createElement("a");
+        a.href = linkDe(id); a.textContent = linkDe(id); a.target = "_blank";
+        a.style.wordBreak = "break-all";
+
+        const b = (texto, clase, fn) => {
+          const el = document.createElement("button");
+          el.type = "button"; el.textContent = texto;
+          if (clase) el.className = clase;
+          el.onclick = fn; return el;
+        };
+        const copiar = b("Copiar enlace", "", () =>
+          navigator.clipboard.writeText(linkDe(id)).then(() => { copiar.textContent = "Copiado"; }));
+        const conf = document.createElement("a");
+        conf.href = "confirmaciones.html?i=" + encodeURIComponent(id);
+        conf.textContent = "Ver confirmaciones";
+        conf.style.display = "inline-block"; conf.style.margin = "8px 8px 0 0";
+
+        t.append(n, est, a, document.createElement("br"),
+          b("Editar", "", () => editar(id, x)),
+          b("Duplicar", "sec", () => duplicar(id, x)),
+          b(x.active ? "Desactivar" : "Activar", "sec", async () => {
+            await updateDoc(doc(db, "invitations", id), { active: !x.active });
+            listar();
+          }),
+          copiar,
+          b("Eliminar", "rojo", () => eliminar(id, x)),
+          document.createElement("br"), conf);
+        cont.appendChild(t);
+      });
+    }
+
+    $("buscar").addEventListener("input", pintar);
+    $("filtro").addEventListener("change", pintar);
+  </script>
+  <script type="module" src="js/plantillas-select.js"></script>
+</body>
+  </html>

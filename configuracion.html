@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Configuración - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Configuración</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="caja">
+      <label>WhatsApp de contacto (con código de país, sin + ni espacios. Ej: 5491112345678)</label>
+      <input id="f-wa" inputmode="numeric" placeholder="5491112345678">
+      <label>Promoción (opcional, se muestra junto al precio)</label>
+      <input id="f-promo" maxlength="140" placeholder="Ej: 10% de descuento este mes">
+    </div>
+
+    <h2>Demostración de cada modelo</h2>
+    <p>Elegí qué invitación real se muestra como demostración. Tiene que estar activa y sin vencer.</p>
+    <div id="demos" class="caja"></div>
+
+    <button id="btn-guardar" type="button">Guardar configuración</button>
+    <p id="msg" class="msg"></p>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    let plantillas = [];
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    async function cargar() {
+      try {
+        const [tp, inv, site] = await Promise.all([
+          getDocs(collection(db, "templates")),
+          getDocs(collection(db, "invitations")),
+          getDoc(doc(db, "settings", "site"))
+        ]);
+        const s = site.exists() ? site.data() : {};
+        $("f-wa").value = s.whatsapp || "";
+        $("f-promo").value = s.promo || "";
+        const demos = s.demos || {};
+
+        plantillas = tp.docs.map((d) => ({ id: d.id, name: d.data().name || d.id }));
+        const invitaciones = inv.docs.map((d) => ({ id: d.id, name: (d.data().honoree || d.id) + " (" + d.id + ")" }));
+
+        const cont = $("demos");
+        cont.textContent = "";
+        if (!plantillas.length) { cont.textContent = "Primero cargá las plantillas en plantillas.html."; return; }
+        plantillas.forEach((p) => {
+          const l = document.createElement("label"); l.textContent = p.name;
+          const sel = document.createElement("select"); sel.id = "demo-" + p.id;
+          const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Sin demostración";
+          sel.appendChild(o0);
+          invitaciones.forEach((i) => {
+            const o = document.createElement("option"); o.value = i.id; o.textContent = i.name;
+            sel.appendChild(o);
+          });
+          sel.value = demos[p.id] || "";
+          cont.append(l, sel);
+        });
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo cargar la configuración.";
+      }
+    }
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const wa = $("f-wa").value.replace(/\D/g, "");
+      if (wa && (wa.length < 8 || wa.length > 15)) {
+        $("msg").textContent = "El número de WhatsApp no parece válido."; return;
+      }
+      const demos = {};
+      plantillas.forEach((p) => {
+        const v = $("demo-" + p.id) ? $("demo-" + p.id).value : "";
+        if (v) demos[p.id] = v;
+      });
+      $("msg").textContent = "Guardando...";
+      try {
+        await setDoc(doc(db, "settings", "site"), {
+          whatsapp: wa, promo: $("f-promo").value.trim(), demos: demos, updatedAt: serverTimestamp()
+        });
+        $("msg").textContent = "Configuración guardada.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+    });
+  </script>
+</body>
+</html>

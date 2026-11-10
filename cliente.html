@@ -2,176 +2,219 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mi Cuenta - Portal del Anfitrión | KE Invitaciones</title>
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Mi cuenta - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    textarea{min-height:70px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
+    .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
+    .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.85rem}
+    .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
+    .resp{border-left:5px solid #4caf50;padding:6px 10px;margin:6px 0;background:#fffdf8}
+    .resp.no{border-left-color:#c0392b}
+    .msg{min-height:1.4em}
+  </style>
 </head>
-<body style="background: #faf5ed;">
+<body>
+  <h1>Mi cuenta</h1>
 
-  <!-- NAVBAR CON LOGO OFICIAL -->
-  <nav class="navbar">
-    <a href="index.html" class="brand">
-      <img src="img/logo.png" alt="KE Invitaciones" class="brand-logo-img">
-    </a>
-    <div class="nav-links">
-      <a href="index.html" class="nav-link hide-mobile">Inicio</a>
-      <a href="invitacion.html" class="nav-link" target="_blank">Ver Invitación</a>
-      <a href="dashboard.html" class="btn btn-sm btn-borde" style="padding: 6px 10px;">Admin</a>
-    </div>
-  </nav>
+  <section id="acceso">
+    <p>Entrá o creá tu cuenta para ver tus invitaciones.</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+    <button id="btn-entrar" type="button">Entrar</button>
+    <button id="btn-crear" class="sec" type="button">Crear cuenta nueva</button>
+    <p id="acc-msg" class="msg"></p>
+  </section>
 
-  <main class="admin-shell">
-    
-    <!-- CABECERA -->
-    <div class="admin-event-bar">
-      <div>
-        <div style="font-size: 0.72rem; letter-spacing: 1.5px; text-transform: uppercase; color: var(--oro-oscuro); font-weight: 700;">
-          PORTAL DEL ANFITRIÓN
-        </div>
-        <h1 style="font-size: 1.5rem; color: var(--negro); font-family: 'Playfair Display', serif;" id="client-title">
-          Mis 15 Valentina
-        </h1>
-        <p style="font-size: 0.82rem; color: var(--texto-suave);">Seguimiento de confirmaciones en vivo y personalización de tu invitación.</p>
-      </div>
-      <div>
-        <a href="invitacion.html" target="_blank" class="btn btn-sm">
-          👁 Ver Invitación en Vivo
-        </a>
-      </div>
-    </div>
+  <section id="panel" hidden>
+    <p>Sesión: <b id="quien"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <h2>Mis invitaciones</h2>
+    <div id="lista"></div>
+  </section>
 
-    <!-- MÉTRICAS EN VIVO -->
-    <div class="admin-kpi-grid">
-      <div class="kpi-card highlight">
-        <div class="kpi-title">Personas Confirmadas</div>
-        <div class="kpi-number" id="client-total-confirmed" style="color: #2e7d32;">0</div>
-        <div class="kpi-subtitle">asistirán a tu fiesta</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Familias que respondieron</div>
-        <div class="kpi-number" id="client-total-replies">0</div>
-        <div class="kpi-subtitle">respuestas registradas</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-title">Ingresaron al Salón</div>
-        <div class="kpi-number" id="client-checked-in" style="color: var(--oro-oscuro);">0</div>
-        <div class="kpi-subtitle">check-in con Pase VIP</div>
-      </div>
-    </div>
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, setDoc, updateDoc, collection, getDocs, query, where, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-    <!-- RESPUESTAS RECIBIDAS (CARDS MÓVILES) -->
-    <div class="admin-card-view">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
-        <h2 style="font-size: 1.25rem; color: var(--negro); font-family: 'Playfair Display', serif;">Confirmaciones de Invitados</h2>
-        <span class="badge badge-gold" id="client-badge-total">0 registros</span>
-      </div>
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
 
-      <div id="client-guests-cards">
-        <!-- Renderizado dinámico -->
-      </div>
-    </div>
+    function h(tag, texto, clase) {
+      const e = document.createElement(tag);
+      if (texto) e.textContent = texto;
+      if (clase) e.className = clase;
+      return e;
+    }
+    function linkDe(id) {
+      return location.origin + location.pathname.replace(/cliente\.html$/, "") + "i/" + id;
+    }
+    function errorAuth(e) {
+      const c = e && e.code || "";
+      if (c.includes("email-already-in-use")) return "Ese email ya tiene una cuenta. Probá con Entrar.";
+      if (c.includes("weak-password")) return "La contraseña es muy corta (mínimo 6 caracteres).";
+      if (c.includes("invalid-email")) return "El email no es válido.";
+      if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found"))
+        return "Email o contraseña incorrectos.";
+      return "No se pudo completar. Intentá de nuevo.";
+    }
 
-    <!-- PERSONALIZAR DETALLES -->
-    <div class="admin-card-view" style="border-color: var(--oro); background: linear-gradient(180deg, #fffcf5 0%, #ffffff 100%);">
-      <div style="margin-bottom: 16px;">
-        <h2 style="font-size: 1.25rem; color: var(--oro-oscuro); font-family: 'Playfair Display', serif;">Personalizar Mi Invitación</h2>
-        <p style="font-size: 0.84rem; color: var(--texto-suave);">Podés actualizar los textos, tu lista de Spotify y tu hashtag de Instagram en tiempo real.</p>
-      </div>
-      
-      <form id="client-edit-form">
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Mensaje de Bienvenida</label>
-          <textarea id="edit-welcome" class="form-ctrl" rows="2"></textarea>
-        </div>
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Dress Code (Código de Vestimenta)</label>
-          <input type="text" id="edit-dress" class="form-ctrl">
-        </div>
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Alias Bancario para Regalos</label>
-          <input type="text" id="edit-alias" class="form-ctrl">
-        </div>
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">URL Playlist Spotify</label>
-          <input type="url" id="edit-spotify" class="form-ctrl">
-        </div>
-        <div style="margin-bottom: 16px;">
-          <label style="display: block; font-size: 0.78rem; font-weight: 700; margin-bottom: 4px; text-transform: uppercase;">Hashtag Oficial de Instagram</label>
-          <input type="text" id="edit-hashtag" class="form-ctrl">
-        </div>
-        <button type="submit" class="btn btn-block">Guardar Cambios en Vivo</button>
-      </form>
-    </div>
-
-  </main>
-
-  <footer>
-    <div style="margin-bottom: 8px;">
-      <img src="img/logo.png" alt="KE Invitaciones" style="max-height: 32px; width: auto; margin: 0 auto; opacity: 0.9;">
-    </div>
-    <p style="font-size: 0.82rem; color: #aaa;">Invitaciones digitales interactivas para momentos inolvidables</p>
-  </footer>
-
-  <script src="js/app.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const inv = KE.Store.getInvitation("valen-15");
-      const guests = KE.Store.getGuests(inv.id);
-
-      // Calcular métricas
-      const confirmed = guests.filter(g => g.status === "confirmed");
-      const totalSeats = confirmed.reduce((acc, g) => acc + (g.attendingCount || 0), 0);
-      const checkedInSeats = confirmed.filter(g => g.checkIn).reduce((acc, g) => acc + (g.attendingCount || 0), 0);
-
-      document.getElementById("client-total-confirmed").textContent = totalSeats;
-      document.getElementById("client-total-replies").textContent = guests.filter(g => g.status !== 'pending').length;
-      document.getElementById("client-checked-in").textContent = `${checkedInSeats} pers.`;
-      document.getElementById("client-badge-total").textContent = `${guests.length} invitados`;
-
-      // Tarjetas móviles de invitados
-      const container = document.getElementById("client-guests-cards");
-      container.innerHTML = guests.map(g => {
-        const isConfirmed = g.status === "confirmed";
-        return `
-          <div style="border:1.5px solid var(--borde); border-radius:14px; padding:14px; margin-bottom:10px; background:#fff;">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-              <div>
-                <b style="font-size:1.05rem; color:var(--negro);">${g.name}</b>
-                <div style="font-size:0.8rem; color:#888;">${g.ticketCode}</div>
-              </div>
-              <span class="badge ${isConfirmed ? 'badge-green' : (g.status === 'declined' ? 'badge-gold' : 'badge-gold')}">
-                ${isConfirmed ? '✓ Confirmó ' + g.attendingCount + ' personas' : (g.status === 'declined' ? '✕ No asiste' : '⏳ Pendiente')}
-              </span>
-            </div>
-            ${g.dietary ? `<div style="font-size:0.78rem; color:#b78103; margin-top:4px;">🥗 Menú: ${g.dietary}</div>` : ''}
-            ${g.message ? `<div style="font-size:0.82rem; color:#555; font-style:italic; margin-top:4px;">"${g.message}"</div>` : ''}
-            ${g.checkIn ? `<div style="font-size:0.75rem; color:#2e7d32; font-weight:bold; margin-top:6px;">✓ Ingresó a las ${g.checkInTime}</div>` : ''}
-          </div>
-        `;
-      }).join("");
-
-      // Rellenar formulario de edición
-      document.getElementById("edit-welcome").value = inv.welcomeText;
-      document.getElementById("edit-dress").value = inv.dressCode;
-      document.getElementById("edit-alias").value = inv.bankAlias;
-      document.getElementById("edit-spotify").value = inv.spotifyPlaylistUrl;
-      document.getElementById("edit-hashtag").value = inv.instagramHashtag;
-
-      document.getElementById("client-edit-form").addEventListener("submit", function (e) {
-        e.preventDefault();
-        inv.welcomeText = document.getElementById("edit-welcome").value;
-        inv.dressCode = document.getElementById("edit-dress").value;
-        inv.bankAlias = document.getElementById("edit-alias").value;
-        inv.spotifyPlaylistUrl = document.getElementById("edit-spotify").value;
-        inv.instagramHashtag = document.getElementById("edit-hashtag").value;
-
-        KE.Store.saveInvitation(inv);
-        KE.showToast("✓ Datos actualizados en vivo");
-      });
+    $("btn-entrar").addEventListener("click", async () => {
+      $("acc-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("acc-msg").textContent = "";
+      } catch (e) { $("acc-msg").textContent = errorAuth(e); }
     });
+
+    $("btn-crear").addEventListener("click", async () => {
+      $("acc-msg").textContent = "Creando cuenta...";
+      try {
+        const email = $("email").value.trim();
+        const r = await createUserWithEmailAndPassword(auth, email, $("clave").value);
+        await setDoc(doc(db, "users", r.user.uid), { email: email, createdAt: serverTimestamp() });
+        $("acc-msg").textContent = "";
+      } catch (e) { $("acc-msg").textContent = errorAuth(e); }
+    });
+
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      $("acceso").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) { $("quien").textContent = u.email; cargar(u.uid); }
+    });
+
+    async function cargar(uid) {
+      const cont = $("lista");
+      cont.textContent = "Cargando...";
+      try {
+        const [inv, pag] = await Promise.all([
+          getDocs(query(collection(db, "invitations"), where("ownerId", "==", uid))),
+          getDocs(query(collection(db, "payments"), where("ownerId", "==", uid)))
+        ]);
+        const pagos = {};
+        pag.forEach((d) => { pagos[d.id] = d.data(); });
+        cont.textContent = "";
+        if (inv.empty) {
+          cont.textContent = "Todavía no tenés invitaciones vinculadas a tu cuenta. Si ya contrataste una, avisanos para vincularla.";
+          return;
+        }
+        inv.forEach((d) => cont.appendChild(tarjeta(d.id, d.data(), pagos[d.id])));
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudieron cargar tus invitaciones.";
+      }
+    }
+
+    function tarjeta(id, x, p) {
+      const t = h("div", "", "caja");
+      t.appendChild(h("b", x.honoree || id));
+      t.appendChild(h("div", (x.active ? "Publicada" : "No publicada") + " - " + (x.date || "")));
+      const a = h("a", linkDe(id)); a.href = linkDe(id); a.target = "_blank";
+      a.style.wordBreak = "break-all";
+      t.appendChild(a);
+
+      const pago = p
+        ? "Pago: " + (ETIQ[p.status] || p.status) + " - Cobrado " + $$(p.received) + " de " + $$(p.price) +
+          " - Saldo " + $$(Math.max((p.price || 0) - (p.received || 0), 0))
+        : "Pago: todavía sin registrar";
+      t.appendChild(h("p", pago));
+
+      const bCopiar = h("button", "Copiar enlace");
+      bCopiar.onclick = () => navigator.clipboard.writeText(linkDe(id)).then(() => { bCopiar.textContent = "Copiado"; });
+      const bConf = h("button", "Ver confirmaciones", "sec");
+      const bEdit = h("button", "Editar datos", "sec");
+      t.append(bCopiar, bConf, bEdit);
+
+      const panelConf = h("div"); panelConf.hidden = true;
+      const panelEdit = h("div"); panelEdit.hidden = true;
+      t.append(panelConf, panelEdit);
+
+      let confCargadas = false;
+      bConf.onclick = async () => {
+        panelConf.hidden = !panelConf.hidden;
+        if (panelConf.hidden || confCargadas) return;
+        panelConf.textContent = "Cargando...";
+        try {
+          const s = await getDocs(query(collection(db, "rsvps"), where("invitationId", "==", id)));
+          const lista = s.docs.map((r) => r.data());
+          lista.sort((m, n) => (n.createdAt?.seconds || 0) - (m.createdAt?.seconds || 0));
+          let conf = 0, pers = 0, no = 0, msj = 0;
+          const cuerpo = h("div");
+          lista.forEach((r) => {
+            if (r.attending) { conf++; pers += r.guests || 0; } else no++;
+            if (r.message) msj++;
+            const f = h("div", "", "resp" + (r.attending ? "" : " no"));
+            f.appendChild(h("b", r.name));
+            f.appendChild(h("div", r.attending ? "Asiste - " + r.guests + " persona(s)" : "No asiste"));
+            if (r.message) f.appendChild(h("i", "“" + r.message + "”"));
+            cuerpo.appendChild(f);
+          });
+          const stats = h("div", "", "stats");
+          [[conf, "Confirmaron"], [pers, "Personas"], [no, "No asisten"], [msj, "Mensajes"]].forEach(([v, l]) => {
+            const c = h("div", "", "stat"); c.appendChild(h("b", String(v))); c.append(l); stats.appendChild(c);
+          });
+          panelConf.textContent = "";
+          panelConf.appendChild(stats);
+          if (!lista.length) panelConf.appendChild(h("p", "Todavía no hay respuestas."));
+          panelConf.appendChild(cuerpo);
+          confCargadas = true;
+        } catch (e) {
+          console.error(e);
+          panelConf.textContent = "No se pudieron cargar las confirmaciones.";
+        }
+      };
+
+      const campos = [
+        ["welcome", "Texto de bienvenida", "input"],
+        ["message", "Mensaje personalizado", "textarea"],
+        ["info", "Información adicional", "textarea"],
+        ["whatsapp", "WhatsApp para confirmar (ej: 5491112345678)", "input"]
+      ];
+      const entradas = {};
+      campos.forEach(([k, ph, tipo]) => {
+        const el = document.createElement(tipo);
+        el.placeholder = ph; el.value = x[k] || ""; el.maxLength = 400;
+        entradas[k] = el; panelEdit.appendChild(el);
+      });
+      const bGuardar = h("button", "Guardar cambios");
+      const msg = h("p", "", "msg");
+      panelEdit.append(bGuardar, msg);
+      bEdit.onclick = () => { panelEdit.hidden = !panelEdit.hidden; };
+      bGuardar.onclick = async () => {
+        msg.textContent = "Guardando...";
+        try {
+          await updateDoc(doc(db, "invitations", id), {
+            welcome: entradas.welcome.value.trim(),
+            message: entradas.message.value.trim(),
+            info: entradas.info.value.trim(),
+            whatsapp: entradas.whatsapp.value.trim(),
+            updatedAt: serverTimestamp()
+          });
+          msg.textContent = "Cambios guardados.";
+        } catch (e) {
+          console.error(e);
+          msg.textContent = "No se pudo guardar.";
+        }
+      };
+      return t;
+    }
   </script>
 </body>
 </html>

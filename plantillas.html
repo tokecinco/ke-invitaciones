@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Plantillas - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=color]{height:48px;padding:4px}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .colores{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .check{display:flex;align-items:center;margin:6px 0}
+    .vista{border-radius:12px;padding:20px;text-align:center;border:1px solid #d8cbb0;margin:10px 0}
+    .vista .tarj{display:inline-block;border-radius:10px;padding:8px 14px;margin:8px 4px 0}
+    .miniatura{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:6px}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Plantillas</h1>
+  <p><a href="admin.html">Panel</a> - <a href="clientes.html">Clientes</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="caja">
+      <b>Plantillas base</b>
+      <p>Carga en la base de datos las 3 plantillas que ya usa el sistema (cumpleaños, 15 años y casamiento). Las que ya existan no se tocan.</p>
+      <button id="btn-base" type="button">Cargar plantillas base</button>
+      <p id="base-msg" class="msg"></p>
+    </div>
+
+    <h2 id="titulo-form">Nueva plantilla</h2>
+    <form id="form" novalidate>
+      <input id="f-nombre" placeholder="Nombre de la plantilla" maxlength="60">
+      <label>Categoría</label>
+      <select id="f-cat"></select>
+      <label>Tipo de letra</label>
+      <select id="f-fuente"></select>
+
+      <label>Colores</label>
+      <div class="colores">
+        <div>Fondo<input id="c-fondo" type="color" value="#fffaf3"></div>
+        <div>Texto<input id="c-texto" type="color" value="#1a1a1a"></div>
+        <div>Acento (títulos y botones)<input id="c-acento" type="color" value="#c9a24b"></div>
+        <div>Suave (cajas)<input id="c-suave" type="color" value="#f6dde2"></div>
+      </div>
+
+      <div id="vista" class="vista">
+        <h3 id="v-titulo" style="margin:0">Sofía</h3>
+        <p id="v-texto" style="margin:6px 0">Así se ve tu plantilla</p>
+        <span id="v-boton" class="tarj">Botón</span>
+        <span id="v-caja" class="tarj">Caja</span>
+      </div>
+
+      <label>Secciones que muestra</label>
+      <div id="secciones"></div>
+
+      <label>Imagen de muestra (opcional)</label>
+      <input id="f-muestra" type="file" accept="image/*">
+      <img id="v-muestra" class="miniatura" alt="" hidden>
+
+      <button id="btn-guardar" type="submit">Guardar plantilla</button>
+      <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
+      <p id="f-msg" class="msg"></p>
+    </form>
+
+    <h2>Plantillas creadas</h2>
+    <div id="lista"></div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+
+    const CATEGORIAS = [
+      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
+      ["especial", "Eventos especiales"]
+    ];
+    const FUENTES = [
+      ["Georgia, serif", "Georgia (clásica)"],
+      ["'Palatino Linotype', Palatino, serif", "Palatino (elegante)"],
+      ["'Times New Roman', serif", "Times (tradicional)"],
+      ["'Trebuchet MS', sans-serif", "Trebuchet (alegre)"],
+      ["Verdana, sans-serif", "Verdana (simple)"]
+    ];
+    const SECCIONES = [
+      ["portada", "Portada"], ["mensaje", "Mensaje personalizado"], ["cuenta", "Cuenta regresiva"],
+      ["lugar", "Fecha y lugar"], ["info", "Información adicional"], ["galeria", "Galería de fotos"],
+      ["rsvp", "Confirmación de asistencia"], ["compartir", "Botón compartir"]
+    ];
+    const BASE = [
+      { id: "cumple", name: "Cumpleaños infantil", category: "cumpleanos",
+        font: "'Trebuchet MS', sans-serif",
+        colors: { fondo: "#fff6e0", texto: "#1a1a1a", acento: "#e8833a", suave: "#ffd9e6" } },
+      { id: "quince", name: "15 años", category: "quince",
+        font: "Georgia, serif",
+        colors: { fondo: "#fdf0f4", texto: "#1a1a1a", acento: "#b8860b", suave: "#f6dde2" } },
+      { id: "boda", name: "Casamiento", category: "boda",
+        font: "Georgia, serif",
+        colors: { fondo: "#ffffff", texto: "#1a1a1a", acento: "#c9a24b", suave: "#f3efe6" } }
+    ];
+
+    let editId = null;
+    let muestra = "";
+    let muestraActual = "";
+
+    function llenarSelect(sel, pares) {
+      pares.forEach(([v, t]) => {
+        const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o);
+      });
+    }
+    llenarSelect($("f-cat"), CATEGORIAS);
+    llenarSelect($("f-fuente"), FUENTES);
+    SECCIONES.forEach(([k, t]) => {
+      const f = document.createElement("label"); f.className = "check";
+      const c = document.createElement("input"); c.type = "checkbox"; c.id = "s-" + k; c.checked = true;
+      if (k === "portada") c.disabled = true;
+      f.append(c, t);
+      $("secciones").appendChild(f);
+    });
+
+    function previsualizar() {
+      const v = $("vista");
+      v.style.background = $("c-fondo").value;
+      v.style.color = $("c-texto").value;
+      v.style.fontFamily = $("f-fuente").value;
+      $("v-titulo").style.color = $("c-acento").value;
+      $("v-boton").style.background = $("c-acento").value;
+      $("v-boton").style.color = "#ffffff";
+      $("v-caja").style.background = $("c-suave").value;
+    }
+    ["c-fondo", "c-texto", "c-acento", "c-suave", "f-fuente"].forEach((id) => {
+      $(id).addEventListener("input", previsualizar);
+      $(id).addEventListener("change", previsualizar);
+    });
+    previsualizar();
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) listar();
+    });
+
+    function slug(t) {
+      return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+        .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+    }
+    function azar() { return Math.random().toString(36).slice(2, 6); }
+
+    function comprimir(archivo) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        const url = URL.createObjectURL(archivo);
+        img.onload = () => {
+          const k = Math.min(1, 400 / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          ok(c.toDataURL("image/jpeg", 0.6));
+        };
+        img.onerror = () => mal(new Error("imagen"));
+        img.src = url;
+      });
+    }
+    $("f-muestra").addEventListener("change", async (e) => {
+      const a = e.target.files[0];
+      if (!a) return;
+      try {
+        muestra = await comprimir(a);
+        $("v-muestra").src = muestra; $("v-muestra").hidden = false;
+      } catch (err) { $("f-msg").textContent = "No se pudo leer la imagen."; }
+    });
+
+    function salirDeEdicion() {
+      editId = null; muestra = ""; muestraActual = "";
+      $("form").reset();
+      SECCIONES.forEach(([k]) => { $("s-" + k).checked = true; });
+      $("c-fondo").value = "#fffaf3"; $("c-texto").value = "#1a1a1a";
+      $("c-acento").value = "#c9a24b"; $("c-suave").value = "#f6dde2";
+      $("v-muestra").hidden = true;
+      $("titulo-form").textContent = "Nueva plantilla";
+      $("btn-cancelar").hidden = true;
+      previsualizar();
+    }
+    $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
+
+    function editar(id, x) {
+      salirDeEdicion();
+      editId = id;
+      $("f-nombre").value = x.name || "";
+      $("f-cat").value = x.category || "especial";
+      $("f-fuente").value = x.font || FUENTES[0][0];
+      const c = x.colors || {};
+      $("c-fondo").value = c.fondo || "#fffaf3"; $("c-texto").value = c.texto || "#1a1a1a";
+      $("c-acento").value = c.acento || "#c9a24b"; $("c-suave").value = c.suave || "#f6dde2";
+      const s = Array.isArray(x.sections) ? x.sections : SECCIONES.map(([k]) => k);
+      SECCIONES.forEach(([k]) => { $("s-" + k).checked = k === "portada" || s.includes(k); });
+      muestraActual = x.sampleImage || "";
+      if (muestraActual) { $("v-muestra").src = muestraActual; $("v-muestra").hidden = false; }
+      $("titulo-form").textContent = "Editar plantilla: " + id;
+      $("btn-cancelar").hidden = false;
+      previsualizar();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("f-msg");
+      const nombre = $("f-nombre").value.trim();
+      if (!nombre) { msg.textContent = "Falta el nombre de la plantilla."; return; }
+      const datos = {
+        name: nombre,
+        category: $("f-cat").value,
+        font: $("f-fuente").value,
+        colors: {
+          fondo: $("c-fondo").value, texto: $("c-texto").value,
+          acento: $("c-acento").value, suave: $("c-suave").value
+        },
+        sections: SECCIONES.map(([k]) => k).filter((k) => $("s-" + k).checked),
+        sampleImage: muestra || muestraActual || ""
+      };
+      $("btn-guardar").disabled = true;
+      msg.textContent = "Guardando...";
+      try {
+        if (editId) {
+          datos.updatedAt = serverTimestamp();
+          await updateDoc(doc(db, "templates", editId), datos);
+          msg.textContent = "Plantilla actualizada.";
+        } else {
+          let id = slug(nombre) || "plantilla";
+          const ex = await getDoc(doc(db, "templates", id));
+          if (ex.exists()) id += "-" + azar();
+          datos.active = true;
+          datos.createdAt = serverTimestamp();
+          await setDoc(doc(db, "templates", id), datos);
+          msg.textContent = "Plantilla creada con identificador: " + id;
+        }
+        salirDeEdicion();
+        listar();
+      } catch (err) {
+        console.error(err);
+        msg.textContent = "No se pudo guardar.";
+      }
+      $("btn-guardar").disabled = false;
+    });
+
+    $("btn-base").addEventListener("click", async () => {
+      $("base-msg").textContent = "Cargando...";
+      try {
+        let creadas = 0;
+        for (const b of BASE) {
+          const ex = await getDoc(doc(db, "templates", b.id));
+          if (ex.exists()) continue;
+          await setDoc(doc(db, "templates", b.id), {
+            name: b.name, category: b.category, font: b.font, colors: b.colors,
+            sections: SECCIONES.map(([k]) => k), sampleImage: "", active: true,
+            createdAt: serverTimestamp()
+          });
+          creadas++;
+        }
+        $("base-msg").textContent = creadas ? "Se cargaron " + creadas + " plantilla(s) base." : "Las plantillas base ya estaban cargadas.";
+        listar();
+      } catch (err) {
+        console.error(err);
+        $("base-msg").textContent = "No se pudo cargar.";
+      }
+    });
+
+    async function listar() {
+      const cont = $("lista");
+      cont.textContent = "Cargando...";
+      try {
+        const snap = await getDocs(collection(db, "templates"));
+        cont.textContent = "";
+        if (snap.empty) { cont.textContent = "Todavía no hay plantillas. Tocá \"Cargar plantillas base\"."; return; }
+        snap.forEach((d) => {
+          const x = d.data();
+          const t = document.createElement("div"); t.className = "caja";
+          const n = document.createElement("b"); n.textContent = x.name || d.id;
+          const info = document.createElement("div");
+          const cat = (CATEGORIAS.find((c) => c[0] === x.category) || [0, "Sin categoría"])[1];
+          info.textContent = cat + " - identificador: " + d.id;
+          t.append(n, info);
+          if (x.sampleImage && /^data:image\//.test(x.sampleImage)) {
+            const im = document.createElement("img");
+            im.className = "miniatura"; im.src = x.sampleImage; im.alt = "";
+            t.appendChild(im);
+          }
+          const be = document.createElement("button"); be.type = "button"; be.textContent = "Editar";
+          be.onclick = () => editar(d.id, x);
+          const bd = document.createElement("button"); bd.type = "button"; bd.className = "rojo"; bd.textContent = "Eliminar";
+          bd.onclick = async () => {
+            if (!confirm("¿Eliminar la plantilla " + (x.name || d.id) + "? Las invitaciones que la usan volverán al diseño estándar.")) return;
+            try { await deleteDoc(doc(db, "templates", d.id)); listar(); }
+            catch (err) { console.error(err); $("f-msg").textContent = "No se pudo eliminar."; }
+          };
+          t.append(be, bd);
+          cont.appendChild(t);
+        });
+      } catch (err) {
+        console.error(err);
+        cont.textContent = "No se pudieron cargar las plantillas.";
+      }
+    }
+  </script>
+</body>
+          </html>

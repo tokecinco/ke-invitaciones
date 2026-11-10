@@ -2,331 +2,241 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>KE Invitaciones - Invitaciones Digitales Interactivas</title>
-  <meta name="description" content="Invitaciones digitales interactivas para tus momentos especiales: 15 años, casamientos, cumpleaños infantiles, aniversarios y galas.">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KE Invitaciones - Invitaciones digitales interactivas</title>
+  <meta name="description" content="Invitaciones digitales interactivas para tus momentos especiales.">
+  <meta property="og:title" content="KE Invitaciones">
+  <meta property="og:description" content="Invitaciones digitales interactivas para tus momentos especiales.">
+  <meta property="og:type" content="website">
   <style>
-    .catalog-chips {
-      display: flex;
-      gap: 8px;
-      overflow-x: auto;
-      padding: 10px 0 16px;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: none;
-    }
-    .catalog-chips::-webkit-scrollbar { display: none; }
+    :root{--fondo:#fffaf3;--texto:#1a1a1a;--oro:#c9a24b;--rosa:#f6dde2;--negro:#1a1a1a}
+    *{box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{margin:0;background:var(--fondo);color:var(--texto);font-family:Georgia,"Times New Roman",serif;line-height:1.55}
+    h1,h2,h3{font-weight:normal;margin:0}
+    h2{color:var(--oro);font-size:1.8rem;text-align:center;margin-bottom:18px}
+    section{padding:44px 18px;max-width:960px;margin:0 auto}
+    .logo{font-size:1.4rem;letter-spacing:3px;color:var(--oro)}
+    .logo b{color:var(--negro)}
+    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;max-width:960px;margin:0 auto}
+    header a{color:var(--negro);text-decoration:none;font-size:.95rem}
 
-    .chip-btn {
-      background: #ffffff;
-      border: 1.5px solid var(--borde);
-      color: var(--texto);
-      padding: 7px 14px;
-      border-radius: 20px;
-      font-size: 0.82rem;
-      font-weight: 600;
-      cursor: pointer;
-      white-space: nowrap;
-      transition: all 0.2s ease;
-    }
-    .chip-btn.active, .chip-btn:hover {
-      background: var(--oro-gradiente);
-      color: #fff;
-      border-color: transparent;
-      box-shadow: 0 4px 12px rgba(201, 162, 75, 0.3);
-    }
+    .hero{text-align:center;padding:56px 18px 44px;background:linear-gradient(180deg,var(--rosa),var(--fondo));max-width:none}
+    .hero .in{max-width:640px;margin:0 auto;animation:sube .9s ease}
+    .hero h1{font-size:2.1rem;line-height:1.2}
+    .hero p{font-size:1.1rem;margin:14px 0 24px}
+    @keyframes sube{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
 
-    .models-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 16px;
-      margin: 18px 0;
-    }
+    .btn{display:inline-block;background:var(--oro);color:#fff;border:0;border-radius:30px;padding:13px 26px;font-size:1rem;font-family:inherit;text-decoration:none;cursor:pointer;margin:5px;transition:transform .2s}
+    .btn:hover{transform:translateY(-2px)}
+    .btn.neg{background:var(--negro)}
+    .btn.borde{background:transparent;color:var(--negro);border:1px solid var(--negro)}
 
-    .model-card {
-      background: #ffffff;
-      border: 1.5px solid var(--borde);
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: var(--sombra-suave);
-      display: flex;
-      flex-direction: column;
-      transition: transform 0.25s ease, box-shadow 0.25s ease;
-    }
-    .model-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--sombra-card);
-    }
-    .model-thumb {
-      height: 190px;
-      position: relative;
-      overflow: hidden;
-      background: #fdf5f7;
-    }
-    .model-thumb img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.4s ease;
-    }
-    .model-card:hover .model-thumb img {
-      transform: scale(1.05);
-    }
-    .model-body {
-      padding: 16px 14px;
-      text-align: center;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-    }
+    .pasos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
+    .paso{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:18px;text-align:center}
+    .paso .n{display:inline-block;width:36px;height:36px;line-height:36px;border-radius:50%;background:var(--oro);color:#fff;margin-bottom:8px}
+
+    .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
+    .chip{border:1px solid var(--oro);background:#fff;color:var(--negro);border-radius:20px;padding:8px 14px;font-size:.9rem;font-family:inherit;cursor:pointer}
+    .chip.on{background:var(--oro);color:#fff}
+
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
+    .modelo{background:#fff;border:1px solid #eadfc8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;animation:sube .6s ease}
+    .portada{height:170px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background-size:cover;background-position:center}
+    .modelo .cuerpo{padding:14px;text-align:center}
+    .modelo small{color:#777}
+    .modelo .btn{padding:9px 16px;font-size:.9rem}
+
+    .precio{background:#fff;border:1px solid #eadfc8;border-radius:16px;padding:24px;text-align:center;max-width:420px;margin:0 auto}
+    .precio .monto{font-size:2.2rem;color:var(--oro)}
+    .promo{background:var(--rosa);border-radius:10px;padding:8px 12px;margin-top:12px}
+
+    details{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px 16px;margin:8px 0}
+    summary{cursor:pointer;font-weight:bold}
+    details p{margin:8px 0 0}
+
+    footer{background:var(--negro);color:#ddd;text-align:center;padding:26px 18px;font-size:.9rem}
+    footer a{color:var(--oro)}
+    #nota{text-align:center;color:#777}
   </style>
 </head>
 <body>
-
-  <!-- BARRA DE NAVEGACIÓN (CON LOGO OFICIAL Y BOTONES QUE NUNCA SE CORTAN) -->
-  <nav class="navbar">
-    <a href="index.html" class="brand">
-      <img src="img/logo.png" alt="KE Invitaciones" class="brand-logo-img">
-    </a>
-    <div class="nav-links">
-      <a href="invitacion.html" class="nav-link hide-mobile" target="_blank">Demo VIP</a>
-      <a href="cliente.html" class="nav-link hide-mobile">Mi Cuenta</a>
-      <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde" style="padding: 6px 10px;">✨ Ver Demo</a>
-      <a href="dashboard.html" class="btn btn-sm btn-negro" id="btn-nav-admin" style="padding: 6px 10px;">⚙ Admin</a>
-    </div>
-  </nav>
-
-  <!-- HERO PRINCIPAL -->
-  <header style="text-align: center; padding: 44px 16px 32px; background: linear-gradient(180deg, var(--rosa-suave) 0%, var(--fondo) 100%); border-bottom: 1px solid var(--borde);">
-    <div style="max-width: 680px; margin: 0 auto;">
-      <div style="margin-bottom: 16px;">
-        <img src="img/logo.png" alt="KE Invitaciones" style="max-height: 52px; width: auto; margin: 0 auto;">
-      </div>
-
-      <div class="gold-heart-divider">
-        <span></span>
-        <svg viewBox="0 0 24 24"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-        <span></span>
-      </div>
-
-      <h1 style="font-size: 2.1rem; color: var(--negro); line-height: 1.2; margin-bottom: 12px; font-family: 'Playfair Display', serif;">
-        Una invitación especial para un momento <span style="color: var(--oro); font-style: italic;">inolvidable</span>
-      </h1>
-      <p style="font-size: 1rem; color: var(--texto-suave); margin-bottom: 22px; line-height: 1.6;">
-        Diseño exclusivo con sobre digital 3D interactivo, pases VIP con código QR para recepción, itinerario en vivo, música, Spotify e Instagram.
-      </p>
-
-      <!-- BOTONES DE ACCIÓN PRINCIPALES (100% VISIBLES EN CUALQUIER MÓVIL) -->
-      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-        <a href="invitacion.html" target="_blank" class="btn" style="font-size: 0.92rem; padding: 12px 22px;">
-          ✨ Ver Demostración VIP en Vivo
-        </a>
-        <a href="dashboard.html" class="btn btn-negro" style="font-size: 0.92rem; padding: 12px 22px;">
-          🚪 Panel Administrador & Check-in
-        </a>
-      </div>
-    </div>
+  <header>
+    <div class="logo">KE <b>INVITACIONES</b></div>
+    <a href="cliente.html">Mi cuenta</a>
   </header>
 
-  <main style="max-width: 960px; margin: 0 auto; padding: 26px 16px;">
+  <section class="hero">
+    <div class="in">
+      <h1>Una invitación especial para un momento inolvidable</h1>
+      <p>Invitaciones digitales interactivas para tus momentos especiales.</p>
+      <a class="btn" href="#modelos">Ver modelos</a>
+      <a class="btn neg" id="wa-principal" href="#" hidden target="_blank" rel="noopener">Solicitar por WhatsApp</a>
+    </div>
+  </section>
 
-    <!-- CÓMO FUNCIONA -->
-    <section style="margin-bottom: 36px;">
-      <div style="text-align: center; margin-bottom: 18px;">
-        <h2 style="font-size: 1.8rem; color: var(--oro); font-family: 'Playfair Display', serif;">Cómo Funciona</h2>
-        <p style="color: var(--texto-suave); font-size: 0.92rem;">Tu festejo soñado listo en 4 simples pasos</p>
-      </div>
+  <section id="como">
+    <h2>Cómo funciona</h2>
+    <div class="pasos">
+      <div class="paso"><div class="n">1</div><h3>Elegí un modelo</h3><p>Mirá las demostraciones y elegí el diseño que más te guste.</p></div>
+      <div class="paso"><div class="n">2</div><h3>Pasanos los datos</h3><p>Nombre, fecha, hora, lugar, fotos y el mensaje que quieras.</p></div>
+      <div class="paso"><div class="n">3</div><h3>Recibí tu enlace</h3><p>Creamos tu invitación y te enviamos el enlace y el código QR.</p></div>
+      <div class="paso"><div class="n">4</div><h3>Compartí y recibí respuestas</h3><p>Tus invitados confirman desde la invitación y vos ves todo en tu cuenta.</p></div>
+    </div>
+  </section>
 
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px;">
-        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 18px 14px; text-align: center;">
-          <div class="icon-circle-badge" style="width: 44px; height: 44px; margin-bottom: 8px;">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-          </div>
-          <h3 style="font-size: 1.1rem; color: var(--negro); margin-bottom: 4px;">1. Elegí el Modelo</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave);">Mirá las demostraciones y elegí el estilo que mejor representa tu festejo.</p>
-        </div>
+  <section id="modelos">
+    <h2>Modelos</h2>
+    <div class="chips" id="chips"></div>
+    <div class="grid" id="grid"></div>
+    <p id="nota">Cargando modelos...</p>
+  </section>
 
-        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 18px 14px; text-align: center;">
-          <div class="icon-circle-badge" style="width: 44px; height: 44px; margin-bottom: 8px;">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-          </div>
-          <h3 style="font-size: 1.1rem; color: var(--negro); margin-bottom: 4px;">2. Pasanos los Datos</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave);">Fecha, salón, itinerario, fotos, tu playlist de Spotify y hashtag de Instagram.</p>
-        </div>
+  <section id="precios">
+    <h2>Precios</h2>
+    <div class="precio" id="precio">Cargando...</div>
+  </section>
 
-        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 18px 14px; text-align: center;">
-          <div class="icon-circle-badge" style="width: 44px; height: 44px; margin-bottom: 8px;">
-            <svg class="icon-svg" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-          </div>
-          <h3 style="font-size: 1.1rem; color: var(--negro); margin-bottom: 4px;">3. Recibí tu Enlace & QR</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave);">Generamos tu invitación web interactiva y código QR en alta calidad para compartir por WhatsApp.</p>
-        </div>
-
-        <div style="background: #fff; border: 1.5px solid var(--borde); border-radius: 16px; padding: 18px 14px; text-align: center;">
-          <div class="icon-circle-badge" style="width: 44px; height: 44px; margin-bottom: 8px;">
-            <svg class="icon-svg" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-          </div>
-          <h3 style="font-size: 1.1rem; color: var(--negro); margin-bottom: 4px;">4. Control en Puerta</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave);">Tus invitados presentan su Pase VIP con QR y los recepcionistas registran el ingreso en vivo.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- CATÁLOGO DE MODELOS POR CATEGORÍA -->
-    <section style="margin-bottom: 36px;">
-      <div style="text-align: center; margin-bottom: 12px;">
-        <h2 style="font-size: 1.8rem; color: var(--oro); font-family: 'Playfair Display', serif;">Catálogo de Modelos</h2>
-        <p style="color: var(--texto-suave); font-size: 0.92rem;">Explorá los diseños exclusivos por tipo de evento</p>
-      </div>
-
-      <div class="catalog-chips">
-        <button type="button" class="chip-btn active" data-cat="all">Todas</button>
-        <button type="button" class="chip-btn" data-cat="quince">15 Años</button>
-        <button type="button" class="chip-btn" data-cat="boda">Casamientos</button>
-        <button type="button" class="chip-btn" data-cat="cumpleanos">Cumpleaños Infantiles</button>
-        <button type="button" class="chip-btn" data-cat="bautismo">Bautismos</button>
-        <button type="button" class="chip-btn" data-cat="babyshower">Baby Shower</button>
-        <button type="button" class="chip-btn" data-cat="especial">Galas & Aniversarios</button>
-      </div>
-
-      <div class="models-grid">
-        <div class="model-card" data-category="quince">
-          <div class="model-thumb">
-            <img src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" alt="15 Años Gala">
-          </div>
-          <div class="model-body">
-            <div>
-              <span class="badge badge-premium" style="font-size:0.7rem; margin-bottom:6px;">Premium VIP</span>
-              <h3 style="font-size:1.2rem; color:var(--negro); margin-bottom:4px;">Mis 15 Valentina</h3>
-              <p style="font-size:0.84rem; color:var(--texto-suave); margin-bottom:12px;">Paleta oro rosa, sobre 3D con sonido, pase VIP QR, itinerario y Spotify.</p>
-            </div>
-            <a href="invitacion.html" target="_blank" class="btn btn-sm">Ver Demostración</a>
-          </div>
-        </div>
-
-        <div class="model-card" data-category="boda">
-          <div class="model-thumb">
-            <img src="https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=800&q=80" alt="Boda Sofía & Mateo">
-          </div>
-          <div class="model-body">
-            <div>
-              <span class="badge badge-gold" style="font-size:0.7rem; margin-bottom:6px;">Elegancia Campestre</span>
-              <h3 style="font-size:1.2rem; color:var(--negro); margin-bottom:4px;">Boda Sofía & Mateo</h3>
-              <p style="font-size:0.84rem; color:var(--texto-suave); margin-bottom:12px;">Estilo romántico, ceremonia al atardecer, dress code y regalos bancarios.</p>
-            </div>
-            <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde">Ver Demostración</a>
-          </div>
-        </div>
-
-        <div class="model-card" data-category="cumpleanos">
-          <div class="model-thumb">
-            <img src="https://images.unsplash.com/photo-1530103862676-de8c9debad1d?w=800&q=80" alt="Cumpleaños Infantil">
-          </div>
-          <div class="model-body">
-            <div>
-              <span class="badge badge-gold" style="font-size:0.7rem; margin-bottom:6px;">Colorido & Animado</span>
-              <h3 style="font-size:1.2rem; color:var(--negro); margin-bottom:4px;">Cumpleaños Temático</h3>
-              <p style="font-size:0.84rem; color:var(--texto-suave); margin-bottom:12px;">Diseño interactivo para niños y adultos con cuenta regresiva y mapas.</p>
-            </div>
-            <a href="invitacion.html" target="_blank" class="btn btn-sm btn-borde">Ver Demostración</a>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- COMPARATIVA DE PAQUETES -->
-    <section style="margin-bottom: 36px;">
-      <div style="text-align: center; margin-bottom: 18px;">
-        <h2 style="font-size: 1.8rem; color: var(--oro); font-family: 'Playfair Display', serif;">Paquetes & Precios</h2>
-        <p style="color: var(--texto-suave); font-size: 0.92rem;">Elegí el plan perfecto para tu evento</p>
-      </div>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px;">
-        <!-- Básico -->
-        <div style="background: #ffffff; border: 1.5px solid var(--borde); border-radius: 18px; padding: 24px 18px;">
-          <h3 style="font-size: 1.35rem; color: var(--negro); margin-bottom: 4px;">Paquete Básico</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave); margin-bottom: 12px;">Ideal para reuniones íntimas y cumpleaños familiares.</p>
-          <div style="font-size: 2.1rem; font-weight: 700; color: var(--negro); margin-bottom: 14px;">
-            $22.000 <small style="font-size: 0.8rem; color: #888;">AR$</small>
-          </div>
-          <ul style="list-style: none; padding: 0; font-size: 0.86rem; line-height: 2; margin-bottom: 18px;">
-            <li>✓ Sobre digital 3D interactivo</li>
-            <li>✓ Portada con foto y cuenta regresiva</li>
-            <li>✓ Ubicación y mapa Google Maps</li>
-            <li>✓ Confirmación de asistencia (RSVP)</li>
-            <li>✓ Dress Code y datos de cuenta para regalos</li>
-          </ul>
-          <a href="https://wa.me/5491198765432?text=Hola,%20me%20interesa%20el%20Paquete%20B%C3%A1sico" target="_blank" class="btn btn-borde btn-block">
-            Consultar por WhatsApp
-          </a>
-        </div>
-
-        <!-- Premium VIP -->
-        <div style="background: linear-gradient(180deg, #fffcf5 0%, #ffffff 100%); border: 2px solid var(--oro); border-radius: 18px; padding: 24px 18px; box-shadow: var(--sombra-card); position: relative;">
-          <div style="display: inline-block; background: var(--oro); color: #fff; font-size: 0.7rem; font-weight: 700; padding: 3px 10px; border-radius: 12px; text-transform: uppercase; margin-bottom: 6px;">
-            ★ MÁS COMPLETO & ELEGIDO ★
-          </div>
-          <h3 style="font-size: 1.35rem; color: var(--oro-oscuro); margin-bottom: 4px;">Paquete Premium VIP</h3>
-          <p style="font-size: 0.84rem; color: var(--texto-suave); margin-bottom: 12px;">La experiencia definitiva para 15 años, bodas y grandes festejos.</p>
-          <div style="font-size: 2.1rem; font-weight: 700; color: var(--oro); margin-bottom: 14px;">
-            $35.000 <small style="font-size: 0.8rem; color: #888;">AR$</small>
-          </div>
-          <ul style="list-style: none; padding: 0; font-size: 0.86rem; line-height: 2; margin-bottom: 18px;">
-            <li><b>★ Pase Digital VIP con QR para Recepción</b></li>
-            <li><b>★ Itinerario completo con horarios</b></li>
-            <li><b>★ Integración oficial con Spotify Playlist</b></li>
-            <li><b>★ Hashtag de Instagram con botón de copia</b></li>
-            <li><b>★ "¡Nos vemos en!" con doble cuenta regresiva</b></li>
-            <li>✓ Música de fondo con reproductor</li>
-            <li>✓ Panel de Control en Puerta (Check-in en tiempo real)</li>
-          </ul>
-          <a href="invitacion.html" target="_blank" class="btn btn-block">
-            Ver Demo Premium VIP
-          </a>
-        </div>
-      </div>
-    </section>
-
-  </main>
+  <section id="faq">
+    <h2>Preguntas frecuentes</h2>
+    <details><summary>¿Cómo es una invitación digital?</summary><p>Es una página web con la información de tu evento: portada con foto, cuenta regresiva, fecha, ubicación en el mapa, galería y confirmación de asistencia. Se comparte con un enlace o un código QR, por ejemplo por WhatsApp.</p></details>
+    <details><summary>¿Cómo confirman asistencia mis invitados?</summary><p>Desde la misma invitación: escriben su nombre, indican si asisten y cuántas personas van, y pueden dejar un mensaje. Vos ves el total desde tu cuenta.</p></details>
+    <details><summary>¿Se puede agregar música?</summary><p>Sí. La invitación puede tener música de fondo con un botón para pausarla. Empieza cuando el invitado abre el sobre.</p></details>
+    <details><summary>¿Cómo se paga?</summary><p>El pago es manual: se abona una seña para reservar tu invitación y el saldo se coordina con nosotros por WhatsApp.</p></details>
+    <details><summary>¿Puedo cambiar datos después de publicada?</summary><p>Sí. Con tu cuenta podés editar el mensaje, el texto de bienvenida, la información adicional y el WhatsApp. Para otros cambios, escribinos.</p></details>
+    <details><summary>¿Hasta cuándo está disponible mi invitación?</summary><p>Hasta la fecha de vencimiento que se acuerde. Después deja de mostrarse.</p></details>
+  </section>
 
   <footer>
-    <div style="margin-bottom: 12px;">
-      <img src="img/logo.png" alt="KE Invitaciones" style="max-height: 38px; width: auto; margin: 0 auto; filter: brightness(1.1);">
-    </div>
-    <p style="font-size: 0.85rem; color: #aaa; margin-bottom: 14px;">Invitaciones digitales interactivas para momentos inolvidables</p>
-    <div style="display: flex; gap: 14px; justify-content: center; font-size: 0.85rem;">
-      <a href="index.html">Inicio</a>
-      <a href="invitacion.html">Demo VIP</a>
-      <a href="cliente.html">Mi Cuenta</a>
-      <a href="dashboard.html">Panel Administrador</a>
-    </div>
+    <div class="logo">KE <b style="color:#fff">INVITACIONES</b></div>
+    <p>Invitaciones digitales interactivas</p>
+    <p><a href="cliente.html">Ingresar a mi cuenta</a></p>
   </footer>
 
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      const chips = document.querySelectorAll(".chip-btn");
-      const models = document.querySelectorAll(".model-card");
+  <script type="module">
+    import { db } from "./js/firebase.js";
+    import { doc, getDoc, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-      chips.forEach(chip => {
-        chip.addEventListener("click", () => {
-          chips.forEach(c => c.classList.remove("active"));
-          chip.classList.add("active");
-          const cat = chip.dataset.cat;
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const CATEGORIAS = [
+      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
+      ["especial", "Eventos especiales"]
+    ];
+    const base = location.origin + location.pathname.replace(/[^/]*$/, "");
 
-          models.forEach(m => {
-            if (cat === "all" || m.dataset.category === cat) {
-              m.style.display = "flex";
-            } else {
-              m.style.display = "none";
-            }
-          });
-        });
+    let whatsapp = "";
+    let demos = {};
+    let modelos = [];
+    let filtro = "";
+
+    function linkWa(texto) {
+      return "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(texto);
+    }
+
+    function dibujarChips() {
+      const cont = $("chips");
+      cont.textContent = "";
+      const lista = [["", "Todas"]].concat(CATEGORIAS);
+      lista.forEach(([v, t]) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.className = "chip" + (v === filtro ? " on" : ""); b.textContent = t;
+        b.onclick = () => { filtro = v; dibujarChips(); dibujarModelos(); };
+        cont.appendChild(b);
       });
-    });
+    }
+
+    function dibujarModelos() {
+      const grid = $("grid");
+      grid.textContent = "";
+      const lista = modelos.filter((m) => !filtro || m.category === filtro);
+      $("nota").textContent = lista.length ? "" : "Pronto vamos a sumar modelos en esta categoría.";
+      lista.forEach((m) => {
+        const c = document.createElement("div"); c.className = "modelo";
+        const p = document.createElement("div"); p.className = "portada";
+        const col = m.colors || {};
+        p.style.background = col.suave || "#f6dde2";
+        p.style.color = col.acento || "#c9a24b";
+        if (m.sampleImage && /^data:image\//.test(m.sampleImage)) {
+          p.style.backgroundImage = 'url("' + m.sampleImage + '")';
+        } else { p.textContent = m.name; }
+        const cu = document.createElement("div"); cu.className = "cuerpo";
+        const n = document.createElement("h3"); n.textContent = m.name;
+        const cat = document.createElement("small");
+        cat.textContent = (CATEGORIAS.find((x) => x[0] === m.category) || [0, ""])[1];
+        cu.append(n, cat, document.createElement("br"));
+        if (demos[m.id]) {
+          const a = document.createElement("a");
+          a.className = "btn borde"; a.textContent = "Ver demostración";
+          a.href = base + "i/" + demos[m.id]; a.target = "_blank"; a.rel = "noopener";
+          cu.appendChild(a);
+        }
+        if (whatsapp) {
+          const a = document.createElement("a");
+          a.className = "btn"; a.textContent = "Elegir modelo";
+          a.href = linkWa("Hola! Me interesa la invitación digital modelo \"" + m.name + "\".");
+          a.target = "_blank"; a.rel = "noopener";
+          cu.appendChild(a);
+        }
+        c.append(p, cu);
+        grid.appendChild(c);
+      });
+    }
+
+    async function iniciar() {
+      dibujarChips();
+      try {
+        const [site, pricing, tp] = await Promise.all([
+          getDoc(doc(db, "settings", "site")),
+          getDoc(doc(db, "settings", "pricing")),
+          getDocs(collection(db, "templates"))
+        ]);
+
+        const s = site.exists() ? site.data() : {};
+        whatsapp = String(s.whatsapp || "").replace(/\D/g, "");
+        demos = s.demos || {};
+        if (whatsapp) {
+          $("wa-principal").href = linkWa("Hola! Quiero pedir una invitación digital.");
+          $("wa-principal").hidden = false;
+        }
+
+        modelos = tp.docs.map((d) => ({ id: d.id, ...d.data() })).filter((m) => m.active !== false);
+        dibujarModelos();
+
+        const caja = $("precio");
+        caja.textContent = "";
+        if (pricing.exists() && pricing.data().price >= 0) {
+          const p = pricing.data();
+          const t = document.createElement("h3"); t.textContent = "Invitación digital interactiva";
+          const m = document.createElement("div"); m.className = "monto"; m.textContent = $$(p.price);
+          const se = document.createElement("p");
+          se.textContent = "Se reserva con una seña de " + $$(p.deposit) + " y el saldo se abona luego.";
+          caja.append(t, m, se);
+          if (s.promo) {
+            const pr = document.createElement("div"); pr.className = "promo"; pr.textContent = s.promo;
+            caja.appendChild(pr);
+          }
+        } else {
+          caja.textContent = "Consultá el precio por WhatsApp.";
+        }
+        if (whatsapp) {
+          const a = document.createElement("a");
+          a.className = "btn neg"; a.textContent = "Consultar por WhatsApp";
+          a.href = linkWa("Hola! Quiero consultar por las invitaciones digitales.");
+          a.target = "_blank"; a.rel = "noopener";
+          caja.appendChild(document.createElement("br"));
+          caja.appendChild(a);
+        }
+      } catch (e) {
+        console.error(e);
+        $("nota").textContent = "No se pudieron cargar los modelos. Intentá de nuevo más tarde.";
+        $("precio").textContent = "Consultá el precio por WhatsApp.";
+      }
+    }
+    iniciar();
   </script>
+  <script type="module" src="js/paquetes-index.js"></script>
 </body>
 </html>
