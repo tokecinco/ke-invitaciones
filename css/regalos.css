@@ -4,9 +4,35 @@
 .regalo-etiqueta { margin:0; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; }
 .regalo-valor { margin:6px 0; font-size:1.5rem; color:var(--acento); word-break:break-all; }
 .regalo-titular { margin:0 0 8px; font-size:.9rem; }
-.regalo-lista { list-style:none; padding:0; margin:10px 0 0; text-align:left; }
-.regalo-lista li { display:flex; align-items:center; justify-content:space-between; gap:10px;
-  padding:12px 14px; margin:8px 0; background:var(--suave); border-radius:14px; }
-.regalo-lista .nombre { flex:1; }
+
+/* Ventana flotante con la lista de regalos */
+.modal-regalos { position:fixed; inset:0; z-index:150; background:rgba(0,0,0,.55);
+  display:flex; align-items:flex-end; justify-content:center; animation:aparecerFondo .25s ease; }
+.hoja { background:var(--fondo); color:var(--texto); width:100%; max-width:520px; max-height:86vh;
+  overflow:auto; border-radius:22px 22px 0 0; padding:18px 18px 28px; text-align:left;
+  animation:subeHoja .35s ease; box-shadow:0 -10px 30px rgba(0,0,0,.25); }
+.hoja-cab { display:flex; align-items:center; justify-content:space-between; }
+.hoja-cab h3 { margin:0; color:var(--acento); font-weight:normal; font-size:1.4rem; }
+.hoja .cerrar { width:38px; height:38px; border-radius:50%; border:0; background:var(--suave);
+  color:var(--texto); font-size:1.5rem; line-height:1; cursor:pointer; }
+.hoja-ayuda { margin:8px 0 12px; font-size:.95rem; }
+.hoja-aviso { min-height:1.4em; font-size:.95rem; color:var(--acento); }
+@keyframes subeHoja { from { transform:translateY(100%); } to { transform:none; } }
+@keyframes aparecerFondo { from { opacity:0; } to { opacity:1; } }
+
+.regalo-lista { list-style:none; padding:0; margin:0; }
+.regalo-lista li { display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between;
+  gap:8px 10px; padding:12px 14px; margin:8px 0; background:var(--suave); border-radius:14px; }
+.regalo-lista .nombre { flex:1; min-width:120px; }
+.regalo-lista .acciones { display:flex; align-items:center; gap:10px; }
 .regalo-lista a { color:var(--acento); font-weight:bold; white-space:nowrap; }
-.regalo-subtitulo { margin:0 0 4px; font-size:1.1rem; color:var(--acento); }
+.regalo-lista .reservar { border:0; border-radius:20px; padding:8px 14px; background:var(--acento);
+  color:#fff; font-family:inherit; font-size:.9rem; cursor:pointer; }
+.regalo-lista .reservado { font-size:.85rem; opacity:.75; }
+.regalo-lista li.ocupado .nombre { opacity:.55; text-decoration:line-through; }
+.reserva-form { width:100%; display:flex; gap:6px; flex-wrap:wrap; }
+.reserva-form input { flex:1; min-width:140px; padding:10px; border:1px solid #d8cbb0; border-radius:10px;
+  font-size:1rem; font-family:inherit; }
+.reserva-form button { border:0; border-radius:10px; padding:10px 14px; font-family:inherit; cursor:pointer;
+  background:var(--acento); color:#fff; }
+.reserva-form button.sec { background:#777; }
