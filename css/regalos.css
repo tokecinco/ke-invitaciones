@@ -1,0 +1,12 @@
+.regalo-bloque { margin:20px auto 0; max-width:420px; }
+.regalo-alias { background:var(--suave); border-radius:18px; padding:18px;
+  box-shadow:0 6px 18px rgba(0,0,0,.07); }
+.regalo-etiqueta { margin:0; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; }
+.regalo-valor { margin:6px 0; font-size:1.5rem; color:var(--acento); word-break:break-all; }
+.regalo-titular { margin:0 0 8px; font-size:.9rem; }
+.regalo-lista { list-style:none; padding:0; margin:10px 0 0; text-align:left; }
+.regalo-lista li { display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:12px 14px; margin:8px 0; background:var(--suave); border-radius:14px; }
+.regalo-lista .nombre { flex:1; }
+.regalo-lista a { color:var(--acento); font-weight:bold; white-space:nowrap; }
+.regalo-subtitulo { margin:0 0 4px; font-size:1.1rem; color:var(--acento); }
