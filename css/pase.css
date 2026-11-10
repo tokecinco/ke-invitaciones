@@ -1,0 +1,21 @@
+.pase { background:#fff; color:#1a1a1a; border-radius:20px; padding:22px 18px; max-width:340px;
+  margin:0 auto; box-shadow:0 10px 30px rgba(0,0,0,.15); position:relative; }
+.pase-evento { margin:0; font-size:.8rem; letter-spacing:2px; text-transform:uppercase; color:#777; }
+.pase-nombre { margin:8px 0 2px; font-size:1.6rem; color:var(--acento); line-height:1.2; }
+.pase-lugares, .pase-fecha { margin:2px 0; font-size:.95rem; }
+.pase-corte { position:relative; border-top:2px dashed #ddd; margin:18px -18px; }
+.pase-corte::before, .pase-corte::after { content:""; position:absolute; top:-11px; width:20px;
+  height:20px; border-radius:50%; background:var(--fondo); }
+.pase-corte::before { left:-10px; }
+.pase-corte::after { right:-10px; }
+.pase-qr { width:220px; height:220px; max-width:100%; display:block; margin:0 auto;
+  image-rendering:pixelated; }
+.pase-ayuda { margin:10px 0 0; font-size:.85rem; color:#777; }
+.pase-botones { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-top:14px; }
+
+.pase-full { position:fixed; inset:0; z-index:200; background:#fff; color:#1a1a1a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding:20px; text-align:center; }
+.pase-full img { width:min(90vw, 440px); height:auto; image-rendering:pixelated; }
+.pase-full p { margin:14px 0 0; font-size:1.1rem; }
+.pase-full small { color:#777; }
