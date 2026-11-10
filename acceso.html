@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Control de acceso - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    a{color:#c9a24b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    .tarjeta{border-radius:16px;padding:20px;text-align:center;color:#fff;margin:12px 0}
+    .tarjeta.ok{background:#2e9e57}
+    .tarjeta.ya{background:#d98e04}
+    .tarjeta.mal{background:#c0392b}
+    .tarjeta h2{color:#fff;margin:0 0 6px;letter-spacing:2px}
+    .tarjeta .nombre{font-size:1.7rem;margin:6px 0}
+    .tarjeta input,.tarjeta label{color:#1a1a1a}
+    .tarjeta button{background:#1a1a1a}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
+    .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
+    .fila{background:#fff;border:1px solid #eadfc8;border-left:5px solid #ccc;border-radius:10px;padding:8px 10px;margin:6px 0}
+    .fila.dentro{border-left-color:#2e9e57}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Control de acceso</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <p>Entrá con tu cuenta (administrador o cliente) para controlar los ingresos.</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div id="escaneo" hidden>
+      <div id="tarjeta"></div>
+    </div>
+
+    <h2>Resumen de ingresos</h2>
+    <p>Para registrar un ingreso, escaneá el QR del invitado con la cámara del celular.</p>
+    <select id="sel"></select>
+    <div class="stats">
+      <div class="stat"><b id="s-inv">0</b>Invitados</div>
+      <div class="stat"><b id="s-dentro">0</b>Ya ingresaron</div>
+      <div class="stat"><b id="s-pers">0</b>Personas dentro</div>
+    </div>
+    <div id="lista"></div>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, updateDoc, deleteField, serverTimestamp, collection, getDocs, query, where }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const params = new URLSearchParams(location.search);
+    const idInv = params.get("i");
+    const idGuest = params.get("g");
+    let nombresInv = {};
+
+    function el(tag, clase, texto) {
+      const e = document.createElement(tag);
+      if (clase) e.className = clase;
+      if (texto) e.textContent = texto;
+      return e;
+    }
+    const hora = (ts) => ts && ts.toDate
+      ? ts.toDate().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) { if (idInv && idGuest) verificar(); cargarInvitaciones(); }
+    });
+
+    /* Verificación de un pase */
+    async function verificar() {
+      $("escaneo").hidden = false;
+      const t = $("tarjeta");
+      t.textContent = "Verificando...";
+      try {
+        const [gs, inv] = await Promise.all([
+          getDoc(doc(db, "guests", idGuest)),
+          getDoc(doc(db, "invitations", idInv))
+        ]);
+        if (!gs.exists() || !inv.exists() || gs.data().invitationId !== idInv) {
+          return tarjeta("mal", "QR NO VÁLIDO", "Este código no corresponde a una invitación.", null);
+        }
+        pintar(gs.data(), inv.data());
+      } catch (e) {
+        console.error(e);
+        tarjeta("mal", "SIN PERMISO", "Tu cuenta no puede controlar esta invitación.", null);
+      }
+    }
+
+    function tarjeta(clase, titulo, texto, extra) {
+      const t = $("tarjeta");
+      t.textContent = "";
+      const c = el("div", "tarjeta " + clase);
+      c.append(el("h2", null, titulo), el("p", null, texto));
+      if (extra) c.appendChild(extra);
+      t.appendChild(c);
+    }
+
+    function pintar(g, inv) {
+      const caja = el("div");
+      caja.appendChild(el("div", "nombre", g.name));
+      caja.appendChild(el("p", null, (inv.honoree || "") + " - " + g.seats + (g.seats === 1 ? " lugar" : " lugares")));
+
+      if (g.checkedIn) {
+        const b = el("button", null, "Deshacer ingreso");
+        b.type = "button";
+        b.onclick = async () => {
+          if (!confirm("¿Deshacer el ingreso de " + g.name + "?")) return;
+          try {
+            await updateDoc(doc(db, "guests", idGuest), {
+              checkedIn: deleteField(), checkedInAt: deleteField(), checkedInCount: deleteField()
+            });
+            verificar(); cargarLista();
+          } catch (e) { console.error(e); alert("No se pudo deshacer."); }
+        };
+        caja.appendChild(b);
+        tarjeta("ya", "YA INGRESÓ",
+          (g.checkedInCount || 0) + " persona(s) a las " + hora(g.checkedInAt), caja);
+      } else {
+        const l = el("label", null, "Personas que ingresan");
+        const n = document.createElement("input");
+        n.type = "number"; n.min = "1"; n.max = String(g.seats); n.value = String(g.seats);
+        n.inputMode = "numeric";
+        const b = el("button", null, "Registrar ingreso");
+        b.type = "button";
+        b.onclick = async () => {
+          const cant = parseInt(n.value, 10);
+          if (!(cant >= 1 && cant <= g.seats)) { alert("La cantidad debe ser entre 1 y " + g.seats + "."); return; }
+          b.disabled = true;
+          try {
+            await updateDoc(doc(db, "guests", idGuest), {
+              checkedIn: true, checkedInAt: serverTimestamp(), checkedInCount: cant
+            });
+            verificar(); cargarLista();
+          } catch (e) { console.error(e); alert("No se pudo registrar el ingreso."); b.disabled = false; }
+        };
+        caja.append(l, n, b);
+        tarjeta("ok", "PASE VÁLIDO", "Todavía no ingresó.", caja);
+      }
+    }
+
+    /* Resumen */
+    async function cargarInvitaciones() {
+      let snap;
+      try {
+        snap = await getDocs(collection(db, "invitations"));
+      } catch (e) {
+        try {
+          snap = await getDocs(query(collection(db, "invitations"), where("ownerId", "==", auth.currentUser.uid)));
+        } catch (e2) { console.error(e2); $("lista").textContent = "No se pudieron cargar las invitaciones."; return; }
+      }
+      $("sel").innerHTML = "";
+      nombresInv = {};
+      snap.forEach((d) => {
+        nombresInv[d.id] = d.data().honoree || d.id;
+        const o = document.createElement("option");
+        o.value = d.id; o.textContent = nombresInv[d.id];
+        $("sel").appendChild(o);
+      });
+      if (idInv && nombresInv[idInv]) $("sel").value = idInv;
+      if (!snap.size) { $("lista").textContent = "No hay invitaciones."; return; }
+      cargarLista();
+    }
+    $("sel").addEventListener("change", cargarLista);
+
+    async function cargarLista() {
+      const id = $("sel").value;
+      if (!id) return;
+      const cont = $("lista");
+      cont.textContent = "Cargando...";
+      try {
+        const snap = await getDocs(query(collection(db, "guests"), where("invitationId", "==", id)));
+        const lista = snap.docs.map((d) => d.data()).sort((a, b) => a.name.localeCompare(b.name, "es"));
+        let dentro = 0, personas = 0;
+        cont.textContent = "";
+        lista.forEach((g) => {
+          if (g.checkedIn) { dentro++; personas += g.checkedInCount || 0; }
+          const f = el("div", "fila" + (g.checkedIn ? " dentro" : ""));
+          f.appendChild(el("b", null, g.name));
+          f.appendChild(el("div", null, g.checkedIn
+            ? "Ingresó a las " + hora(g.checkedInAt) + " (" + (g.checkedInCount || 0) + " de " + g.seats + ")"
+            : g.seats + " lugar(es) - todavía no ingresó"));
+          cont.appendChild(f);
+        });
+        if (!lista.length) cont.textContent = "Todavía no hay invitados cargados.";
+        $("s-inv").textContent = lista.length;
+        $("s-dentro").textContent = dentro;
+        $("s-pers").textContent = personas;
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudo cargar la lista.";
+      }
+    }
+  </script>
+</body>
+  </html>
