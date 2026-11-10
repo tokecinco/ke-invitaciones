@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Extras - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    textarea{min-height:130px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    .check{display:flex;align-items:center;font-size:1rem}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Extras de la invitación</h1>
+  <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Invitaciones</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <label>Invitación</label>
+    <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Itinerario</h2>
+      <label>Una actividad por línea: Hora; Actividad (hasta 12)</label>
+      <textarea id="f-it" placeholder="19:30; Recepción de invitados&#10;20:30; Cena&#10;22:00; Baile&#10;01:00; Cierre"></textarea>
+    </div>
+
+    <div class="caja">
+      <h2>Playlist de Spotify</h2>
+      <label>Enlace de una playlist pública, álbum o canción</label>
+      <input id="f-spotify" placeholder="https://open.spotify.com/playlist/...">
+    </div>
+
+    <div class="caja">
+      <h2>Hashtag de Instagram</h2>
+      <input id="f-hashtag" placeholder="#Sofia15" maxlength="41">
+    </div>
+
+    <div class="caja">
+      <h2>Pase digital</h2>
+      <label class="check"><input id="f-pase" type="checkbox" checked>Mostrar pase con código QR en los enlaces personalizados (Premium)</label>
+    </div>
+
+    <button id="btn-guardar" type="button">Guardar extras</button>
+    <p id="msg" class="msg"></p>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, updateDoc, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    let inv = {};
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    async function cargar() {
+      try {
+        const snap = await getDocs(collection(db, "invitations"));
+        inv = {};
+        snap.forEach((d) => { inv[d.id] = d.data(); });
+        $("sel").innerHTML = "";
+        Object.keys(inv).forEach((id) => {
+          const o = document.createElement("option");
+          o.value = id; o.textContent = (inv[id].honoree || id) + " (" + id + ")";
+          $("sel").appendChild(o);
+        });
+        const pedida = new URLSearchParams(location.search).get("i");
+        if (pedida && inv[pedida]) $("sel").value = pedida;
+        llenar();
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudieron cargar las invitaciones.";
+      }
+    }
+
+    function llenar() {
+      const x = inv[$("sel").value];
+      if (!x) return;
+      $("f-it").value = (Array.isArray(x.itinerary) ? x.itinerary : [])
+        .map((i) => (i.time ? i.time + "; " : "") + i.title).join("\n");
+      $("f-spotify").value = x.spotify || "";
+      $("f-hashtag").value = x.hashtag ? "#" + x.hashtag : "";
+      $("f-pase").checked = x.pass !== false;
+      $("msg").textContent = "";
+    }
+    $("sel").addEventListener("change", llenar);
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      if (!id) return;
+
+      const spotify = $("f-spotify").value.trim();
+      if (spotify && !/open\.spotify\.com\/(intl-[a-z]{2}\/)?(playlist|album|track|episode|show)\/[A-Za-z0-9]{10,30}/.test(spotify)) {
+        $("msg").textContent = "Pegá el enlace de una playlist, álbum o canción de Spotify.";
+        return;
+      }
+      const hashtag = $("f-hashtag").value.replace(/^#+/, "").replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 40);
+
+      const lineas = $("f-it").value.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lineas.length > 12) { $("msg").textContent = "El itinerario admite hasta 12 actividades."; return; }
+      const itinerary = lineas.map((l) => {
+        const k = l.indexOf(";");
+        if (k === -1) return { time: "", title: l.slice(0, 80) };
+        return { time: l.slice(0, k).trim().slice(0, 12), title: l.slice(k + 1).trim().slice(0, 80) };
+      }).filter((x) => x.title);
+
+      $("msg").textContent = "Guardando...";
+      try {
+        const datos = { spotify: spotify, hashtag: hashtag, itinerary: itinerary, pass: $("f-pase").checked };
+        await updateDoc(doc(db, "invitations", id), datos);
+        inv[id] = { ...inv[id], ...datos };
+        $("msg").textContent = "Extras guardados.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+    });
+  </script>
+</body>
+</html>
