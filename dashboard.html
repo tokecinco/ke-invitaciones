@@ -10,12 +10,13 @@
     *{box-sizing:border-box}
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
+    h3{margin:18px 0 6px;font-size:1rem;letter-spacing:2px;text-transform:uppercase;color:#8a6a1f}
     input,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
     a{color:#c9a24b}
-    .menu{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
-    .menu a{display:block;background:#1a1a1a;color:#fff;text-decoration:none;text-align:center;padding:12px 6px;border-radius:10px;font-size:.95rem}
+    .menu{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .menu a{display:block;background:#1a1a1a;color:#fff;text-decoration:none;text-align:center;padding:14px 6px;border-radius:10px;font-size:.92rem}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:12px;text-align:center;font-size:.85rem}
     .stat b{display:block;font-size:1.4rem;color:#8a6a1f}
@@ -34,29 +35,12 @@
   </section>
 
   <section id="panel" hidden>
-    <div class="menu">
-      <a href="admin.html">Invitaciones</a>
-      <a href="confirmaciones.html">Confirmaciones</a>
-      <a href="pagos.html">Pagos</a>
-      <a href="clientes.html">Clientes</a>
-      <a href="plantillas.html">Plantillas</a>
-      <a href="qr.html">Códigos QR</a>
-      <a href="cliente.html">Vista de cliente</a>
-      <a href="index.html">Página principal</a>
-    </div>
+    <h2>Gestión</h2>
+    <div id="menu"></div>
 
     <h2>Estadísticas</h2>
     <div id="estado" class="msg">Cargando...</div>
-    <div class="stats" id="stats" hidden>
-      <div class="stat"><b id="s-creadas">0</b>Invitaciones creadas</div>
-      <div class="stat"><b id="s-activas">0</b>Activas</div>
-      <div class="stat"><b id="s-ventas">0</b>Ventas (señadas o pagadas)</div>
-      <div class="stat"><b id="s-pend">0</b>Pendientes de pago</div>
-      <div class="stat"><b id="s-ingresos">$0</b>Ingresos cobrados</div>
-      <div class="stat"><b id="s-saldo">$0</b>Saldo por cobrar</div>
-      <div class="stat"><b id="s-resp">0</b>Confirmaciones recibidas</div>
-      <div class="stat"><b id="s-pers">0</b>Personas confirmadas</div>
-    </div>
+    <div class="stats" id="stats" hidden></div>
 
     <h2>Próximos eventos</h2>
     <div id="proximos"></div>
@@ -74,6 +58,34 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
 
+    const MENU = [
+      ["Invitaciones", [
+        ["Invitaciones", "admin.html"], ["Invitados", "invitados.html"],
+        ["Extras (itinerario, playlist, hashtag)", "extras.html"], ["Vencimientos", "vencimientos.html"],
+        ["Códigos QR", "qr.html"], ["Control de acceso", "acceso.html"]
+      ]],
+      ["Negocio", [
+        ["Confirmaciones", "confirmaciones.html"], ["Pagos", "pagos.html"],
+        ["Paquetes y precios", "paquetes.html"], ["Clientes", "clientes.html"]
+      ]],
+      ["Diseño", [
+        ["Plantillas", "plantillas.html"], ["Plantillas nuevas", "plantillas-extra.html"]
+      ]],
+      ["Sitio", [
+        ["Configuración", "configuracion.html"], ["Página principal", "index.html"],
+        ["Vista de cliente", "cliente.html"]
+      ]]
+    ];
+
+    MENU.forEach(([titulo, items]) => {
+      const h = document.createElement("h3"); h.textContent = titulo;
+      const g = document.createElement("div"); g.className = "menu";
+      items.forEach(([t, url]) => {
+        const a = document.createElement("a"); a.href = url; a.textContent = t; g.appendChild(a);
+      });
+      $("menu").append(h, g);
+    });
+
     $("btn-login").addEventListener("click", async () => {
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
@@ -88,24 +100,34 @@
       if (u) cargar();
     });
 
+    function tarjeta(valor, texto) {
+      const c = document.createElement("div"); c.className = "stat";
+      const b = document.createElement("b"); b.textContent = valor;
+      c.append(b, texto);
+      return c;
+    }
+
     async function cargar() {
       $("estado").textContent = "Cargando...";
       $("stats").hidden = true;
       try {
-        const [inv, pag, rsv] = await Promise.all([
+        const [inv, pag, rsv, gst, usr] = await Promise.all([
           getDocs(collection(db, "invitations")),
           getDocs(collection(db, "payments")),
-          getDocs(collection(db, "rsvps"))
+          getDocs(collection(db, "rsvps")),
+          getDocs(collection(db, "guests")),
+          getDocs(collection(db, "users"))
         ]);
 
         const pagos = {};
         pag.forEach((d) => { pagos[d.id] = d.data(); });
 
-        let activas = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
+        let activas = 0, premium = 0, basico = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
         const lista = [];
         inv.forEach((d) => {
           const x = d.data();
           if (x.active) activas++;
+          if (x.package === "premium") premium++; else basico++;
           const p = pagos[d.id];
           const estado = p ? p.status : "pendiente";
           if (estado === "senado" || estado === "pagado") ventas++; else pend++;
@@ -116,25 +138,28 @@
           lista.push({ id: d.id, nombre: x.honoree || d.id, fecha: x.date || "" });
         });
 
-        let respSi = 0, personas = 0;
+        let personas = 0;
         rsv.forEach((d) => {
           const r = d.data();
-          if (r.attending) { respSi++; personas += r.guests || 0; }
+          if (r.attending) personas += r.guests || 0;
         });
 
-        $("s-creadas").textContent = inv.size;
-        $("s-activas").textContent = activas;
-        $("s-ventas").textContent = ventas;
-        $("s-pend").textContent = pend;
-        $("s-ingresos").textContent = $$(ingresos);
-        $("s-saldo").textContent = $$(saldo);
-        $("s-resp").textContent = rsv.size;
-        $("s-pers").textContent = personas;
-        $("stats").hidden = false;
+        const s = $("stats");
+        s.textContent = "";
+        [
+          [inv.size, "Invitaciones creadas"], [activas, "Activas"],
+          [premium, "Paquete Premium"], [basico, "Paquete Básico"],
+          [ventas, "Ventas (señadas o pagadas)"], [pend, "Pendientes de pago"],
+          [$$(ingresos), "Ingresos cobrados"], [$$(saldo), "Saldo por cobrar"],
+          [rsv.size, "Confirmaciones recibidas"], [personas, "Personas confirmadas"],
+          [gst.size, "Invitados cargados"], [usr.size, "Cuentas registradas"]
+        ].forEach(([v, t]) => s.appendChild(tarjeta(v, t)));
+        s.hidden = false;
         $("estado").textContent = "";
 
         const hoy = new Date().toISOString().slice(0, 10);
-        const prox = lista.filter((i) => i.fecha >= hoy).sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 5);
+        const prox = lista.filter((i) => i.fecha >= hoy)
+          .sort((a, b) => a.fecha.localeCompare(b.fecha)).slice(0, 5);
         const cont = $("proximos");
         cont.textContent = "";
         if (!prox.length) cont.textContent = "No hay eventos próximos.";
