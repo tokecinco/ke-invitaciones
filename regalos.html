@@ -13,9 +13,13 @@
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     textarea{min-height:110px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
     label{font-size:.9rem;display:block;margin-top:10px}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .fila{border-left:5px solid #ccc;background:#fffdf8;padding:8px 10px;margin:6px 0;border-radius:8px}
+    .fila.res{border-left-color:#2e9e57}
+    .fila button{width:auto;padding:6px 12px;margin:6px 0 0;font-size:.85rem}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -33,6 +37,11 @@
   <section id="panel" hidden>
     <label>Invitación</label>
     <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Reservas</h2>
+      <div id="reservas">Cargando...</div>
+    </div>
 
     <div class="caja">
       <h2>Mensaje</h2>
@@ -57,6 +66,7 @@
       <h2>Lista de regalos</h2>
       <label>Un regalo por línea: Regalo; enlace (el enlace es opcional, hasta 20)</label>
       <textarea id="f-lista" placeholder="Juego de sábanas; https://tienda.com/sabanas&#10;Cafetera&#10;Set de copas; https://tienda.com/copas"></textarea>
+      <small>Al guardar, cada regalo queda disponible para reservar. Si cambiás el nombre de un regalo, pierde su reserva.</small>
     </div>
 
     <button id="btn-guardar" type="button">Guardar regalos</button>
@@ -67,7 +77,7 @@
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, updateDoc, collection, getDocs }
+    import { doc, updateDoc, collection, getDocs, query, where, writeBatch }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
@@ -85,23 +95,25 @@
     });
 
     async function cargar() {
+      let snap;
       try {
-        const snap = await getDocs(collection(db, "invitations"));
-        inv = {};
-        snap.forEach((d) => { inv[d.id] = d.data(); });
-        $("sel").innerHTML = "";
-        Object.keys(inv).forEach((id) => {
-          const o = document.createElement("option");
-          o.value = id; o.textContent = (inv[id].honoree || id) + " (" + id + ")";
-          $("sel").appendChild(o);
-        });
-        const pedida = new URLSearchParams(location.search).get("i");
-        if (pedida && inv[pedida]) $("sel").value = pedida;
-        llenar();
+        snap = await getDocs(collection(db, "invitations"));
       } catch (e) {
-        console.error(e);
-        $("msg").textContent = "No se pudieron cargar las invitaciones.";
+        try {
+          snap = await getDocs(query(collection(db, "invitations"), where("ownerId", "==", auth.currentUser.uid)));
+        } catch (e2) { console.error(e2); $("msg").textContent = "No se pudieron cargar las invitaciones."; return; }
       }
+      inv = {};
+      $("sel").innerHTML = "";
+      snap.forEach((d) => {
+        inv[d.id] = d.data();
+        const o = document.createElement("option");
+        o.value = d.id; o.textContent = (d.data().honoree || d.id) + " (" + d.id + ")";
+        $("sel").appendChild(o);
+      });
+      const pedida = new URLSearchParams(location.search).get("i");
+      if (pedida && inv[pedida]) $("sel").value = pedida;
+      llenar();
     }
 
     function llenar() {
@@ -115,8 +127,64 @@
       $("f-lista").value = (Array.isArray(x.giftList) ? x.giftList : [])
         .map((g) => g.name + (g.url ? "; " + g.url : "")).join("\n");
       $("msg").textContent = "";
+      reservas();
     }
     $("sel").addEventListener("change", llenar);
+
+    async function reservas() {
+      const id = $("sel").value;
+      const cont = $("reservas");
+      const lista = (inv[id] && Array.isArray(inv[id].giftList)) ? inv[id].giftList : [];
+      if (!lista.length) { cont.textContent = "Todavía no hay una lista de regalos."; return; }
+      cont.textContent = "Cargando...";
+      try {
+        const s = await getDocs(query(collection(db, "giftClaimNames"), where("invitationId", "==", id)));
+        const por = {};
+        s.forEach((d) => { por[d.data().itemId] = d.data(); });
+        cont.textContent = "";
+        lista.forEach((g) => {
+          const f = document.createElement("div");
+          f.className = "fila" + (g.id && por[g.id] ? " res" : "");
+          const n = document.createElement("b"); n.textContent = g.name;
+          const e = document.createElement("div");
+          if (!g.id) {
+            e.textContent = "Guardá la lista para habilitar las reservas.";
+          } else if (por[g.id]) {
+            e.textContent = "Reservado por " + por[g.id].name;
+          } else {
+            e.textContent = "Disponible";
+          }
+          f.append(n, e);
+          if (g.id && por[g.id]) {
+            const b = document.createElement("button");
+            b.type = "button"; b.className = "sec"; b.textContent = "Liberar reserva";
+            b.onclick = async () => {
+              if (!confirm("¿Liberar la reserva de \"" + g.name + "\"?")) return;
+              try {
+                const cid = id + "_" + g.id;
+                const batch = writeBatch(db);
+                batch.delete(doc(db, "giftClaims", cid));
+                batch.delete(doc(db, "giftClaimNames", cid));
+                await batch.commit();
+                reservas();
+              } catch (err) { console.error(err); $("msg").textContent = "No se pudo liberar."; }
+            };
+            f.appendChild(b);
+          }
+          cont.appendChild(f);
+        });
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudieron cargar las reservas.";
+      }
+    }
+
+    function nuevoId(usados) {
+      let id;
+      do { id = "r" + Math.random().toString(36).slice(2, 8); } while (usados.has(id));
+      usados.add(id);
+      return id;
+    }
 
     $("btn-guardar").addEventListener("click", async () => {
       const id = $("sel").value;
@@ -130,6 +198,10 @@
 
       const lineas = $("f-lista").value.split("\n").map((l) => l.trim()).filter(Boolean);
       if (lineas.length > 20) { $("msg").textContent = "La lista admite hasta 20 regalos."; return; }
+
+      const previos = Array.isArray(inv[id].giftList) ? inv[id].giftList : [];
+      const usados = new Set(previos.map((p) => p.id).filter(Boolean));
+      const tomados = new Set();
       const giftList = [];
       for (const l of lineas) {
         const k = l.indexOf(";");
@@ -140,7 +212,11 @@
           $("msg").textContent = "El enlace de \"" + name + "\" debe empezar con https://";
           return;
         }
-        giftList.push({ name: name, url: url });
+        const previo = previos.find((p) => p.id && !tomados.has(p.id) &&
+          String(p.name).toLowerCase() === name.toLowerCase());
+        const itemId = previo ? previo.id : nuevoId(usados);
+        tomados.add(itemId);
+        giftList.push({ id: itemId, name: name, url: url });
       }
 
       $("msg").textContent = "Guardando...";
@@ -156,11 +232,12 @@
         await updateDoc(doc(db, "invitations", id), datos);
         inv[id] = { ...inv[id], ...datos };
         $("msg").textContent = "Regalos guardados.";
+        reservas();
       } catch (e) {
         console.error(e);
-        $("msg").textContent = "No se pudo guardar.";
+        $("msg").textContent = "No se pudo guardar. Solo el administrador puede editar la lista.";
       }
     });
   </script>
 </body>
-</html>
+  </html>
