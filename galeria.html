@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Álbum de fotos - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:600px}
+    h1,h2{color:#c9a24b}
+    input,select,button,.boton{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button,.boton{display:block;background:#c9a24b;color:#fff;border:0;cursor:pointer;text-align:center;text-decoration:none}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    a{color:#c9a24b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0;text-align:center}
+    #qr{width:220px;height:220px;max-width:100%;image-rendering:pixelated}
+    #enlace{word-break:break-all;font-size:.85rem}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+    .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;background:#eee}
+    #visor{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.94);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:14px;gap:8px}
+    #visor img{max-width:100%;max-height:68vh;object-fit:contain;border-radius:6px}
+    #visor .botones{display:flex;gap:8px;width:100%;max-width:420px}
+    #visor .botones *{flex:1;margin:0}
+    #v-nombre{color:#fff;margin:0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Álbum de fotos</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <p>Entrá con tu cuenta (administrador o cliente).</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <label>Invitación</label>
+    <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Estado del álbum</h2>
+      <p id="estado-album"></p>
+      <button id="btn-toggle" type="button"></button>
+      <small>Abrilo cuando empiece el evento y cerralo al terminar. Con el álbum cerrado nadie puede subir fotos.</small>
+    </div>
+
+    <div class="caja">
+      <h2>QR para los invitados</h2>
+      <img id="qr" alt="QR del álbum">
+      <p id="enlace"></p>
+      <a id="btn-qr" class="boton" download="qr-album.png">Descargar QR</a>
+      <button id="btn-copiar" type="button" class="sec">Copiar enlace</button>
+    </div>
+
+    <h2>Fotos <span id="cuenta"></span></h2>
+    <div id="grid" class="grid"></div>
+    <button id="btn-mas" type="button" hidden>Ver más</button>
+    <button id="btn-zip" type="button" class="sec">Descargar todas (ZIP)</button>
+    <p id="msg" class="msg"></p>
+    <button id="btn-salir" type="button" class="sec">Cerrar sesión</button>
+  </section>
+
+  <div id="visor" hidden>
+    <img id="v-img" alt="">
+    <p id="v-nombre"></p>
+    <div class="botones">
+      <a id="v-desc" class="boton">Descargar</a>
+      <button id="v-del" type="button" class="rojo">Eliminar</button>
+      <button id="v-cerrar" type="button" class="sec">Cerrar</button>
+    </div>
+  </div>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, updateDoc, deleteDoc, collection, getDocs, getCountFromServer, query, where, limit, startAfter }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const PAGINA = 24;
+    let invs = {};
+    let actual = null;
+    let ultimo = null;
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargarInvitaciones();
+    });
+
+    function cargarScript(src) {
+      return new Promise((ok, mal) => {
+        const s = document.createElement("script");
+        s.src = src; s.onload = ok; s.onerror = () => mal(new Error("script"));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function cargarInvitaciones() {
+      let snap;
+      try {
+        snap = await getDocs(collection(db, "invitations"));
+      } catch (e) {
+        try {
+          snap = await getDocs(query(collection(db, "invitations"), where("ownerId", "==", auth.currentUser.uid)));
+        } catch (e2) { console.error(e2); $("msg").textContent = "No se pudieron cargar las invitaciones."; return; }
+      }
+      invs = {};
+      $("sel").innerHTML = "";
+      snap.forEach((d) => {
+        invs[d.id] = d.data();
+        const o = document.createElement("option");
+        o.value = d.id; o.textContent = d.data().honoree || d.id;
+        $("sel").appendChild(o);
+      });
+      if (!snap.size) { $("msg").textContent = "No hay invitaciones."; return; }
+      elegir();
+    }
+    $("sel").addEventListener("change", elegir);
+
+    function linkAlbum() {
+      return location.origin + location.pathname.replace(/[^/]*$/, "") + "album.html?i=" + encodeURIComponent(actual);
+    }
+
+    function elegir() {
+      actual = $("sel").value;
+      if (!actual) return;
+      estadoAlbum();
+      dibujarQR();
+      ultimo = null;
+      $("grid").textContent = "";
+      $("msg").textContent = "";
+      contar();
+      cargarMas();
+    }
+
+    function estadoAlbum() {
+      const abierto = invs[actual].albumOpen === true;
+      $("estado-album").textContent = abierto ? "Abierto: los invitados pueden subir fotos." : "Cerrado: nadie puede subir fotos.";
+      $("btn-toggle").textContent = abierto ? "Cerrar álbum" : "Abrir álbum";
+    }
+    $("btn-toggle").addEventListener("click", async () => {
+      const nuevo = !(invs[actual].albumOpen === true);
+      try {
+        await updateDoc(doc(db, "invitations", actual), { albumOpen: nuevo });
+        invs[actual].albumOpen = nuevo;
+        estadoAlbum();
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudo cambiar el estado."; }
+    });
+
+    async function dibujarQR() {
+      const url = linkAlbum();
+      $("enlace").textContent = url;
+      try {
+        if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+        const qr = window.qrcode(0, "M");
+        qr.addData(url); qr.make();
+        const n = qr.getModuleCount(), celda = 10, margen = 4, lado = (n + margen * 2) * celda;
+        const c = document.createElement("canvas");
+        c.width = lado; c.height = lado;
+        const g = c.getContext("2d");
+        g.fillStyle = "#fff"; g.fillRect(0, 0, lado, lado);
+        g.fillStyle = "#000";
+        for (let f = 0; f < n; f++) for (let k = 0; k < n; k++) {
+          if (qr.isDark(f, k)) g.fillRect((k + margen) * celda, (f + margen) * celda, celda, celda);
+        }
+        const png = c.toDataURL("image/png");
+        $("qr").src = png;
+        $("btn-qr").href = png;
+        $("btn-qr").download = "qr-album-" + actual + ".png";
+      } catch (e) { console.error(e); $("enlace").textContent = url + " (no se pudo generar el QR)"; }
+    }
+    $("btn-copiar").addEventListener("click", () => {
+      navigator.clipboard.writeText(linkAlbum()).then(() => { $("btn-copiar").textContent = "Copiado ✓"; });
+    });
+
+    async function contar() {
+      $("cuenta").textContent = "";
+      try {
+        const r = await getCountFromServer(query(collection(db, "photos"), where("invitationId", "==", actual)));
+        $("cuenta").textContent = "(" + r.data().count + ")";
+      } catch (e) { console.error(e); }
+    }
+
+    async function cargarMas() {
+      const id = actual;
+      try {
+        const partes = [collection(db, "photos"), where("invitationId", "==", id)];
+        if (ultimo) partes.push(startAfter(ultimo));
+        partes.push(limit(PAGINA));
+        const snap = await getDocs(query(...partes));
+        if (id !== actual) return;
+        snap.docs.forEach((d) => {
+          const img = document.createElement("img");
+          img.src = d.data().image;
+          img.alt = "Foto del evento";
+          img.loading = "lazy";
+          img.addEventListener("click", () => abrirVisor(d, img));
+          $("grid").appendChild(img);
+        });
+        if (snap.size) ultimo = snap.docs[snap.docs.length - 1];
+        $("btn-mas").hidden = snap.size < PAGINA;
+        if (!$("grid").children.length) $("msg").textContent = "Todavía no hay fotos en este álbum.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudieron cargar las fotos.";
+      }
+    }
+    $("btn-mas").addEventListener("click", cargarMas);
+
+    function abrirVisor(d, imgEl) {
+      const x = d.data();
+      $("v-img").src = x.image;
+      $("v-nombre").textContent = x.name ? "De " + x.name : "";
+      $("v-desc").href = x.image;
+      $("v-desc").download = "foto-" + d.id + ".jpg";
+      $("v-del").onclick = async () => {
+        if (!confirm("¿Eliminar esta foto? No se puede deshacer.")) return;
+        try {
+          await deleteDoc(d.ref);
+          imgEl.remove();
+          cerrarVisor();
+          contar();
+        } catch (e) { console.error(e); alert("No se pudo eliminar."); }
+      };
+      $("visor").hidden = false;
+      document.body.style.overflow = "hidden";
+    }
+    function cerrarVisor() {
+      $("visor").hidden = true;
+      document.body.style.overflow = "";
+    }
+    $("v-cerrar").addEventListener("click", cerrarVisor);
+
+    $("btn-zip").addEventListener("click", async () => {
+      if (!actual) return;
+      const msg = $("msg");
+      try {
+        const total = (await getCountFromServer(query(collection(db, "photos"), where("invitationId", "==", actual)))).data().count;
+        if (!total) { msg.textContent = "No hay fotos para descargar."; return; }
+        if (!confirm("Se van a descargar " + total + " foto(s). Puede tardar y gastar datos. ¿Seguir?")) return;
+        msg.textContent = "Preparando...";
+        if (!window.JSZip) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js");
+        const zip = new window.JSZip();
+        let n = 0, cursor = null;
+        for (;;) {
+          const partes = [collection(db, "photos"), where("invitationId", "==", actual)];
+          if (cursor) partes.push(startAfter(cursor));
+          partes.push(limit(40));
+          const snap = await getDocs(query(...partes));
+          if (snap.empty) break;
+          snap.docs.forEach((d) => {
+            n++;
+            zip.file("foto-" + String(n).padStart(4, "0") + ".jpg", d.data().image.split(",")[1], { base64: true });
+          });
+          cursor = snap.docs[snap.docs.length - 1];
+          msg.textContent = "Leyendo fotos: " + n + " de " + total;
+          if (snap.size < 40) break;
+        }
+        msg.textContent = "Armando el ZIP...";
+        const blob = await zip.generateAsync({ type: "blob" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "album-" + actual + ".zip";
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        msg.textContent = "Listo: se descargó el ZIP con " + n + " foto(s).";
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "No se pudo armar el ZIP.";
+      }
+    });
+  </script>
+</body>
+  </html>
