@@ -9,11 +9,11 @@ function agregar(m) {
   h.textContent = "Evento en vivo";
   const g = document.createElement("div");
   g.className = "menu";
-  [["Álbum de fotos", "galeria.html"]].forEach(([texto, url]) => {
+  [["Álbum de fotos", "galeria.html"], ["Regalos", "regalos.html"]].forEach(([texto, url]) => {
     const a = document.createElement("a");
     a.href = url;
     a.textContent = texto;
     g.appendChild(a);
   });
   m.append(h, g);
-    }
+}
