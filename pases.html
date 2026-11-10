@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Pases QR - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    input[type=color]{height:48px;padding:4px}
+    textarea{min-height:100px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    .check{display:flex;align-items:center;font-size:1rem}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
+    .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .caja.si{border-left:5px solid #2e9e57}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
+    .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
+    .miniatura{width:100%;max-height:140px;object-fit:cover;border-radius:10px}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Pases QR</h1>
+  <p><a href="dashboard.html">Menú</a> - <a href="acceso.html">Control de acceso</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="caja">
+      <h2>Producto en la página principal</h2>
+      <label>Precio por evento ($)</label>
+      <input id="p-price" type="number" min="0" inputmode="numeric">
+      <label>Seña ($)</label>
+      <input id="p-deposit" type="number" min="0" inputmode="numeric">
+      <label>Pases incluidos (opcional)</label>
+      <input id="p-included" type="number" min="0" inputmode="numeric">
+      <label>Precio por pase adicional ($, opcional)</label>
+      <input id="p-extra" type="number" min="0" inputmode="numeric">
+      <label>Texto opcional</label>
+      <input id="p-desc" maxlength="200" placeholder="Ej: Ideal para fiestas, egresados y eventos con entrada">
+      <label class="check"><input id="p-visible" type="checkbox" checked>Mostrar esta sección en la página principal</label>
+      <button id="btn-producto" type="button">Guardar producto</button>
+      <p id="msg-producto" class="msg"></p>
+    </div>
+
+    <h2>Evento</h2>
+    <select id="sel"></select>
+    <form id="form" novalidate>
+      <input id="f-nombre" placeholder="Nombre del evento" maxlength="80">
+      <label>Fecha</label><input id="f-fecha" type="date">
+      <label>Hora</label><input id="f-hora" type="time">
+      <input id="f-salon" placeholder="Lugar o salón" maxlength="80">
+      <input id="f-dir" placeholder="Dirección" maxlength="120">
+      <input id="f-maps" placeholder="Enlace de Google Maps (https://...)">
+      <input id="f-info" placeholder="Indicaciones (ej: Abren puertas 21:00)" maxlength="150">
+      <label>Color del pase</label>
+      <input id="f-color" type="color" value="#c9a24b">
+      <label>Imagen del pase (opcional)</label>
+      <input id="f-banner" type="file" accept="image/*">
+      <img id="v-banner" class="miniatura" alt="" hidden>
+      <button id="btn-guardar" type="submit">Guardar evento</button>
+      <button id="btn-eliminar" type="button" class="rojo" hidden>Eliminar evento</button>
+      <p id="msg" class="msg"></p>
+    </form>
+
+    <div id="pases" hidden>
+      <h2>Pases</h2>
+      <label>Uno por línea: Nombre; cantidad de entradas</label>
+      <textarea id="f-lista" placeholder="Juan Pérez; 1&#10;Familia Gómez; 4&#10;Ana López; 2"></textarea>
+      <button id="btn-agregar" type="button">Agregar pases</button>
+      <p id="msg-pases" class="msg"></p>
+      <p><a id="a-acceso" href="acceso.html">Abrir control de acceso de este evento</a></p>
+      <div class="stats">
+        <div class="stat"><b id="s-pases">0</b>Pases</div>
+        <div class="stat"><b id="s-entradas">0</b>Entradas</div>
+        <div class="stat"><b id="s-dentro">0</b>Ya ingresaron</div>
+      </div>
+      <div id="lista"></div>
+    </div>
+
+    <button id="btn-salir" type="button" class="sec">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    let eventos = {};
+    let actual = "";
+    let banner = "";
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) { cargarProducto(); cargarEventos(); }
+    });
+
+    const slug = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+    const azar = () => Math.random().toString(36).slice(2, 6);
+    function nuevoId() {
+      const a = new Uint8Array(10);
+      crypto.getRandomValues(a);
+      return Array.from(a, (b) => (b % 36).toString(36)).join("");
+    }
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+
+    /* Producto */
+    async function cargarProducto() {
+      try {
+        const s = await getDoc(doc(db, "settings", "pase"));
+        if (s.exists()) {
+          const x = s.data();
+          $("p-price").value = x.price ?? "";
+          $("p-deposit").value = x.deposit ?? "";
+          $("p-included").value = x.included || "";
+          $("p-extra").value = x.extra || "";
+          $("p-desc").value = x.description || "";
+          $("p-visible").checked = x.visible !== false;
+        }
+      } catch (e) { console.error(e); }
+    }
+    $("btn-producto").addEventListener("click", async () => {
+      const num = (id) => { const v = parseInt($(id).value, 10); return v >= 0 ? v : 0; };
+      const price = parseInt($("p-price").value, 10);
+      const deposit = num("p-deposit");
+      if (!(price >= 0)) { $("msg-producto").textContent = "Falta el precio."; return; }
+      if (deposit > price) { $("msg-producto").textContent = "La seña no puede superar el precio."; return; }
+      try {
+        await setDoc(doc(db, "settings", "pase"), {
+          price: price, deposit: deposit, included: num("p-included"), extra: num("p-extra"),
+          description: $("p-desc").value.trim(), visible: $("p-visible").checked,
+          updatedAt: serverTimestamp()
+        });
+        $("msg-producto").textContent = "Producto guardado.";
+      } catch (e) { console.error(e); $("msg-producto").textContent = "No se pudo guardar."; }
+    });
+
+    /* Eventos */
+    async function cargarEventos(elegido) {
+      try {
+        const snap = await getDocs(query(collection(db, "invitations"), where("kind", "==", "pase")));
+        eventos = {};
+        snap.forEach((d) => { eventos[d.id] = d.data(); });
+        $("sel").innerHTML = "";
+        const nuevo = document.createElement("option");
+        nuevo.value = ""; nuevo.textContent = "➕ Nuevo evento";
+        $("sel").appendChild(nuevo);
+        Object.keys(eventos).sort((a, b) => (eventos[b].date || "").localeCompare(eventos[a].date || "")).forEach((id) => {
+          const o = document.createElement("option");
+          o.value = id; o.textContent = (eventos[id].honoree || id) + " - " + (eventos[id].date || "");
+          $("sel").appendChild(o);
+        });
+        $("sel").value = elegido && eventos[elegido] ? elegido : "";
+        elegir();
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudieron cargar los eventos."; }
+    }
+    $("sel").addEventListener("change", elegir);
+
+    function elegir() {
+      actual = $("sel").value;
+      banner = "";
+      $("f-banner").value = "";
+      $("msg").textContent = "";
+      const x = eventos[actual];
+      $("f-nombre").value = x ? x.honoree || "" : "";
+      $("f-fecha").value = x ? x.date || "" : "";
+      $("f-hora").value = x ? x.time || "" : "";
+      $("f-salon").value = x ? x.venue || "" : "";
+      $("f-dir").value = x ? x.address || "" : "";
+      $("f-maps").value = x ? x.mapsUrl || "" : "";
+      $("f-info").value = x ? x.info || "" : "";
+      $("f-color").value = x && /^#[0-9a-f]{6}$/i.test(x.accent || "") ? x.accent : "#c9a24b";
+      const foto = x && Array.isArray(x.photos) ? x.photos[0] : "";
+      if (foto && /^data:image\//.test(foto)) { $("v-banner").src = foto; $("v-banner").hidden = false; }
+      else $("v-banner").hidden = true;
+      $("btn-eliminar").hidden = !actual;
+      $("pases").hidden = !actual;
+      if (actual) {
+        $("a-acceso").href = "acceso.html?i=" + encodeURIComponent(actual);
+        listar();
+      }
+    }
+
+    function comprimir(archivo) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        const url = URL.createObjectURL(archivo);
+        img.onload = () => {
+          const k = Math.min(1, 800 / Math.max(img.width, img.height));
+          const c = document.createElement("canvas");
+          c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
+          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+          URL.revokeObjectURL(url);
+          ok(c.toDataURL("image/jpeg", 0.65));
+        };
+        img.onerror = () => mal(new Error("imagen"));
+        img.src = url;
+      });
+    }
+    $("f-banner").addEventListener("change", async (e) => {
+      const a = e.target.files[0];
+      if (!a) return;
+      try {
+        banner = await comprimir(a);
+        $("v-banner").src = banner; $("v-banner").hidden = false;
+      } catch (err) { $("msg").textContent = "No se pudo leer la imagen."; }
+    });
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const nombre = $("f-nombre").value.trim();
+      const fecha = $("f-fecha").value;
+      const maps = $("f-maps").value.trim();
+      if (!nombre) { $("msg").textContent = "Falta el nombre del evento."; return; }
+      if (!fecha) { $("msg").textContent = "Falta la fecha."; return; }
+      if (maps && !/^https:\/\//i.test(maps)) { $("msg").textContent = "El enlace de Maps debe empezar con https://"; return; }
+
+      const datos = {
+        kind: "pase", package: "basico", template: "", honoree: nombre, eventType: "Pase de acceso",
+        date: fecha, time: $("f-hora").value, venue: $("f-salon").value.trim(),
+        address: $("f-dir").value.trim(), mapsUrl: maps, info: $("f-info").value.trim(),
+        accent: $("f-color").value, pass: true
+      };
+      if (banner) datos.photos = [banner];
+
+      $("btn-guardar").disabled = true;
+      $("msg").textContent = "Guardando...";
+      try {
+        if (actual) {
+          datos.updatedAt = serverTimestamp();
+          await updateDoc(doc(db, "invitations", actual), datos);
+          $("msg").textContent = "Evento actualizado.";
+          await cargarEventos(actual);
+        } else {
+          let id = (slug(nombre) || "evento") + "-pase";
+          const ex = await getDoc(doc(db, "invitations", id));
+          if (ex.exists()) id += "-" + azar();
+          if (!datos.photos) datos.photos = [];
+          datos.active = true;
+          datos.ownerId = auth.currentUser.uid;
+          datos.createdAt = serverTimestamp();
+          await setDoc(doc(db, "invitations", id), datos);
+          $("msg").textContent = "Evento creado. Ahora cargá los pases.";
+          await cargarEventos(id);
+        }
+      } catch (err) {
+        console.error(err);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+      $("btn-guardar").disabled = false;
+    });
+
+    $("btn-eliminar").addEventListener("click", async () => {
+      if (!actual) return;
+      if (!confirm("¿Eliminar el evento y todos sus pases? No se puede deshacer.")) return;
+      try {
+        const gs = await getDocs(query(collection(db, "guests"), where("invitationId", "==", actual)));
+        for (const g of gs.docs) await deleteDoc(g.ref);
+        await deleteDoc(doc(db, "payments", actual));
+        await deleteDoc(doc(db, "invitations", actual));
+        $("msg").textContent = "Evento eliminado.";
+        await cargarEventos();
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudo eliminar."; }
+    });
+
+    /* Pases */
+    $("btn-agregar").addEventListener("click", async () => {
+      const lineas = $("f-lista").value.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (!actual || !lineas.length) { $("msg-pases").textContent = "Escribí al menos un pase."; return; }
+      $("msg-pases").textContent = "Agregando...";
+      let n = 0;
+      try {
+        for (const l of lineas) {
+          const partes = l.split(";");
+          const nombre = partes[0].trim().slice(0, 80);
+          let entradas = parseInt((partes[1] || "1").trim(), 10);
+          if (!nombre) continue;
+          if (!(entradas >= 1)) entradas = 1;
+          if (entradas > 20) entradas = 20;
+          await setDoc(doc(db, "guests", nuevoId()), {
+            invitationId: actual, name: nombre, seats: entradas, createdAt: serverTimestamp()
+          });
+          n++;
+        }
+        $("f-lista").value = "";
+        $("msg-pases").textContent = "Se agregaron " + n + " pase(s).";
+      } catch (e) {
+        console.error(e);
+        $("msg-pases").textContent = "No se pudo agregar (se cargaron " + n + ").";
+      }
+      listar();
+    });
+
+    async function listar() {
+      const id = actual;
+      const cont = $("lista");
+      cont.textContent = "Cargando...";
+      try {
+        const snap = await getDocs(query(collection(db, "guests"), where("invitationId", "==", id)));
+        if (id !== actual) return;
+        const lista = snap.docs.map((d) => ({ id: d.id, x: d.data() }))
+          .sort((a, b) => a.x.name.localeCompare(b.x.name, "es"));
+        let entradas = 0, dentro = 0;
+        cont.textContent = "";
+        lista.forEach(({ id: gid, x }) => {
+          entradas += x.seats || 0;
+          if (x.checkedIn) dentro += x.checkedInCount || 0;
+          const c = document.createElement("div");
+          c.className = "caja" + (x.checkedIn ? " si" : "");
+          const n = document.createElement("b"); n.textContent = x.name;
+          const e = document.createElement("div");
+          e.textContent = x.seats + (x.seats === 1 ? " entrada" : " entradas") +
+            (x.checkedIn ? " - ingresó (" + (x.checkedInCount || 0) + ")" : " - sin ingresar");
+          c.append(n, e);
+
+          const link = base() + "pase.html?i=" + encodeURIComponent(id) + "&g=" + encodeURIComponent(gid);
+          const b = (t, cl, fn) => {
+            const el = document.createElement("button");
+            el.type = "button"; el.textContent = t; if (cl) el.className = cl; el.onclick = fn; return el;
+          };
+          const copiar = b("Copiar enlace", "", () =>
+            navigator.clipboard.writeText(link).then(() => { copiar.textContent = "Copiado"; }));
+          const wa = b("Enviar por WhatsApp", "sec", () => {
+            const t = "Hola " + x.name + "! Este es tu pase para " + (eventos[id].honoree || "el evento") + ": " + link;
+            window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+          });
+          const del = b("Eliminar", "rojo", async () => {
+            if (!confirm("¿Eliminar el pase de " + x.name + "? Su QR dejará de funcionar.")) return;
+            try { await deleteDoc(doc(db, "guests", gid)); listar(); }
+            catch (err) { console.error(err); $("msg-pases").textContent = "No se pudo eliminar."; }
+          });
+          c.append(copiar, wa, del);
+          cont.appendChild(c);
+        });
+        if (!lista.length) cont.textContent = "Todavía no hay pases cargados.";
+        $("s-pases").textContent = lista.length;
+        $("s-entradas").textContent = entradas;
+        $("s-dentro").textContent = dentro;
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudo cargar la lista.";
+      }
+    }
+  </script>
+</body>
+        </html>
