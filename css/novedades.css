@@ -1,0 +1,28 @@
+/* Itinerario */
+.timeline { max-width:420px; margin:0 auto; }
+.it-item { display:grid; grid-template-columns:70px 26px 1fr; gap:6px; text-align:left;
+  position:relative; padding-bottom:22px; }
+.it-item::before { content:""; position:absolute; left:89px; top:14px; bottom:-4px; width:2px;
+  margin-left:-1px; background:var(--acento); opacity:.35; }
+.it-item:last-child { padding-bottom:0; }
+.it-item:last-child::before { display:none; }
+.it-hora { font-weight:bold; color:var(--acento); text-align:right; padding-top:1px; }
+.it-punto { width:12px; height:12px; border-radius:50%; background:var(--acento); margin-top:5px;
+  justify-self:center; position:relative; z-index:1; box-shadow:0 0 0 4px var(--suave); }
+.it-titulo { padding-top:1px; }
+
+/* Playlist y hashtag */
+iframe.spotify { border:0; border-radius:14px; margin:6px 0 4px; box-shadow:0 6px 16px rgba(0,0,0,.12); }
+.hashtag { font-size:1.8rem; color:var(--acento); margin:10px 0 14px; word-break:break-all; }
+.botones { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+
+/* Cierre */
+.cierre { padding-top:60px; padding-bottom:80px; }
+.cierre::before { content:""; display:block; width:60px; height:2px; background:var(--acento); margin:0 auto 28px; }
+.nos-vemos { margin:0; font-size:1rem; letter-spacing:4px; text-transform:uppercase; }
+.nos-lugar { margin:8px 0; font-size:clamp(1.8rem, 8vw, 2.6rem); color:var(--acento); line-height:1.15; }
+.nos-fecha { margin:0 0 22px; font-style:italic; }
+.gracias { font-size:1.3rem; color:var(--acento); font-style:italic; margin:10px 0; }
+.corazon-final { margin-top:26px; color:var(--acento); font-size:1.6rem;
+  animation:latidoFinal 2.4s ease-in-out infinite; }
+@keyframes latidoFinal { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.18); } }
