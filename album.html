@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Álbum del evento</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#f6dde2,#fffaf3 60%);color:#1a1a1a;
+      font-family:Georgia,serif;text-align:center;padding:24px 18px}
+    main{max-width:440px;margin:0 auto}
+    .logo{letter-spacing:3px;color:#c9a24b;margin-bottom:18px}
+    h1{color:#c9a24b;font-weight:normal;margin:6px 0}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:16px;padding:18px;margin:16px 0;
+      box-shadow:0 8px 24px rgba(0,0,0,.08)}
+    input[type=text]{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:12px;
+      font-size:1rem;font-family:inherit}
+    button{width:100%;padding:14px;margin:6px 0;border:0;border-radius:30px;background:#c9a24b;color:#fff;
+      font-size:1.05rem;font-family:inherit;cursor:pointer}
+    button:disabled{opacity:.6}
+    .barra{height:8px;background:#f0e6d2;border-radius:6px;overflow:hidden;margin:12px 0}
+    #progreso{height:100%;width:0;background:#c9a24b;transition:width .3s}
+    #estado{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="logo">KE INVITACIONES</div>
+    <h1 id="titulo">Álbum del evento</h1>
+    <p id="sub">Compartí tus fotos con los anfitriones</p>
+
+    <div id="cargando" class="caja">Cargando...</div>
+    <div id="cerrado" class="caja" hidden></div>
+
+    <div id="form" class="caja" hidden>
+      <input id="nombre" type="text" placeholder="Tu nombre (opcional)" maxlength="60">
+      <input id="archivos" type="file" accept="image/*" multiple hidden>
+      <button id="btn-elegir" type="button">Elegir fotos</button>
+      <p id="seleccion"></p>
+      <button id="btn-subir" type="button" hidden>Subir fotos</button>
+      <div class="barra" id="barra" hidden><div id="progreso"></div></div>
+      <p id="estado"></p>
+      <small>Las fotos son privadas: solo las ven los anfitriones.</small>
+    </div>
+  </main>
+
+  <script type="module">
+    import { db } from "./js/firebase.js";
+    import { doc, getDoc, setDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const idInv = new URLSearchParams(location.search).get("i");
+    const MAX_LOTE = 10;
+    const MAX_DISPOSITIVO = 40;
+    let archivos = [];
+
+    function aviso(texto) {
+      $("cargando").hidden = true;
+      $("cerrado").textContent = texto;
+      $("cerrado").hidden = false;
+    }
+
+    function contador() {
+      try { return parseInt(localStorage.getItem("ke-album-" + idInv), 10) || 0; } catch (e) { return 0; }
+    }
+    function sumar(n) {
+      try { localStorage.setItem("ke-album-" + idInv, String(contador() + n)); } catch (e) {}
+    }
+
+    async function cargar() {
+      if (!idInv) return aviso("Falta el identificador del evento.");
+      try {
+        const s = await getDoc(doc(db, "invitations", idInv));
+        if (!s.exists() || s.data().active !== true) return aviso("Este álbum no está disponible.");
+        const d = s.data();
+        if (d.honoree) $("titulo").textContent = "Álbum de " + d.honoree;
+        if (d.albumOpen !== true) return aviso("El álbum todavía no está habilitado. Volvé a intentar durante el evento.");
+        $("cargando").hidden = true;
+        $("form").hidden = false;
+      } catch (e) {
+        console.error(e);
+        aviso("Este álbum no está disponible.");
+      }
+    }
+
+    $("btn-elegir").addEventListener("click", () => $("archivos").click());
+    $("archivos").addEventListener("change", (e) => {
+      archivos = Array.from(e.target.files).slice(0, MAX_LOTE);
+      $("seleccion").textContent = archivos.length
+        ? archivos.length + " foto(s) elegida(s)" + (e.target.files.length > MAX_LOTE ? " (máximo " + MAX_LOTE + " por vez)" : "")
+        : "";
+      $("btn-subir").hidden = !archivos.length;
+      $("estado").textContent = "";
+    });
+
+    function comprimir(archivo) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        const url = URL.createObjectURL(archivo);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let max = 1080, q = 0.72;
+          for (let i = 0; i < 5; i++) {
+            const k = Math.min(1, max / Math.max(img.width, img.height));
+            const c = document.createElement("canvas");
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            const out = c.toDataURL("image/jpeg", q);
+            if (out.length < 420000) return ok(out);
+            max *= 0.8; q -= 0.08;
+          }
+          mal(new Error("grande"));
+        };
+        img.onerror = () => { URL.revokeObjectURL(url); mal(new Error("imagen")); };
+        img.src = url;
+      });
+    }
+
+    function nuevoId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    $("btn-subir").addEventListener("click", async () => {
+      if (!archivos.length) return;
+      if (contador() + archivos.length > MAX_DISPOSITIVO) {
+        $("estado").textContent = "Llegaste al máximo de fotos que se pueden subir desde este celular.";
+        return;
+      }
+      const nombre = $("nombre").value.trim();
+      $("btn-subir").disabled = true;
+      $("btn-elegir").disabled = true;
+      $("barra").hidden = false;
+      let ok = 0, fallos = 0;
+
+      for (let i = 0; i < archivos.length; i++) {
+        $("estado").textContent = "Subiendo " + (i + 1) + " de " + archivos.length + "...";
+        $("progreso").style.width = (i / archivos.length * 100) + "%";
+        try {
+          const imagen = await comprimir(archivos[i]);
+          const datos = { invitationId: idInv, image: imagen, createdAt: serverTimestamp() };
+          if (nombre) datos.name = nombre;
+          await setDoc(doc(db, "photos", nuevoId()), datos);
+          ok++;
+        } catch (e) {
+          console.error(e);
+          fallos++;
+        }
+      }
+
+      sumar(ok);
+      $("progreso").style.width = "100%";
+      $("estado").textContent = ok
+        ? "¡Listo! Subiste " + ok + " foto(s). ¡Gracias!" + (fallos ? " (" + fallos + " no se pudieron subir)" : "")
+        : "No se pudieron subir las fotos. Revisá tu conexión e intentá de nuevo.";
+      archivos = [];
+      $("archivos").value = "";
+      $("seleccion").textContent = "";
+      $("btn-subir").hidden = true;
+      $("btn-subir").disabled = false;
+      $("btn-elegir").disabled = false;
+      $("btn-elegir").textContent = "Subir más fotos";
+    });
+
+    cargar();
+  </script>
+</body>
+  </html>
