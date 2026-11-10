@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Regalos - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    textarea{min-height:110px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Regalos</h1>
+  <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Invitaciones</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <label>Invitación</label>
+    <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Mensaje</h2>
+      <label>Texto opcional (ej: "Tu presencia es el mejor regalo")</label>
+      <textarea id="f-gift" maxlength="300"></textarea>
+    </div>
+
+    <div class="caja">
+      <h2>Alias para transferir</h2>
+      <input id="f-alias" placeholder="Alias (ej: sofia.quince)" maxlength="60">
+      <input id="f-titular" placeholder="Titular de la cuenta (opcional)" maxlength="60">
+      <small>Esta información la ve cualquiera que tenga el enlace de la invitación. Usá el alias; no cargues datos que no quieras que sean públicos.</small>
+    </div>
+
+    <div class="caja">
+      <h2>Enlace de pago</h2>
+      <input id="f-pay" placeholder="https://..." inputmode="url">
+      <input id="f-pay-label" placeholder="Texto del botón (ej: Regalar con Mercado Pago)" maxlength="40">
+    </div>
+
+    <div class="caja">
+      <h2>Lista de regalos</h2>
+      <label>Un regalo por línea: Regalo; enlace (el enlace es opcional, hasta 20)</label>
+      <textarea id="f-lista" placeholder="Juego de sábanas; https://tienda.com/sabanas&#10;Cafetera&#10;Set de copas; https://tienda.com/copas"></textarea>
+    </div>
+
+    <button id="btn-guardar" type="button">Guardar regalos</button>
+    <p id="msg" class="msg"></p>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, updateDoc, collection, getDocs }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    let inv = {};
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    async function cargar() {
+      try {
+        const snap = await getDocs(collection(db, "invitations"));
+        inv = {};
+        snap.forEach((d) => { inv[d.id] = d.data(); });
+        $("sel").innerHTML = "";
+        Object.keys(inv).forEach((id) => {
+          const o = document.createElement("option");
+          o.value = id; o.textContent = (inv[id].honoree || id) + " (" + id + ")";
+          $("sel").appendChild(o);
+        });
+        const pedida = new URLSearchParams(location.search).get("i");
+        if (pedida && inv[pedida]) $("sel").value = pedida;
+        llenar();
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudieron cargar las invitaciones.";
+      }
+    }
+
+    function llenar() {
+      const x = inv[$("sel").value];
+      if (!x) return;
+      $("f-gift").value = x.gift || "";
+      $("f-alias").value = x.giftAlias || "";
+      $("f-titular").value = x.giftHolder || "";
+      $("f-pay").value = x.giftPayUrl || "";
+      $("f-pay-label").value = x.giftPayLabel || "";
+      $("f-lista").value = (Array.isArray(x.giftList) ? x.giftList : [])
+        .map((g) => g.name + (g.url ? "; " + g.url : "")).join("\n");
+      $("msg").textContent = "";
+    }
+    $("sel").addEventListener("change", llenar);
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      if (!id) return;
+
+      const pay = $("f-pay").value.trim();
+      if (pay && !/^https:\/\//i.test(pay)) {
+        $("msg").textContent = "El enlace de pago debe empezar con https://";
+        return;
+      }
+
+      const lineas = $("f-lista").value.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lineas.length > 20) { $("msg").textContent = "La lista admite hasta 20 regalos."; return; }
+      const giftList = [];
+      for (const l of lineas) {
+        const k = l.indexOf(";");
+        const name = (k === -1 ? l : l.slice(0, k)).trim().slice(0, 80);
+        const url = k === -1 ? "" : l.slice(k + 1).trim();
+        if (!name) continue;
+        if (url && !/^https:\/\//i.test(url)) {
+          $("msg").textContent = "El enlace de \"" + name + "\" debe empezar con https://";
+          return;
+        }
+        giftList.push({ name: name, url: url });
+      }
+
+      $("msg").textContent = "Guardando...";
+      try {
+        const datos = {
+          gift: $("f-gift").value.trim(),
+          giftAlias: $("f-alias").value.trim(),
+          giftHolder: $("f-titular").value.trim(),
+          giftPayUrl: pay,
+          giftPayLabel: $("f-pay-label").value.trim(),
+          giftList: giftList
+        };
+        await updateDoc(doc(db, "invitations", id), datos);
+        inv[id] = { ...inv[id], ...datos };
+        $("msg").textContent = "Regalos guardados.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+    });
+  </script>
+</body>
+</html>
