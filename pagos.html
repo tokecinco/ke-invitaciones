@@ -85,12 +85,14 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+    const ETIQ_PAQ = {
+      basico: "Básico", premium: "Premium",
+      pase: "Pase QR Esencial", pase_premium: "Pase QR Premium"
+    };
 
     let paquetes = {
-      basico: { price: 0, deposit: 0 },
-      premium: { price: 0, deposit: 0 },
-      pase: { price: 0, deposit: 0 }
+      basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 },
+      pase: { price: 0, deposit: 0 }, pase_premium: { price: 0, deposit: 0 }
     };
     let invitaciones = {};
     let pagos = {};
@@ -111,9 +113,10 @@
 
     async function iniciar() {
       try {
-        const [s, ps] = await Promise.all([
+        const [s, ps, pp] = await Promise.all([
           getDoc(doc(db, "settings", "packages")),
-          getDoc(doc(db, "settings", "pase"))
+          getDoc(doc(db, "settings", "pase")),
+          getDoc(doc(db, "settings", "pasePremium"))
         ]);
         if (s.exists()) {
           const g = s.data();
@@ -125,6 +128,7 @@
           if (p.exists()) paquetes.basico = { price: p.data().price || 0, deposit: p.data().deposit || 0 };
         }
         if (ps.exists()) paquetes.pase = { price: ps.data().price || 0, deposit: ps.data().deposit || 0 };
+        if (pp.exists()) paquetes.pase_premium = { price: pp.data().price || 0, deposit: pp.data().deposit || 0 };
         await cargarDatos();
       } catch (e) {
         console.error(e);
@@ -135,7 +139,8 @@
     const pk = (id) => {
       const x = invitaciones[id];
       if (!x) return "basico";
-      return x.kind === "pase" ? "pase" : (x.package || "basico");
+      if (x.kind === "pase") return x.passTier === "premium" ? "pase_premium" : "pase";
+      return x.package || "basico";
     };
     const precioPaq = (id) => (paquetes[pk(id)] || {}).price || 0;
 
@@ -274,4 +279,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
