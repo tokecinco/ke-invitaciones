@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Pedidos - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:600px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    textarea{min-height:70px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.85rem;display:block;margin-top:8px}
+    .check{display:flex;align-items:center;font-size:1rem}
+    a{color:#c9a24b}
+    details{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:10px 12px;margin:12px 0}
+    summary{cursor:pointer;font-weight:bold}
+    .caja{background:#fff;border:1px solid #eadfc8;border-left:6px solid #ccc;border-radius:12px;padding:12px;margin:12px 0}
+    .caja.nuevo{border-left-color:#e0a800}
+    .caja.en_proceso{border-left-color:#4a90d9}
+    .caja.entregado{border-left-color:#2e9e57}
+    .caja.cancelado{border-left-color:#c0392b;opacity:.75}
+    .caja .fila button{width:auto;padding:8px 12px;margin:6px 6px 0 0;font-size:.9rem}
+    .nota{font-style:italic;color:#555}
+    .comision{background:#f6dde2;border-radius:10px;padding:8px 10px;margin:8px 0}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
+    .stat b{display:block;font-size:1.05rem;color:#8a6a1f}
+    .filtros{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Pedidos</h1>
+  <p><a href="dashboard.html">Menú</a> - <a href="revendedores.html">Revendedores</a> - <a href="pagos.html">Pagos</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="stats">
+      <div class="stat"><b id="s-nuevos">0</b>Nuevos</div>
+      <div class="stat"><b id="s-proceso">0</b>En proceso</div>
+      <div class="stat"><b id="s-entregados">0</b>Entregados</div>
+      <div class="stat"><b id="s-cobrado">$0</b>Cobrado</div>
+      <div class="stat"><b id="s-comis">$0</b>Comisiones totales</div>
+      <div class="stat"><b id="s-pend">$0</b>Comisiones a pagar</div>
+    </div>
+
+    <details>
+      <summary>Nuevo pedido (por ejemplo, uno que llegó por WhatsApp)</summary>
+      <form id="form" novalidate>
+        <input id="n-cliente" placeholder="Nombre del cliente" maxlength="80">
+        <input id="n-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
+        <label>Producto</label>
+        <select id="n-producto"></select>
+        <label>Precio ($)</label>
+        <input id="n-precio" type="number" min="0" inputmode="numeric">
+        <label>Revendedor (si corresponde)</label>
+        <select id="n-rev"></select>
+        <input id="n-evento" placeholder="Tipo de evento" maxlength="60">
+        <input id="n-fecha" type="date">
+        <textarea id="n-notas" placeholder="Notas" maxlength="300"></textarea>
+        <button type="submit">Crear pedido</button>
+        <p id="n-msg" class="msg"></p>
+      </form>
+    </details>
+
+    <div class="filtros">
+      <select id="f-estado">
+        <option value="">Todos los estados</option>
+        <option value="nuevo">Nuevos</option>
+        <option value="en_proceso">En proceso</option>
+        <option value="entregado">Entregados</option>
+        <option value="cancelado">Cancelados</option>
+      </select>
+      <select id="f-rev"></select>
+    </div>
+
+    <p id="msg" class="msg"></p>
+    <div id="lista">Cargando...</div>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, addDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const PROD = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Pase QR" };
+    const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
+    const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+
+    let pedidos = [], revs = {}, invs = {}, precios = {};
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    async function cargar() {
+      try {
+        const [os, rs, is, pq, ps] = await Promise.all([
+          getDocs(collection(db, "orders")),
+          getDocs(collection(db, "resellers")),
+          getDocs(collection(db, "invitations")),
+          getDoc(doc(db, "settings", "packages")),
+          getDoc(doc(db, "settings", "pase"))
+        ]);
+        pedidos = os.docs.map((d) => ({ id: d.id, ...d.data() }));
+        revs = {}; rs.forEach((d) => { revs[d.id] = d.data(); });
+        invs = {}; is.forEach((d) => { invs[d.id] = d.data(); });
+        precios = {};
+        if (pq.exists()) ["basico", "premium"].forEach((k) => {
+          if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
+        });
+        if (ps.exists() && ps.data().price >= 0) precios.pase = ps.data().price;
+        armarSelectores();
+        pintar();
+      } catch (e) {
+        console.error(e);
+        $("lista").textContent = "No se pudieron cargar los pedidos.";
+      }
+    }
+
+    function opcion(v, t) {
+      const o = document.createElement("option"); o.value = v; o.textContent = t; return o;
+    }
+
+    function armarSelectores() {
+      $("n-producto").innerHTML = "";
+      Object.keys(PROD).forEach((k) => $("n-producto").appendChild(opcion(k, PROD[k])));
+      precioDelProducto();
+
+      $("n-rev").innerHTML = "";
+      $("n-rev").appendChild(opcion("", "Sin revendedor"));
+      $("f-rev").innerHTML = "";
+      $("f-rev").appendChild(opcion("", "Todos los revendedores"));
+      $("f-rev").appendChild(opcion("_ninguno", "Sin revendedor"));
+      Object.keys(revs).forEach((id) => {
+        const t = revs[id].name + " (" + revs[id].code + ")";
+        if (revs[id].active) $("n-rev").appendChild(opcion(id, t + " - " + revs[id].commissionPct + "%"));
+        $("f-rev").appendChild(opcion(id, t));
+      });
+    }
+
+    function precioDelProducto() {
+      const k = $("n-producto").value;
+      $("n-precio").value = k in precios ? precios[k] : "";
+    }
+    $("n-producto").addEventListener("change", precioDelProducto);
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("n-msg");
+      const cliente = $("n-cliente").value.trim();
+      const tel = $("n-tel").value.trim();
+      const precio = parseInt($("n-precio").value, 10);
+      const revId = $("n-rev").value;
+      if (!cliente) { msg.textContent = "Falta el nombre del cliente."; return; }
+      if (!(precio >= 0)) { msg.textContent = "Falta el precio."; return; }
+      const r = revId ? revs[revId] : null;
+      try {
+        await addDoc(collection(db, "orders"), {
+          resellerId: revId, resellerCode: r ? r.code : "",
+          clientName: cliente, clientPhone: tel, product: $("n-producto").value,
+          eventType: $("n-evento").value.trim(), eventDate: $("n-fecha").value,
+          notes: $("n-notas").value.trim(), status: "nuevo",
+          price: precio, agreedPrice: precio, collected: 0,
+          commissionPct: r ? r.commissionPct : 0, commissionPaid: false,
+          invitationId: "", adminNote: "", createdAt: serverTimestamp()
+        });
+        $("form").reset();
+        precioDelProducto();
+        msg.textContent = "Pedido creado.";
+        cargar();
+      } catch (err) { console.error(err); msg.textContent = "No se pudo crear el pedido."; }
+    });
+
+    $("f-estado").addEventListener("change", pintar);
+    $("f-rev").addEventListener("change", pintar);
+
+    function pintar() {
+      let nuevos = 0, proceso = 0, entregados = 0, cobrado = 0, total = 0, pend = 0;
+      pedidos.forEach((p) => {
+        if (p.status === "nuevo") nuevos++;
+        if (p.status === "en_proceso") proceso++;
+        if (p.status === "entregado") entregados++;
+        cobrado += p.collected || 0;
+        total += comision(p);
+        if (!p.commissionPaid) pend += comision(p);
+      });
+      $("s-nuevos").textContent = nuevos;
+      $("s-proceso").textContent = proceso;
+      $("s-entregados").textContent = entregados;
+      $("s-cobrado").textContent = $$(cobrado);
+      $("s-comis").textContent = $$(total);
+      $("s-pend").textContent = $$(pend);
+
+      const fe = $("f-estado").value, fr = $("f-rev").value;
+      const lista = pedidos
+        .filter((p) => (!fe || p.status === fe) &&
+          (!fr || (fr === "_ninguno" ? !p.resellerId : p.resellerId === fr)))
+        .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+
+      const cont = $("lista");
+      cont.textContent = "";
+      if (!lista.length) { cont.textContent = "No hay pedidos con esos filtros."; return; }
+      lista.forEach((p) => cont.appendChild(tarjeta(p)));
+    }
+
+    function tarjeta(p) {
+      const c = document.createElement("div");
+      c.className = "caja " + p.status;
+      const r = p.resellerId ? revs[p.resellerId] : null;
+
+      const t = document.createElement("b"); t.textContent = p.clientName;
+      c.appendChild(t);
+      const l1 = document.createElement("div");
+      l1.textContent = (PROD[p.product] || p.product) + (p.eventType ? " - " + p.eventType : "") +
+        (p.eventDate ? " - " + p.eventDate : "");
+      c.appendChild(l1);
+      const l2 = document.createElement("div");
+      l2.textContent = "Revendedor: " + (r ? r.name + " (" + r.code + ") - " + p.commissionPct + "%"
+        : (p.resellerCode ? p.resellerCode + " (ya no está habilitado)" : "ninguno"));
+      c.appendChild(l2);
+      const tel = String(p.clientPhone || "").replace(/\D/g, "");
+      if (tel) {
+        const w = document.createElement("a");
+        w.href = "https://wa.me/" + tel; w.target = "_blank"; w.rel = "noopener";
+        w.textContent = "WhatsApp: " + p.clientPhone;
+        const d = document.createElement("div"); d.appendChild(w); c.appendChild(d);
+      }
+      if (p.notes) {
+        const n = document.createElement("div"); n.className = "nota";
+        n.textContent = "Notas: " + p.notes; c.appendChild(n);
+      }
+
+      const grid = document.createElement("div");
+      const campo = (texto, el) => {
+        const l = document.createElement("label"); l.textContent = texto;
+        grid.append(l, el); return el;
+      };
+
+      const estado = document.createElement("select");
+      Object.keys(ESTADOS).forEach((k) => estado.appendChild(opcion(k, ESTADOS[k])));
+      estado.value = p.status;
+      campo("Estado", estado);
+
+      const precio = document.createElement("input");
+      precio.type = "number"; precio.min = "0"; precio.inputMode = "numeric";
+      precio.value = p.agreedPrice ?? p.price ?? 0;
+      campo("Precio acordado ($)", precio);
+
+      const cobr = document.createElement("input");
+      cobr.type = "number"; cobr.min = "0"; cobr.inputMode = "numeric";
+      cobr.value = p.collected || 0;
+      campo("Cobrado ($)", cobr);
+
+      const inv = document.createElement("select");
+      inv.appendChild(opcion("", "Todavía sin invitación"));
+      Object.keys(invs).sort((a, b) => (invs[a].honoree || a).localeCompare(invs[b].honoree || b, "es"))
+        .forEach((id) => inv.appendChild(opcion(id, (invs[id].honoree || id) + " (" + id + ")")));
+      if (p.invitationId && !invs[p.invitationId]) inv.appendChild(opcion(p.invitationId, p.invitationId));
+      inv.value = p.invitationId || "";
+      campo("Invitación entregada", inv);
+
+      const nota = document.createElement("input");
+      nota.maxLength = 200; nota.value = p.adminNote || "";
+      campo("Nota interna", nota);
+
+      const pagada = document.createElement("input");
+      pagada.type = "checkbox"; pagada.checked = !!p.commissionPaid;
+      const lp = document.createElement("label"); lp.className = "check";
+      lp.append(pagada, "Comisión ya pagada al revendedor");
+      grid.appendChild(lp);
+      c.appendChild(grid);
+
+      const com = document.createElement("div"); com.className = "comision";
+      const calc = () => {
+        const cob = parseInt(cobr.value, 10) || 0;
+        com.textContent = r || p.commissionPct
+          ? "Comisión: " + $$(Math.round(cob * (p.commissionPct || 0) / 100)) + " (" + (p.commissionPct || 0) + "% de lo cobrado)"
+          : "Sin comisión (no tiene revendedor)";
+      };
+      cobr.addEventListener("input", calc);
+      calc();
+      c.appendChild(com);
+
+      const fila = document.createElement("div"); fila.className = "fila";
+      const b = (texto, cl, fn) => {
+        const el = document.createElement("button");
+        el.type = "button"; el.textContent = texto; if (cl) el.className = cl; el.onclick = fn; return el;
+      };
+
+      fila.appendChild(b("Guardar", "", async () => {
+        const ap = parseInt(precio.value, 10);
+        const co = parseInt(cobr.value, 10) || 0;
+        if (!(ap >= 0)) { $("msg").textContent = "Revisá el precio acordado."; return; }
+        if (co < 0 || co > ap) { $("msg").textContent = "Lo cobrado no puede superar el precio acordado."; return; }
+        const datos = {
+          status: estado.value, agreedPrice: ap, collected: co, invitationId: inv.value,
+          adminNote: nota.value.trim(), commissionPaid: pagada.checked, updatedAt: serverTimestamp()
+        };
+        if (pagada.checked && !p.commissionPaid) datos.commissionPaidAt = serverTimestamp();
+        try {
+          await updateDoc(doc(db, "orders", p.id), datos);
+          $("msg").textContent = "Pedido de " + p.clientName + " guardado.";
+          cargar();
+        } catch (e) { console.error(e); $("msg").textContent = "No se pudo guardar."; }
+      }));
+
+      fila.appendChild(b("Registrar cobro en Pagos", "sec", async () => {
+        if (!inv.value || !invs[inv.value]) { $("msg").textContent = "Primero elegí la invitación entregada y guardá."; return; }
+        const ap = parseInt(precio.value, 10) || 0;
+        const co = parseInt(cobr.value, 10) || 0;
+        if (co > ap) { $("msg").textContent = "Lo cobrado no puede superar el precio acordado."; return; }
+        try {
+          const ex = await getDoc(doc(db, "payments", inv.value));
+          if (ex.exists() && !confirm("Esto reemplaza lo que ya está registrado en Pagos para esa invitación. ¿Seguir?")) return;
+          const i = invs[inv.value];
+          await setDoc(doc(db, "payments", inv.value), {
+            invitationId: inv.value, ownerId: i.ownerId || auth.currentUser.uid,
+            honoree: i.honoree || "", package: i.package || "basico",
+            price: ap, received: co,
+            status: ap > 0 && co >= ap ? "pagado" : (co > 0 ? "senado" : "pendiente"),
+            note: "Pedido de " + p.clientName + (r ? " (revendedor " + r.name + ")" : ""),
+            updatedAt: serverTimestamp()
+          });
+          $("msg").textContent = "Cobro registrado en Pagos.";
+        } catch (e) { console.error(e); $("msg").textContent = "No se pudo registrar en Pagos."; }
+      }));
+
+      if (p.invitationId && invs[p.invitationId]) {
+        const a = document.createElement("a");
+        a.href = base() + "i/" + p.invitationId; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = "Ver invitación";
+        a.style.display = "inline-block"; a.style.margin = "10px 10px 0 0";
+        fila.appendChild(a);
+      }
+
+      fila.appendChild(b("Eliminar", "rojo", async () => {
+        if (!confirm("¿Eliminar el pedido de " + p.clientName + "? No se puede deshacer.")) return;
+        try { await deleteDoc(doc(db, "orders", p.id)); cargar(); }
+        catch (e) { console.error(e); $("msg").textContent = "No se pudo eliminar."; }
+      }));
+      c.appendChild(fila);
+      return c;
+    }
+  </script>
+</body>
+          </html>
