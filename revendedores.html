@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Revendedores - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:600px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:10px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
+    .caja.off{opacity:.6}
+    .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
+    .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
+    .stat b{display:block;font-size:1.05rem;color:#8a6a1f}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Revendedores</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <div class="caja">
+      <h2>Habilitar un revendedor</h2>
+      <p>La persona primero tiene que crear su cuenta en <b>revendedor.html</b>. Después aparece acá para habilitarla.</p>
+      <label>Cuenta registrada</label>
+      <select id="a-user"></select>
+      <input id="a-nombre" placeholder="Nombre del revendedor" maxlength="60">
+      <input id="a-codigo" placeholder="Código (ej: maria, 3 a 20 letras o números)" maxlength="20">
+      <input id="a-pct" type="number" min="0" max="100" step="0.5" inputmode="decimal" placeholder="Comisión (%)">
+      <button id="btn-alta" type="button">Habilitar revendedor</button>
+      <p id="msg-alta" class="msg"></p>
+    </div>
+
+    <h2>Mis revendedores</h2>
+    <div id="lista">Cargando...</div>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    let usuarios = {};
+    let revs = {};
+    let pedidos = [];
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    const slug = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "").slice(0, 20);
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+    const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
+
+    async function cargar() {
+      try {
+        const [us, rs, os] = await Promise.all([
+          getDocs(collection(db, "users")),
+          getDocs(collection(db, "resellers")),
+          getDocs(collection(db, "orders"))
+        ]);
+        usuarios = {}; revs = {}; pedidos = [];
+        us.forEach((d) => { usuarios[d.id] = d.data(); });
+        rs.forEach((d) => { revs[d.id] = d.data(); });
+        os.forEach((d) => { pedidos.push({ id: d.id, ...d.data() }); });
+        pintarAlta();
+        pintarLista();
+      } catch (e) {
+        console.error(e);
+        $("lista").textContent = "No se pudieron cargar los datos.";
+      }
+    }
+
+    function pintarAlta() {
+      $("a-user").innerHTML = "";
+      const libres = Object.keys(usuarios).filter((id) => !revs[id] && id !== auth.currentUser.uid);
+      if (!libres.length) {
+        const o = document.createElement("option");
+        o.value = ""; o.textContent = "No hay cuentas nuevas para habilitar";
+        $("a-user").appendChild(o);
+        return;
+      }
+      libres.forEach((id) => {
+        const o = document.createElement("option");
+        o.value = id; o.textContent = usuarios[id].email || id;
+        $("a-user").appendChild(o);
+      });
+    }
+    $("a-nombre").addEventListener("input", () => {
+      if (!$("a-codigo").dataset.manual) $("a-codigo").value = slug($("a-nombre").value);
+    });
+    $("a-codigo").addEventListener("input", () => { $("a-codigo").dataset.manual = "1"; });
+
+    $("btn-alta").addEventListener("click", async () => {
+      const uid = $("a-user").value;
+      const nombre = $("a-nombre").value.trim();
+      const codigo = $("a-codigo").value.trim().toLowerCase();
+      const pct = parseFloat($("a-pct").value);
+      const msg = $("msg-alta");
+      if (!uid) { msg.textContent = "Elegí una cuenta."; return; }
+      if (!nombre) { msg.textContent = "Falta el nombre."; return; }
+      if (!/^[a-z0-9]{3,20}$/.test(codigo)) { msg.textContent = "El código debe tener de 3 a 20 letras o números, sin espacios."; return; }
+      if (Object.values(revs).some((r) => r.code === codigo)) { msg.textContent = "Ese código ya lo usa otro revendedor."; return; }
+      if (!(pct >= 0 && pct <= 100)) { msg.textContent = "La comisión debe estar entre 0 y 100."; return; }
+      msg.textContent = "Habilitando...";
+      try {
+        await setDoc(doc(db, "resellers", uid), {
+          name: nombre, email: usuarios[uid].email || "", code: codigo,
+          commissionPct: pct, active: true, createdAt: serverTimestamp()
+        });
+        $("a-nombre").value = ""; $("a-codigo").value = ""; $("a-pct").value = "";
+        delete $("a-codigo").dataset.manual;
+        msg.textContent = "Revendedor habilitado.";
+        cargar();
+      } catch (e) { console.error(e); msg.textContent = "No se pudo habilitar."; }
+    });
+
+    function pintarLista() {
+      const cont = $("lista");
+      cont.textContent = "";
+      const ids = Object.keys(revs);
+      if (!ids.length) { cont.textContent = "Todavía no hay revendedores habilitados."; return; }
+      ids.forEach((uid) => {
+        const r = revs[uid];
+        const mios = pedidos.filter((p) => p.resellerId === uid);
+        const cobrado = mios.reduce((s, p) => s + (p.collected || 0), 0);
+        const ganada = mios.reduce((s, p) => s + comision(p), 0);
+        const pagada = mios.filter((p) => p.commissionPaid).reduce((s, p) => s + comision(p), 0);
+        const pendiente = ganada - pagada;
+
+        const c = document.createElement("div");
+        c.className = "caja" + (r.active ? "" : " off");
+        const n = document.createElement("b"); n.textContent = r.name;
+        const d = document.createElement("div");
+        d.textContent = r.email + " - código: " + r.code + " - comisión: " + r.commissionPct + "%" +
+          (r.active ? "" : " (desactivado)");
+        c.append(n, d);
+
+        const st = document.createElement("div"); st.className = "stats";
+        [[mios.length, "Pedidos"], [$$(cobrado), "Cobrado"], [$$(ganada), "Comisión ganada"],
+         [$$(pagada), "Ya pagada"], [$$(pendiente), "A pagar"]].forEach(([v, t]) => {
+          const s = document.createElement("div"); s.className = "stat";
+          const b = document.createElement("b"); b.textContent = v;
+          s.append(b, t); st.appendChild(s);
+        });
+        c.appendChild(st);
+
+        const btn = (t, cl, fn) => {
+          const b = document.createElement("button");
+          b.type = "button"; b.textContent = t; if (cl) b.className = cl; b.onclick = fn; return b;
+        };
+        c.append(
+          btn(r.active ? "Desactivar" : "Activar", "sec", async () => {
+            try { await updateDoc(doc(db, "resellers", uid), { active: !r.active }); cargar(); }
+            catch (e) { console.error(e); }
+          }),
+          btn("Cambiar %", "sec", async () => {
+            const v = parseFloat(prompt("Nueva comisión (%) para pedidos nuevos:", String(r.commissionPct)));
+            if (!(v >= 0 && v <= 100)) return;
+            try { await updateDoc(doc(db, "resellers", uid), { commissionPct: v }); cargar(); }
+            catch (e) { console.error(e); }
+          }),
+          btn("Copiar enlace de venta", "", () => {
+            navigator.clipboard.writeText(base() + "?r=" + encodeURIComponent(r.code));
+          }),
+          btn("Liquidar comisiones", "", async () => {
+            const pend = mios.filter((p) => !p.commissionPaid && comision(p) > 0);
+            if (!pend.length) { alert("No hay comisiones pendientes."); return; }
+            if (!confirm("¿Marcar como pagadas las comisiones de " + r.name + " por " + $$(pendiente) + "?")) return;
+            try {
+              for (let i = 0; i < pend.length; i += 400) {
+                const b = writeBatch(db);
+                pend.slice(i, i + 400).forEach((p) => {
+                  b.update(doc(db, "orders", p.id), { commissionPaid: true, commissionPaidAt: serverTimestamp() });
+                });
+                await b.commit();
+              }
+              cargar();
+            } catch (e) { console.error(e); alert("No se pudo liquidar."); }
+          }),
+          btn("Quitar revendedor", "rojo", async () => {
+            if (!confirm("¿Quitar a " + r.name + "? Sus pedidos se conservan.")) return;
+            try { await deleteDoc(doc(db, "resellers", uid)); cargar(); }
+            catch (e) { console.error(e); }
+          })
+        );
+        cont.appendChild(c);
+      });
+    }
+  </script>
+</body>
+    </html>
