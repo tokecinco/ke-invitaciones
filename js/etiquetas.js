@@ -4,7 +4,7 @@ import { onAuthStateChanged }
 import { collection, getDocs, query, where }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-let eventosPase = new Set();
+const eventosPase = new Map();
 const lista = document.getElementById("lista");
 
 function marcar() {
@@ -13,10 +13,12 @@ function marcar() {
     const a = t.querySelector("a[href*='/i/']");
     if (!a) return;
     const id = decodeURIComponent(a.href.split("/i/").pop());
-    if (!eventosPase.has(id)) return;
+    const nivel = eventosPase.get(id);
+    if (!nivel) return;
     const estado = t.children[1];
     if (estado && estado.textContent.indexOf(" - Básico - ") !== -1) {
-      estado.textContent = estado.textContent.replace(" - Básico - ", " - Pase QR - ");
+      estado.textContent = estado.textContent.replace(
+        " - Básico - ", " - Pase QR " + (nivel === "premium" ? "Premium" : "Esencial") + " - ");
     }
   });
 }
@@ -27,7 +29,8 @@ onAuthStateChanged(auth, async (u) => {
   if (!u) return;
   try {
     const s = await getDocs(query(collection(db, "invitations"), where("kind", "==", "pase")));
-    eventosPase = new Set(s.docs.map((d) => d.id));
+    eventosPase.clear();
+    s.docs.forEach((d) => eventosPase.set(d.id, d.data().passTier === "premium" ? "premium" : "esencial"));
     marcar();
   } catch (e) { console.error(e); }
 });
