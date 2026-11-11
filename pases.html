@@ -10,6 +10,7 @@
     *{box-sizing:border-box}
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
+    h3{margin:14px 0 4px;color:#8a6a1f}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     input[type=checkbox]{width:auto;margin:0 8px 0 0}
     input[type=color]{height:48px;padding:4px}
@@ -23,10 +24,15 @@
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
     .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .caja.si{border-left:5px solid #2e9e57}
+    .premium{background:#fff8e6;border:1px solid #e6cf8f;border-radius:12px;padding:12px;margin:12px 0}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
-    .miniatura{width:100%;max-height:140px;object-fit:cover;border-radius:10px}
+    .previas{display:flex;flex-wrap:wrap;gap:8px}
+    .prev{width:100px;text-align:center;font-size:.75rem}
+    .prev img{width:100px;height:80px;object-fit:cover;border-radius:8px}
+    .prev button{width:100%;margin:2px 0;padding:4px;font-size:.75rem}
+    .editor{display:grid;grid-template-columns:1fr 1fr;gap:6px}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -43,8 +49,21 @@
 
   <section id="panel" hidden>
     <div class="caja">
-      <h2>Producto en la página principal</h2>
+      <h2>Paquetes en la página principal</h2>
+
+      <h3>Esencial</h3>
       <label>Precio por evento ($)</label>
+      <input id="e-price" type="number" min="0" inputmode="numeric">
+      <label>Seña ($)</label>
+      <input id="e-deposit" type="number" min="0" inputmode="numeric">
+      <label>Pases incluidos (opcional)</label>
+      <input id="e-included" type="number" min="0" inputmode="numeric">
+      <label>Precio por pase adicional ($, opcional)</label>
+      <input id="e-extra" type="number" min="0" inputmode="numeric">
+      <input id="e-desc" maxlength="200" placeholder="Texto opcional">
+
+      <h3>Premium</h3>
+      <label>Precio por evento ($) - dejalo vacío para no ofrecerlo</label>
       <input id="p-price" type="number" min="0" inputmode="numeric">
       <label>Seña ($)</label>
       <input id="p-deposit" type="number" min="0" inputmode="numeric">
@@ -52,16 +71,21 @@
       <input id="p-included" type="number" min="0" inputmode="numeric">
       <label>Precio por pase adicional ($, opcional)</label>
       <input id="p-extra" type="number" min="0" inputmode="numeric">
-      <label>Texto opcional</label>
-      <input id="p-desc" maxlength="200" placeholder="Ej: Ideal para fiestas, egresados y eventos con entrada">
-      <label class="check"><input id="p-visible" type="checkbox" checked>Mostrar esta sección en la página principal</label>
-      <button id="btn-producto" type="button">Guardar producto</button>
+      <input id="p-desc" maxlength="200" placeholder="Texto opcional">
+
+      <label class="check"><input id="p-visible" type="checkbox" checked>Mostrar la sección en la página principal</label>
+      <button id="btn-producto" type="button">Guardar paquetes</button>
       <p id="msg-producto" class="msg"></p>
     </div>
 
     <h2>Evento</h2>
     <select id="sel"></select>
     <form id="form" novalidate>
+      <label>Paquete del evento</label>
+      <select id="f-tier">
+        <option value="esencial">Esencial</option>
+        <option value="premium">Premium</option>
+      </select>
       <input id="f-nombre" placeholder="Nombre del evento" maxlength="80">
       <label>Fecha</label><input id="f-fecha" type="date">
       <label>Hora</label><input id="f-hora" type="time">
@@ -71,9 +95,21 @@
       <input id="f-info" placeholder="Indicaciones (ej: Abren puertas 21:00)" maxlength="150">
       <label>Color del pase</label>
       <input id="f-color" type="color" value="#c9a24b">
-      <label>Imagen del pase (opcional)</label>
-      <input id="f-banner" type="file" accept="image/*">
-      <img id="v-banner" class="miniatura" alt="" hidden>
+
+      <div id="bloque-premium" class="premium" hidden>
+        <h2>Extras Premium</h2>
+        <textarea id="f-host" maxlength="300" placeholder="Mensaje del anfitrión (opcional)"></textarea>
+        <label>Itinerario: una actividad por línea (Hora; Actividad, hasta 12)</label>
+        <textarea id="f-it" placeholder="21:00; Apertura de puertas&#10;22:00; Show en vivo&#10;01:00; Cierre"></textarea>
+        <label>Imagen principal del pase</label>
+        <input id="f-banner" type="file" accept="image/*">
+        <label>Fotos del evento (hasta 3)</label>
+        <input id="f-galeria" type="file" accept="image/*" multiple>
+        <label>Plano del salón (opcional)</label>
+        <input id="f-plano" type="file" accept="image/*">
+        <div id="previas" class="previas"></div>
+      </div>
+
       <button id="btn-guardar" type="submit">Guardar evento</button>
       <button id="btn-eliminar" type="button" class="rojo" hidden>Eliminar evento</button>
       <p id="msg" class="msg"></p>
@@ -81,7 +117,7 @@
 
     <div id="pases" hidden>
       <h2>Pases</h2>
-      <label>Uno por línea: Nombre; cantidad de entradas</label>
+      <label id="lbl-lista">Uno por línea: Nombre; cantidad de entradas</label>
       <textarea id="f-lista" placeholder="Juan Pérez; 1&#10;Familia Gómez; 4&#10;Ana López; 2"></textarea>
       <button id="btn-agregar" type="button">Agregar pases</button>
       <p id="msg-pases" class="msg"></p>
@@ -91,6 +127,9 @@
         <div class="stat"><b id="s-entradas">0</b>Entradas</div>
         <div class="stat"><b id="s-dentro">0</b>Ya ingresaron</div>
       </div>
+      <datalist id="tipos">
+        <option value="General"><option value="VIP"><option value="Staff"><option value="Prensa">
+      </datalist>
       <div id="lista"></div>
     </div>
 
@@ -107,7 +146,7 @@
     const $ = (id) => document.getElementById(id);
     let eventos = {};
     let actual = "";
-    let banner = "";
+    let banner = "", galeria = [], plano = "";
 
     $("btn-login").addEventListener("click", async () => {
       try {
@@ -130,36 +169,55 @@
       return Array.from(a, (b) => (b % 36).toString(36)).join("");
     }
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+    const esPremium = (x) => x && x.passTier === "premium";
 
-    /* Producto */
+    /* Paquetes en la web */
     async function cargarProducto() {
       try {
-        const s = await getDoc(doc(db, "settings", "pase"));
-        if (s.exists()) {
-          const x = s.data();
-          $("p-price").value = x.price ?? "";
-          $("p-deposit").value = x.deposit ?? "";
-          $("p-included").value = x.included || "";
-          $("p-extra").value = x.extra || "";
-          $("p-desc").value = x.description || "";
+        const [e, p] = await Promise.all([
+          getDoc(doc(db, "settings", "pase")),
+          getDoc(doc(db, "settings", "pasePremium"))
+        ]);
+        if (e.exists()) {
+          const x = e.data();
+          $("e-price").value = x.price ?? ""; $("e-deposit").value = x.deposit ?? "";
+          $("e-included").value = x.included || ""; $("e-extra").value = x.extra || "";
+          $("e-desc").value = x.description || "";
           $("p-visible").checked = x.visible !== false;
         }
-      } catch (e) { console.error(e); }
+        if (p.exists()) {
+          const x = p.data();
+          $("p-price").value = x.price ?? ""; $("p-deposit").value = x.deposit ?? "";
+          $("p-included").value = x.included || ""; $("p-extra").value = x.extra || "";
+          $("p-desc").value = x.description || "";
+        }
+      } catch (err) { console.error(err); }
     }
     $("btn-producto").addEventListener("click", async () => {
       const num = (id) => { const v = parseInt($(id).value, 10); return v >= 0 ? v : 0; };
-      const price = parseInt($("p-price").value, 10);
-      const deposit = num("p-deposit");
-      if (!(price >= 0)) { $("msg-producto").textContent = "Falta el precio."; return; }
-      if (deposit > price) { $("msg-producto").textContent = "La seña no puede superar el precio."; return; }
+      const msg = $("msg-producto");
+      const pe = parseInt($("e-price").value, 10);
+      if (!(pe >= 0)) { msg.textContent = "Falta el precio del Esencial."; return; }
+      if (num("e-deposit") > pe) { msg.textContent = "La seña del Esencial no puede superar el precio."; return; }
+      const pp = parseInt($("p-price").value, 10);
+      const hayPremium = pp >= 0;
+      if (hayPremium && num("p-deposit") > pp) { msg.textContent = "La seña del Premium no puede superar el precio."; return; }
       try {
         await setDoc(doc(db, "settings", "pase"), {
-          price: price, deposit: deposit, included: num("p-included"), extra: num("p-extra"),
-          description: $("p-desc").value.trim(), visible: $("p-visible").checked,
+          price: pe, deposit: num("e-deposit"), included: num("e-included"), extra: num("e-extra"),
+          description: $("e-desc").value.trim(), visible: $("p-visible").checked,
           updatedAt: serverTimestamp()
         });
-        $("msg-producto").textContent = "Producto guardado.";
-      } catch (e) { console.error(e); $("msg-producto").textContent = "No se pudo guardar."; }
+        if (hayPremium) {
+          await setDoc(doc(db, "settings", "pasePremium"), {
+            price: pp, deposit: num("p-deposit"), included: num("p-included"), extra: num("p-extra"),
+            description: $("p-desc").value.trim(), updatedAt: serverTimestamp()
+          });
+        } else {
+          try { await deleteDoc(doc(db, "settings", "pasePremium")); } catch (err) {}
+        }
+        msg.textContent = "Paquetes guardados.";
+      } catch (err) { console.error(err); msg.textContent = "No se pudo guardar."; }
     });
 
     /* Eventos */
@@ -174,7 +232,9 @@
         $("sel").appendChild(nuevo);
         Object.keys(eventos).sort((a, b) => (eventos[b].date || "").localeCompare(eventos[a].date || "")).forEach((id) => {
           const o = document.createElement("option");
-          o.value = id; o.textContent = (eventos[id].honoree || id) + " - " + (eventos[id].date || "");
+          o.value = id;
+          o.textContent = (eventos[id].honoree || id) + " - " + (eventos[id].date || "") +
+            " - " + (esPremium(eventos[id]) ? "Premium" : "Esencial");
           $("sel").appendChild(o);
         });
         $("sel").value = elegido && eventos[elegido] ? elegido : "";
@@ -182,13 +242,15 @@
       } catch (e) { console.error(e); $("msg").textContent = "No se pudieron cargar los eventos."; }
     }
     $("sel").addEventListener("change", elegir);
+    $("f-tier").addEventListener("change", () => { $("bloque-premium").hidden = $("f-tier").value !== "premium"; });
 
     function elegir() {
       actual = $("sel").value;
-      banner = "";
-      $("f-banner").value = "";
       $("msg").textContent = "";
+      ["f-banner", "f-galeria", "f-plano"].forEach((id) => { $(id).value = ""; });
       const x = eventos[actual];
+      $("f-tier").value = esPremium(x) ? "premium" : "esencial";
+      $("bloque-premium").hidden = $("f-tier").value !== "premium";
       $("f-nombre").value = x ? x.honoree || "" : "";
       $("f-fecha").value = x ? x.date || "" : "";
       $("f-hora").value = x ? x.time || "" : "";
@@ -197,40 +259,79 @@
       $("f-maps").value = x ? x.mapsUrl || "" : "";
       $("f-info").value = x ? x.info || "" : "";
       $("f-color").value = x && /^#[0-9a-f]{6}$/i.test(x.accent || "") ? x.accent : "#c9a24b";
-      const foto = x && Array.isArray(x.photos) ? x.photos[0] : "";
-      if (foto && /^data:image\//.test(foto)) { $("v-banner").src = foto; $("v-banner").hidden = false; }
-      else $("v-banner").hidden = true;
+      $("f-host").value = x ? x.hostMessage || "" : "";
+      $("f-it").value = x && Array.isArray(x.itinerary)
+        ? x.itinerary.map((i) => (i.time ? i.time + "; " : "") + i.title).join("\n") : "";
+      const fotos = x && Array.isArray(x.photos) ? x.photos : [];
+      banner = fotos[0] || "";
+      galeria = fotos.slice(1, 4);
+      plano = x ? x.planImage || "" : "";
+      pintarPrevias();
       $("btn-eliminar").hidden = !actual;
       $("pases").hidden = !actual;
       if (actual) {
         $("a-acceso").href = "acceso.html?i=" + encodeURIComponent(actual);
+        $("lbl-lista").textContent = esPremium(x)
+          ? "Uno por línea: Nombre; entradas; mesa; tipo de entrada (mesa y tipo son opcionales)"
+          : "Uno por línea: Nombre; cantidad de entradas";
         listar();
       }
     }
 
-    function comprimir(archivo) {
+    function comprimir(archivo, max, calidad) {
       return new Promise((ok, mal) => {
         const img = new Image();
         const url = URL.createObjectURL(archivo);
         img.onload = () => {
-          const k = Math.min(1, 800 / Math.max(img.width, img.height));
+          const k = Math.min(1, max / Math.max(img.width, img.height));
           const c = document.createElement("canvas");
           c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
           c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
           URL.revokeObjectURL(url);
-          ok(c.toDataURL("image/jpeg", 0.65));
+          ok(c.toDataURL("image/jpeg", calidad));
         };
         img.onerror = () => mal(new Error("imagen"));
         img.src = url;
       });
     }
+
+    function pintarPrevias() {
+      const cont = $("previas");
+      cont.textContent = "";
+      const agregar = (src, titulo, quitar) => {
+        if (!/^data:image\//.test(src)) return;
+        const f = document.createElement("div"); f.className = "prev";
+        const i = document.createElement("img"); i.src = src;
+        const t = document.createElement("div"); t.textContent = titulo;
+        const b = document.createElement("button"); b.type = "button"; b.className = "sec"; b.textContent = "Quitar";
+        b.onclick = quitar;
+        f.append(i, t, b);
+        cont.appendChild(f);
+      };
+      if (banner) agregar(banner, "Principal", () => { banner = ""; pintarPrevias(); });
+      galeria.forEach((s, n) => agregar(s, "Foto " + (n + 1), () => { galeria.splice(n, 1); pintarPrevias(); }));
+      if (plano) agregar(plano, "Plano", () => { plano = ""; pintarPrevias(); });
+    }
+
     $("f-banner").addEventListener("change", async (e) => {
       const a = e.target.files[0];
       if (!a) return;
+      try { banner = await comprimir(a, 800, 0.65); pintarPrevias(); }
+      catch (err) { $("msg").textContent = "No se pudo leer la imagen."; }
+    });
+    $("f-galeria").addEventListener("change", async (e) => {
+      const arch = Array.from(e.target.files).slice(0, 3);
       try {
-        banner = await comprimir(a);
-        $("v-banner").src = banner; $("v-banner").hidden = false;
-      } catch (err) { $("msg").textContent = "No se pudo leer la imagen."; }
+        galeria = [];
+        for (const a of arch) galeria.push(await comprimir(a, 700, 0.6));
+        pintarPrevias();
+      } catch (err) { $("msg").textContent = "No se pudo leer una de las fotos."; }
+    });
+    $("f-plano").addEventListener("change", async (e) => {
+      const a = e.target.files[0];
+      if (!a) return;
+      try { plano = await comprimir(a, 900, 0.7); pintarPrevias(); }
+      catch (err) { $("msg").textContent = "No se pudo leer la imagen."; }
     });
 
     $("form").addEventListener("submit", async (e) => {
@@ -238,6 +339,7 @@
       const nombre = $("f-nombre").value.trim();
       const fecha = $("f-fecha").value;
       const maps = $("f-maps").value.trim();
+      const tier = $("f-tier").value;
       if (!nombre) { $("msg").textContent = "Falta el nombre del evento."; return; }
       if (!fecha) { $("msg").textContent = "Falta la fecha."; return; }
       if (maps && !/^https:\/\//i.test(maps)) { $("msg").textContent = "El enlace de Maps debe empezar con https://"; return; }
@@ -246,9 +348,24 @@
         kind: "pase", package: "basico", template: "", honoree: nombre, eventType: "Pase de acceso",
         date: fecha, time: $("f-hora").value, venue: $("f-salon").value.trim(),
         address: $("f-dir").value.trim(), mapsUrl: maps, info: $("f-info").value.trim(),
-        accent: $("f-color").value, pass: true
+        accent: $("f-color").value, pass: true, passTier: tier
       };
-      if (banner) datos.photos = [banner];
+
+      if (tier === "premium") {
+        const lineas = $("f-it").value.split("\n").map((l) => l.trim()).filter(Boolean);
+        if (lineas.length > 12) { $("msg").textContent = "El itinerario admite hasta 12 actividades."; return; }
+        datos.itinerary = lineas.map((l) => {
+          const k = l.indexOf(";");
+          if (k === -1) return { time: "", title: l.slice(0, 80) };
+          return { time: l.slice(0, k).trim().slice(0, 12), title: l.slice(k + 1).trim().slice(0, 80) };
+        }).filter((x) => x.title);
+        datos.hostMessage = $("f-host").value.trim();
+        datos.photos = [banner].filter(Boolean).concat(galeria).slice(0, 4);
+        datos.planImage = plano;
+        if (datos.photos.join("").length + plano.length > 900000) {
+          $("msg").textContent = "Las imágenes pesan demasiado. Quitá alguna."; return;
+        }
+      }
 
       $("btn-guardar").disabled = true;
       $("msg").textContent = "Guardando...";
@@ -294,19 +411,23 @@
     $("btn-agregar").addEventListener("click", async () => {
       const lineas = $("f-lista").value.split("\n").map((l) => l.trim()).filter(Boolean);
       if (!actual || !lineas.length) { $("msg-pases").textContent = "Escribí al menos un pase."; return; }
+      const prem = esPremium(eventos[actual]);
       $("msg-pases").textContent = "Agregando...";
       let n = 0;
       try {
         for (const l of lineas) {
-          const partes = l.split(";");
-          const nombre = partes[0].trim().slice(0, 80);
-          let entradas = parseInt((partes[1] || "1").trim(), 10);
+          const p = l.split(";").map((s) => s.trim());
+          const nombre = (p[0] || "").slice(0, 80);
+          let entradas = parseInt(p[1] || "1", 10);
           if (!nombre) continue;
           if (!(entradas >= 1)) entradas = 1;
           if (entradas > 20) entradas = 20;
-          await setDoc(doc(db, "guests", nuevoId()), {
-            invitationId: actual, name: nombre, seats: entradas, createdAt: serverTimestamp()
-          });
+          const datos = { invitationId: actual, name: nombre, seats: entradas, createdAt: serverTimestamp() };
+          if (prem) {
+            if (p[2]) datos.table = p[2].slice(0, 30);
+            if (p[3]) datos.ticketType = p[3].slice(0, 20);
+          }
+          await setDoc(doc(db, "guests", nuevoId()), datos);
           n++;
         }
         $("f-lista").value = "";
@@ -320,6 +441,7 @@
 
     async function listar() {
       const id = actual;
+      const prem = esPremium(eventos[id]);
       const cont = $("lista");
       cont.textContent = "Cargando...";
       try {
@@ -337,8 +459,29 @@
           const n = document.createElement("b"); n.textContent = x.name;
           const e = document.createElement("div");
           e.textContent = x.seats + (x.seats === 1 ? " entrada" : " entradas") +
+            (prem ? " - " + (x.table ? "mesa " + x.table : "sin mesa") + (x.ticketType ? " - " + x.ticketType : "") : "") +
             (x.checkedIn ? " - ingresó (" + (x.checkedInCount || 0) + ")" : " - sin ingresar");
           c.append(n, e);
+
+          if (prem) {
+            const ed = document.createElement("div"); ed.className = "editor";
+            const mesa = document.createElement("input");
+            mesa.placeholder = "Mesa"; mesa.maxLength = 30; mesa.value = x.table || "";
+            const tipo = document.createElement("input");
+            tipo.placeholder = "Tipo de entrada"; tipo.maxLength = 20; tipo.value = x.ticketType || "";
+            tipo.setAttribute("list", "tipos");
+            ed.append(mesa, tipo);
+            c.appendChild(ed);
+            const g = document.createElement("button");
+            g.type = "button"; g.className = "sec"; g.textContent = "Guardar mesa y tipo";
+            g.onclick = async () => {
+              try {
+                await updateDoc(doc(db, "guests", gid), { table: mesa.value.trim(), ticketType: tipo.value.trim() });
+                g.textContent = "Guardado ✓";
+              } catch (err) { console.error(err); $("msg-pases").textContent = "No se pudo guardar."; }
+            };
+            c.appendChild(g);
+          }
 
           const link = base() + "pase.html?i=" + encodeURIComponent(id) + "&g=" + encodeURIComponent(gid);
           const b = (t, cl, fn) => {
@@ -370,4 +513,4 @@
     }
   </script>
 </body>
-        </html>
+  </html>
