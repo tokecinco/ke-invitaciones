@@ -111,23 +111,27 @@
       $("estado").textContent = "Cargando...";
       $("stats").hidden = true;
       try {
-        const [inv, pag, rsv, gst, usr] = await Promise.all([
+        const [inv, pag, rsv, gst, usr, ord, rvs] = await Promise.all([
           getDocs(collection(db, "invitations")),
           getDocs(collection(db, "payments")),
           getDocs(collection(db, "rsvps")),
           getDocs(collection(db, "guests")),
-          getDocs(collection(db, "users"))
+          getDocs(collection(db, "users")),
+          getDocs(collection(db, "orders")),
+          getDocs(collection(db, "resellers"))
         ]);
 
         const pagos = {};
         pag.forEach((d) => { pagos[d.id] = d.data(); });
 
-        let activas = 0, premium = 0, basico = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
+        let activas = 0, premium = 0, basico = 0, pases = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
         const lista = [];
         inv.forEach((d) => {
           const x = d.data();
           if (x.active) activas++;
-          if (x.package === "premium") premium++; else basico++;
+          if (x.kind === "pase") pases++;
+          else if (x.package === "premium") premium++;
+          else basico++;
           const p = pagos[d.id];
           const estado = p ? p.status : "pendiente";
           if (estado === "senado" || estado === "pagado") ventas++; else pend++;
@@ -144,15 +148,26 @@
           if (r.attending) personas += r.guests || 0;
         });
 
+        let pedidosNuevos = 0, comisionPend = 0;
+        ord.forEach((d) => {
+          const o = d.data();
+          if (o.status === "nuevo") pedidosNuevos++;
+          if (!o.commissionPaid) {
+            comisionPend += Math.round((o.collected || 0) * (o.commissionPct || 0) / 100);
+          }
+        });
+
         const s = $("stats");
         s.textContent = "";
         [
-          [inv.size, "Invitaciones creadas"], [activas, "Activas"],
+          [inv.size, "Invitaciones y eventos"], [activas, "Activos"],
           [premium, "Paquete Premium"], [basico, "Paquete Básico"],
+          [pases, "Eventos Pase QR"], [pedidosNuevos, "Pedidos nuevos"],
           [ventas, "Ventas (señadas o pagadas)"], [pend, "Pendientes de pago"],
           [$$(ingresos), "Ingresos cobrados"], [$$(saldo), "Saldo por cobrar"],
+          [$$(comisionPend), "Comisiones a pagar"], [rvs.size, "Revendedores"],
           [rsv.size, "Confirmaciones recibidas"], [personas, "Personas confirmadas"],
-          [gst.size, "Invitados cargados"], [usr.size, "Cuentas registradas"]
+          [gst.size, "Invitados y pases cargados"], [usr.size, "Cuentas registradas"]
         ].forEach(([v, t]) => s.appendChild(tarjeta(v, t)));
         s.hidden = false;
         $("estado").textContent = "";
