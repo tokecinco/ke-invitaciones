@@ -1,0 +1,61 @@
+.dis { margin-top:6px; }
+.dis-carga { text-align:center; color:#777; }
+
+/* Categorías en una sola línea deslizable */
+.dis-chips { display:flex; gap:8px; overflow-x:auto; margin:0 -18px; padding:4px 18px 12px;
+  scrollbar-width:none; -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
+.dis-chips::-webkit-scrollbar { display:none; }
+.dis-chips button { flex:0 0 auto; border:1px solid #c9a24b; background:#fff; color:#1a1a1a;
+  border-radius:20px; padding:9px 16px; font-family:inherit; font-size:.92rem; cursor:pointer;
+  white-space:nowrap; }
+.dis-chips button.on { background:#c9a24b; color:#fff; }
+
+/* Degradé en los bordes cuando hay más contenido */
+.mas-der { -webkit-mask-image:linear-gradient(to right, #000 90%, transparent);
+  mask-image:linear-gradient(to right, #000 90%, transparent); }
+.mas-izq { -webkit-mask-image:linear-gradient(to left, #000 90%, transparent);
+  mask-image:linear-gradient(to left, #000 90%, transparent); }
+.mas-izq.mas-der { -webkit-mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent);
+  mask-image:linear-gradient(to right, transparent, #000 8%, #000 92%, transparent); }
+
+/* Fila de tarjetas */
+.dis-wrap { position:relative; margin:0 -18px; }
+.dis-fila { display:flex; gap:14px; overflow-x:auto; padding:6px 18px 20px;
+  scroll-snap-type:x mandatory; scroll-padding-left:18px; scrollbar-width:none;
+  -ms-overflow-style:none; -webkit-overflow-scrolling:touch; }
+.dis-fila::-webkit-scrollbar { display:none; }
+
+.dis-card { flex:0 0 232px; scroll-snap-align:start; background:#fff; border:1px solid #eadfc8;
+  border-radius:18px; overflow:hidden; display:flex; flex-direction:column;
+  box-shadow:0 8px 20px rgba(0,0,0,.08); }
+.dis-portada { aspect-ratio:3 / 4; background-size:cover; background-position:center;
+  display:flex; align-items:center; justify-content:center; text-align:center; padding:14px;
+  font-size:1.5rem; line-height:1.2; }
+.dis-cuerpo { padding:14px; text-align:center; display:flex; flex-direction:column; gap:8px; flex:1; }
+.dis-nombre { margin:0; font-size:1.1rem; font-weight:normal; }
+.dis-cat { color:#888; font-size:.8rem; }
+.dis-precios { background:#fffaf3; border-radius:10px; padding:8px 10px; font-size:.88rem; }
+.dis-precios div { display:flex; justify-content:space-between; padding:2px 0; }
+.dis-precios b { color:#8a6a1f; }
+.dis-ver { display:block; background:#c9a24b; color:#fff; border-radius:24px; padding:11px;
+  text-decoration:none; font-size:.95rem; margin-top:auto; }
+.dis-quiero { font-size:.82rem; color:#8a6a1f; text-decoration:underline; }
+
+/* Flechas */
+.dis-flecha { position:absolute; top:38%; width:42px; height:42px; border-radius:50%; border:0;
+  background:#fff; color:#1a1a1a; box-shadow:0 4px 14px rgba(0,0,0,.28); font-size:1.6rem;
+  line-height:1; cursor:pointer; z-index:2; display:flex; align-items:center; justify-content:center; }
+.dis-flecha[hidden] { display:none; }
+.dis-izq { left:8px; }
+.dis-der { right:8px; animation:empujar 1.6s ease-in-out infinite; }
+@keyframes empujar { 0%, 100% { transform:translateX(0); } 50% { transform:translateX(5px); } }
+
+/* Cartel de ayuda */
+.dis-pista { text-align:center; font-size:.85rem; color:#8a6a1f; margin:-6px 0 0; }
+.dis-pista[hidden] { display:none; }
+.dis-pista span { display:inline-block; animation:empujarTexto 1.4s ease-in-out infinite; }
+@keyframes empujarTexto { 0%, 100% { transform:translateX(0); } 50% { transform:translateX(5px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .dis-der, .dis-pista span { animation:none; }
+  }
