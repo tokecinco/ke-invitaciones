@@ -29,7 +29,7 @@
 </head>
 <body>
   <h1>Pagos</h1>
-  <p><a href="dashboard.html">Menú</a> - <a href="paquetes.html">Paquetes y precios</a> - <a href="confirmaciones.html">Confirmaciones</a></p>
+  <p><a href="dashboard.html">Menú</a> - <a href="paquetes.html">Paquetes y precios</a> - <a href="pases.html">Pases QR</a> - <a href="pedidos.html">Pedidos</a></p>
 
   <section id="login">
     <input id="email" type="email" placeholder="Email" autocomplete="username">
@@ -46,17 +46,17 @@
       <div class="stat"><b id="s-pagadas">0</b>Pagadas</div>
       <div class="stat"><b id="s-senadas">0</b>Señadas</div>
       <div class="stat"><b id="s-pend">0</b>Pendientes</div>
-      <div class="stat"><b id="s-total">0</b>Invitaciones</div>
+      <div class="stat"><b id="s-total">0</b>Invitaciones y eventos</div>
     </div>
 
     <h2>Registrar pago</h2>
     <div class="caja">
-      <label>Invitación</label>
+      <label>Invitación o evento</label>
       <select id="sel"></select>
       <p id="info-paq" class="aviso"></p>
       <label>Precio acordado ($)</label>
       <input id="f-precio" type="number" min="0" inputmode="numeric">
-      <button id="btn-usar" class="sec" type="button">Usar el precio del paquete</button>
+      <button id="btn-usar" class="sec" type="button">Usar el precio del producto</button>
       <label>Cobrado hasta ahora ($)</label>
       <input id="f-cobrado" type="number" min="0" inputmode="numeric">
       <label>Estado</label>
@@ -85,9 +85,13 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
 
-    let paquetes = { basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 } };
+    let paquetes = {
+      basico: { price: 0, deposit: 0 },
+      premium: { price: 0, deposit: 0 },
+      pase: { price: 0, deposit: 0 }
+    };
     let invitaciones = {};
     let pagos = {};
 
@@ -107,7 +111,10 @@
 
     async function iniciar() {
       try {
-        const s = await getDoc(doc(db, "settings", "packages"));
+        const [s, ps] = await Promise.all([
+          getDoc(doc(db, "settings", "packages")),
+          getDoc(doc(db, "settings", "pase"))
+        ]);
         if (s.exists()) {
           const g = s.data();
           ["basico", "premium"].forEach((k) => {
@@ -117,6 +124,7 @@
           const p = await getDoc(doc(db, "settings", "pricing"));
           if (p.exists()) paquetes.basico = { price: p.data().price || 0, deposit: p.data().deposit || 0 };
         }
+        if (ps.exists()) paquetes.pase = { price: ps.data().price || 0, deposit: ps.data().deposit || 0 };
         await cargarDatos();
       } catch (e) {
         console.error(e);
@@ -124,7 +132,11 @@
       }
     }
 
-    const pk = (id) => (invitaciones[id] && invitaciones[id].package) || "basico";
+    const pk = (id) => {
+      const x = invitaciones[id];
+      if (!x) return "basico";
+      return x.kind === "pase" ? "pase" : (x.package || "basico");
+    };
     const precioPaq = (id) => (paquetes[pk(id)] || {}).price || 0;
 
     async function cargarDatos() {
@@ -141,7 +153,7 @@
       Object.keys(invitaciones).forEach((id) => {
         const o = document.createElement("option");
         o.value = id;
-        o.textContent = (invitaciones[id].honoree || id) + " - " + ETIQ_PAQ[pk(id)];
+        o.textContent = (invitaciones[id].honoree || id) + " - " + (ETIQ_PAQ[pk(id)] || "Básico");
         $("sel").appendChild(o);
       });
       if (actual && invitaciones[actual]) $("sel").value = actual;
@@ -166,8 +178,8 @@
       const k = pk(id);
       const pq = paquetes[k] || {};
       $("info-paq").textContent = pq.price
-        ? "Paquete " + ETIQ_PAQ[k] + ": precio " + $$(pq.price) + " - seña " + $$(pq.deposit)
-        : "El paquete " + ETIQ_PAQ[k] + " todavía no tiene precio. Cargalo en Paquetes y precios.";
+        ? ETIQ_PAQ[k] + ": precio " + $$(pq.price) + " - seña " + $$(pq.deposit)
+        : "El producto " + ETIQ_PAQ[k] + " todavía no tiene precio. Cargalo en Paquetes y precios o en Pases QR.";
       $("f-precio").value = d.price;
       $("f-cobrado").value = d.received;
       $("f-estado").value = d.status;
@@ -240,7 +252,7 @@
         const t = document.createElement("div");
         t.className = "caja fila " + d.status;
         const n = document.createElement("b");
-        n.textContent = (invitaciones[id].honoree || id) + " - " + ETIQ_PAQ[pk(id)];
+        n.textContent = (invitaciones[id].honoree || id) + " - " + (ETIQ_PAQ[pk(id)] || "Básico");
         const e = document.createElement("div");
         e.textContent = ETIQ[d.status] + " - Cobrado " + $$(d.received) + " de " + $$(d.price) +
           " - Saldo " + $$(Math.max(d.price - d.received, 0));
@@ -262,4 +274,4 @@
     }
   </script>
 </body>
-                                                                                  </html>
+  </html>
