@@ -21,6 +21,7 @@
     .tarjeta.mal{background:#c0392b}
     .tarjeta h2{color:#fff;margin:0 0 6px;letter-spacing:2px}
     .tarjeta .nombre{font-size:1.7rem;margin:6px 0}
+    .tarjeta .mesa{font-size:1.6rem;font-weight:bold;background:rgba(255,255,255,.25);border-radius:12px;padding:6px;margin:8px 0}
     .tarjeta input,.tarjeta label{color:#1a1a1a}
     .tarjeta button{background:#1a1a1a}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
@@ -28,6 +29,7 @@
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
     .fila{background:#fff;border:1px solid #eadfc8;border-left:5px solid #ccc;border-radius:10px;padding:8px 10px;margin:6px 0}
     .fila.dentro{border-left-color:#2e9e57}
+    .fila button{width:auto;padding:6px 12px;margin:6px 0 0;font-size:.85rem}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -49,13 +51,14 @@
     </div>
 
     <h2>Resumen de ingresos</h2>
-    <p>Para registrar un ingreso, escaneá el QR del invitado con la cámara del celular.</p>
+    <p>Para registrar un ingreso, escaneá el QR del invitado con la cámara del celular, o buscalo en la lista.</p>
     <select id="sel"></select>
     <div class="stats">
       <div class="stat"><b id="s-inv">0</b>Invitados</div>
       <div class="stat"><b id="s-dentro">0</b>Ya ingresaron</div>
       <div class="stat"><b id="s-pers">0</b>Personas dentro</div>
     </div>
+    <input id="buscar" type="search" placeholder="Buscar por nombre o mesa">
     <div id="lista"></div>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
   </section>
@@ -72,6 +75,7 @@
     const idInv = params.get("i");
     const idGuest = params.get("g");
     let nombresInv = {};
+    let guests = [];
 
     function el(tag, clase, texto) {
       const e = document.createElement(tag);
@@ -81,6 +85,7 @@
     }
     const hora = (ts) => ts && ts.toDate
       ? ts.toDate().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
+    const ubicacion = (g) => [g.table ? "Mesa " + g.table : "", g.ticketType || ""].filter(Boolean).join(" - ");
 
     $("btn-login").addEventListener("click", async () => {
       try {
@@ -98,8 +103,7 @@
     /* Verificación de un pase */
     async function verificar() {
       $("escaneo").hidden = false;
-      const t = $("tarjeta");
-      t.textContent = "Verificando...";
+      $("tarjeta").textContent = "Verificando...";
       try {
         const [gs, inv] = await Promise.all([
           getDoc(doc(db, "guests", idGuest)),
@@ -128,6 +132,8 @@
       const caja = el("div");
       caja.appendChild(el("div", "nombre", g.name));
       caja.appendChild(el("p", null, (inv.honoree || "") + " - " + g.seats + (g.seats === 1 ? " lugar" : " lugares")));
+      const u = ubicacion(g);
+      if (u) caja.appendChild(el("div", "mesa", u));
 
       if (g.checkedIn) {
         const b = el("button", null, "Deshacer ingreso");
@@ -167,7 +173,7 @@
       }
     }
 
-    /* Resumen */
+    /* Resumen y búsqueda */
     async function cargarInvitaciones() {
       let snap;
       try {
@@ -190,35 +196,67 @@
       cargarLista();
     }
     $("sel").addEventListener("change", cargarLista);
+    $("buscar").addEventListener("input", pintarLista);
 
     async function cargarLista() {
       const id = $("sel").value;
       if (!id) return;
-      const cont = $("lista");
-      cont.textContent = "Cargando...";
+      $("lista").textContent = "Cargando...";
       try {
         const snap = await getDocs(query(collection(db, "guests"), where("invitationId", "==", id)));
-        const lista = snap.docs.map((d) => d.data()).sort((a, b) => a.name.localeCompare(b.name, "es"));
-        let dentro = 0, personas = 0;
-        cont.textContent = "";
-        lista.forEach((g) => {
-          if (g.checkedIn) { dentro++; personas += g.checkedInCount || 0; }
-          const f = el("div", "fila" + (g.checkedIn ? " dentro" : ""));
-          f.appendChild(el("b", null, g.name));
-          f.appendChild(el("div", null, g.checkedIn
-            ? "Ingresó a las " + hora(g.checkedInAt) + " (" + (g.checkedInCount || 0) + " de " + g.seats + ")"
-            : g.seats + " lugar(es) - todavía no ingresó"));
-          cont.appendChild(f);
-        });
-        if (!lista.length) cont.textContent = "Todavía no hay invitados cargados.";
-        $("s-inv").textContent = lista.length;
-        $("s-dentro").textContent = dentro;
-        $("s-pers").textContent = personas;
+        guests = snap.docs.map((d) => ({ id: d.id, x: d.data() }))
+          .sort((a, b) => a.x.name.localeCompare(b.x.name, "es"));
+        pintarLista();
       } catch (e) {
         console.error(e);
-        cont.textContent = "No se pudo cargar la lista.";
+        $("lista").textContent = "No se pudo cargar la lista.";
       }
+    }
+
+    async function manual(gid, x) {
+      const v = prompt("Personas que ingresan (de " + x.seats + "):", String(x.seats));
+      if (v === null) return;
+      const n = parseInt(v, 10);
+      if (!(n >= 1 && n <= x.seats)) { alert("La cantidad debe ser entre 1 y " + x.seats + "."); return; }
+      try {
+        await updateDoc(doc(db, "guests", gid), {
+          checkedIn: true, checkedInAt: serverTimestamp(), checkedInCount: n
+        });
+        cargarLista();
+      } catch (e) { console.error(e); alert("No se pudo registrar el ingreso."); }
+    }
+
+    function pintarLista() {
+      let dentro = 0, personas = 0;
+      guests.forEach(({ x }) => { if (x.checkedIn) { dentro++; personas += x.checkedInCount || 0; } });
+      $("s-inv").textContent = guests.length;
+      $("s-dentro").textContent = dentro;
+      $("s-pers").textContent = personas;
+
+      const t = $("buscar").value.trim().toLowerCase();
+      const cont = $("lista");
+      cont.textContent = "";
+      const vis = guests.filter(({ x }) =>
+        !t || x.name.toLowerCase().includes(t) || String(x.table || "").toLowerCase() === t);
+      if (!guests.length) { cont.textContent = "Todavía no hay invitados cargados."; return; }
+      if (!vis.length) { cont.textContent = "No hay resultados."; return; }
+
+      vis.forEach(({ id, x }) => {
+        const f = el("div", "fila" + (x.checkedIn ? " dentro" : ""));
+        f.appendChild(el("b", null, x.name));
+        const u = ubicacion(x);
+        f.appendChild(el("div", null, x.checkedIn
+          ? "Ingresó a las " + hora(x.checkedInAt) + " (" + (x.checkedInCount || 0) + " de " + x.seats + ")" + (u ? " - " + u : "")
+          : x.seats + " lugar(es)" + (u ? " - " + u : "") + " - todavía no ingresó"));
+        if (!x.checkedIn) {
+          const b = el("button", null, "Registrar ingreso");
+          b.type = "button";
+          b.onclick = () => manual(id, x);
+          f.appendChild(b);
+        }
+        cont.appendChild(f);
+      });
     }
   </script>
 </body>
-  </html>
+</html>
