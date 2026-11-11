@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Panel de revendedor - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    textarea{min-height:70px}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .caja button{width:auto;padding:8px 12px;margin:6px 6px 0 0;font-size:.9rem}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
+    .stat b{display:block;font-size:1.05rem;color:#8a6a1f}
+    .estado{display:inline-block;border-radius:12px;padding:2px 10px;font-size:.8rem;background:#eee}
+    .estado.nuevo{background:#fde8b0}
+    .estado.en_proceso{background:#cfe3ff}
+    .estado.entregado{background:#c9efd2}
+    .estado.cancelado{background:#f3c6c6}
+    #enlace{word-break:break-all;font-size:.9rem}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Panel de revendedor</h1>
+
+  <section id="acceso">
+    <p>Entrá o creá tu cuenta. Después el administrador te habilita como revendedor.</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
+    <button id="btn-entrar" type="button">Entrar</button>
+    <button id="btn-crear" class="sec" type="button">Crear cuenta nueva</button>
+    <p id="acc-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Sesión: <b id="quien"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+
+    <div id="pendiente" class="aviso" hidden></div>
+
+    <div id="activo" hidden>
+      <h2 id="saludo"></h2>
+
+      <div class="caja">
+        <b>Tu enlace de venta</b>
+        <p id="enlace"></p>
+        <button id="btn-copiar" type="button">Copiar enlace</button>
+        <button id="btn-compartir" type="button" class="sec">Compartir por WhatsApp</button>
+        <small>Cuando un cliente entra con tu enlace y pide por WhatsApp, el pedido queda a tu nombre.</small>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><b id="s-pedidos">0</b>Pedidos</div>
+        <div class="stat"><b id="s-entregados">0</b>Entregados</div>
+        <div class="stat"><b id="s-cobrado">$0</b>Cobrado</div>
+        <div class="stat"><b id="s-ganada">$0</b>Comisión ganada</div>
+        <div class="stat"><b id="s-pagada">$0</b>Ya cobraste</div>
+        <div class="stat"><b id="s-pend">$0</b>A cobrar</div>
+      </div>
+
+      <h2>Productos y precios</h2>
+      <div id="productos"></div>
+
+      <h2>Nuevo pedido</h2>
+      <div class="caja">
+        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara la invitación.</p>
+        <form id="form" novalidate>
+          <input id="f-cliente" placeholder="Nombre del cliente" maxlength="80">
+          <input id="f-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
+          <label>Producto</label>
+          <select id="f-producto"></select>
+          <input id="f-evento" placeholder="Tipo de evento (ej: 15 años)" maxlength="60">
+          <label>Fecha del evento (si ya la sabe)</label>
+          <input id="f-fecha" type="date">
+          <textarea id="f-notas" placeholder="Notas (opcional)" maxlength="300"></textarea>
+          <button id="btn-pedido" type="submit">Enviar pedido</button>
+          <p id="f-msg" class="msg"></p>
+        </form>
+      </div>
+
+      <h2>Mis pedidos</h2>
+      <div id="pedidos"></div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, addDoc, collection, getDocs, query, where, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Pase QR" };
+    const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
+    const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
+
+    let rev = null;
+    let precios = {};
+
+    function errorAuth(e) {
+      const c = (e && e.code) || "";
+      if (c.includes("email-already-in-use")) return "Ese email ya tiene cuenta. Probá con Entrar.";
+      if (c.includes("weak-password")) return "La contraseña es muy corta (mínimo 6 caracteres).";
+      if (c.includes("invalid-email")) return "El email no es válido.";
+      if (c.includes("invalid-credential") || c.includes("wrong-password") || c.includes("user-not-found"))
+        return "Email o contraseña incorrectos.";
+      return "No se pudo completar. Intentá de nuevo.";
+    }
+
+    $("btn-entrar").addEventListener("click", async () => {
+      $("acc-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("acc-msg").textContent = "";
+      } catch (e) { $("acc-msg").textContent = errorAuth(e); }
+    });
+    $("btn-crear").addEventListener("click", async () => {
+      $("acc-msg").textContent = "Creando cuenta...";
+      try {
+        const email = $("email").value.trim();
+        const r = await createUserWithEmailAndPassword(auth, email, $("clave").value);
+        await setDoc(doc(db, "users", r.user.uid), { email: email, createdAt: serverTimestamp() });
+        $("acc-msg").textContent = "";
+      } catch (e) { $("acc-msg").textContent = errorAuth(e); }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      $("acceso").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar(u);
+    });
+
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+
+    async function cargar(u) {
+      $("quien").textContent = u.email;
+      $("pendiente").hidden = true;
+      $("activo").hidden = true;
+      try {
+        const r = await getDoc(doc(db, "resellers", u.uid));
+        if (!r.exists() || r.data().active !== true) {
+          $("pendiente").textContent = r.exists()
+            ? "Tu cuenta de revendedor está desactivada. Consultá con el administrador."
+            : "Tu cuenta todavía no está habilitada como revendedor. Pedile al administrador que te habilite con este email: " + u.email;
+          $("pendiente").hidden = false;
+          return;
+        }
+        rev = r.data();
+        await cargarPrecios();
+        pintarCabecera(u);
+        $("activo").hidden = false;
+        cargarPedidos(u);
+      } catch (e) {
+        console.error(e);
+        $("pendiente").textContent = "No se pudo cargar tu panel. Intentá de nuevo.";
+        $("pendiente").hidden = false;
+      }
+    }
+
+    async function cargarPrecios() {
+      precios = {};
+      const [pq, ps] = await Promise.all([
+        getDoc(doc(db, "settings", "packages")),
+        getDoc(doc(db, "settings", "pase"))
+      ]);
+      if (pq.exists()) {
+        ["basico", "premium"].forEach((k) => {
+          if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
+        });
+      }
+      if (ps.exists() && ps.data().price >= 0) precios.pase = ps.data().price;
+    }
+
+    function pintarCabecera(u) {
+      $("saludo").textContent = "Hola, " + rev.name;
+      const link = base() + "?r=" + encodeURIComponent(rev.code);
+      $("enlace").textContent = link;
+      $("btn-copiar").onclick = () => navigator.clipboard.writeText(link).then(() => { $("btn-copiar").textContent = "Copiado ✓"; });
+      $("btn-compartir").onclick = () => {
+        const t = "Mirá estas invitaciones digitales interactivas: " + link;
+        window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+      };
+
+      const cont = $("productos");
+      cont.textContent = "";
+      const sel = $("f-producto");
+      sel.innerHTML = "";
+      const claves = Object.keys(precios);
+      if (!claves.length) cont.textContent = "El administrador todavía no cargó los precios.";
+      claves.forEach((k) => {
+        const c = document.createElement("div"); c.className = "caja";
+        const n = document.createElement("b"); n.textContent = NOMBRES[k];
+        const p = document.createElement("div");
+        p.textContent = "Precio: " + $$(precios[k]) + " - tu comisión: " + rev.commissionPct + "% (" +
+          $$(Math.round(precios[k] * rev.commissionPct / 100)) + " por venta)";
+        c.append(n, p);
+        cont.appendChild(c);
+        const o = document.createElement("option");
+        o.value = k; o.textContent = NOMBRES[k] + " - " + $$(precios[k]);
+        sel.appendChild(o);
+      });
+    }
+
+    $("form").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const msg = $("f-msg");
+      const cliente = $("f-cliente").value.trim();
+      const tel = $("f-tel").value.trim();
+      const producto = $("f-producto").value;
+      if (!cliente) { msg.textContent = "Falta el nombre del cliente."; return; }
+      if (tel.replace(/\D/g, "").length < 6) { msg.textContent = "Escribí el WhatsApp del cliente."; return; }
+      if (!producto || !(producto in precios)) { msg.textContent = "Elegí un producto."; return; }
+      $("btn-pedido").disabled = true;
+      msg.textContent = "Enviando...";
+      try {
+        await addDoc(collection(db, "orders"), {
+          resellerId: auth.currentUser.uid, resellerCode: rev.code,
+          clientName: cliente, clientPhone: tel, product: producto,
+          eventType: $("f-evento").value.trim(), eventDate: $("f-fecha").value,
+          notes: $("f-notas").value.trim(), status: "nuevo",
+          price: precios[producto], agreedPrice: precios[producto], collected: 0,
+          commissionPct: rev.commissionPct, commissionPaid: false,
+          invitationId: "", adminNote: "", createdAt: serverTimestamp()
+        });
+        $("form").reset();
+        msg.textContent = "¡Pedido enviado! El administrador se va a contactar con tu cliente.";
+        cargarPedidos(auth.currentUser);
+      } catch (err) {
+        console.error(err);
+        msg.textContent = "No se pudo enviar el pedido. Revisá los datos e intentá de nuevo.";
+      }
+      $("btn-pedido").disabled = false;
+    });
+
+    async function cargarPedidos(u) {
+      const cont = $("pedidos");
+      cont.textContent = "Cargando...";
+      try {
+        const s = await getDocs(query(collection(db, "orders"), where("resellerId", "==", u.uid)));
+        const lista = s.docs.map((d) => d.data())
+          .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
+        let cobrado = 0, ganada = 0, pagada = 0, entregados = 0;
+        cont.textContent = "";
+        lista.forEach((p) => {
+          cobrado += p.collected || 0;
+          ganada += comision(p);
+          if (p.commissionPaid) pagada += comision(p);
+          if (p.status === "entregado") entregados++;
+
+          const c = document.createElement("div"); c.className = "caja";
+          const n = document.createElement("b"); n.textContent = p.clientName;
+          const e = document.createElement("span");
+          e.className = "estado " + p.status; e.textContent = " " + (ESTADOS[p.status] || p.status) + " ";
+          const l1 = document.createElement("div");
+          l1.textContent = (NOMBRES[p.product] || p.product) + (p.eventType ? " - " + p.eventType : "") +
+            (p.eventDate ? " - " + p.eventDate : "");
+          const l2 = document.createElement("div");
+          l2.textContent = "Cobrado: " + $$(p.collected) + " - Tu comisión: " + $$(comision(p)) +
+            (comision(p) > 0 ? (p.commissionPaid ? " (ya cobrada)" : " (pendiente)") : "");
+          c.append(n, document.createTextNode(" "), e, l1, l2);
+          cont.appendChild(c);
+        });
+        if (!lista.length) cont.textContent = "Todavía no cargaste pedidos.";
+        $("s-pedidos").textContent = lista.length;
+        $("s-entregados").textContent = entregados;
+        $("s-cobrado").textContent = $$(cobrado);
+        $("s-ganada").textContent = $$(ganada);
+        $("s-pagada").textContent = $$(pagada);
+        $("s-pend").textContent = $$(ganada - pagada);
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudieron cargar tus pedidos.";
+      }
+    }
+  </script>
+</body>
+          </html>
