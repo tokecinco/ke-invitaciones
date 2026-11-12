@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Libro de mensajes - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:600px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0;text-align:center}
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
+    .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
+    .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
+    .msj{background:#fff;border:1px solid #eadfc8;border-left:6px solid #e0a800;border-radius:12px;padding:12px;margin:10px 0}
+    .msj.ok{border-left-color:#2e9e57}
+    .msj p{margin:6px 0;white-space:pre-wrap}
+    .msj small{color:#777}
+    .msj button{width:auto;padding:8px 12px;margin:4px 6px 0 0;font-size:.9rem}
+    .acciones{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Libro de mensajes</h1>
+  <p><a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <p>Entrá con tu cuenta (administrador o cliente).</p>
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <label>Invitación</label>
+    <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Estado del libro</h2>
+      <p id="estado-libro"></p>
+      <button id="btn-toggle" type="button"></button>
+      <small>Con el libro abierto, los invitados pueden dejar su dedicatoria desde la invitación. Los mensajes se publican recién cuando los aprobás.</small>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><b id="s-total">0</b>Mensajes</div>
+      <div class="stat"><b id="s-pend">0</b>Pendientes</div>
+      <div class="stat"><b id="s-ok">0</b>Aprobados</div>
+    </div>
+
+    <select id="filtro">
+      <option value="">Todos los mensajes</option>
+      <option value="pend">Pendientes</option>
+      <option value="ok">Aprobados</option>
+    </select>
+    <div class="acciones">
+      <button id="btn-aprobar-todos" type="button" class="sec">Aprobar pendientes</button>
+      <button id="btn-txt" type="button" class="sec">Descargar libro (TXT)</button>
+      <button id="btn-imprimir" type="button" class="sec">Imprimir libro / PDF</button>
+    </div>
+    <p id="msg" class="msg"></p>
+    <div id="lista"></div>
+    <button id="btn-salir" type="button" class="sec">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, updateDoc, deleteDoc, collection, getDocs, query, where, writeBatch }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    let invs = {};
+    let actual = "";
+    let mensajes = [];
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargarInvitaciones();
+    });
+
+    async function cargarInvitaciones() {
+      let snap;
+      try {
+        snap = await getDocs(collection(db, "invitations"));
+      } catch (e) {
+        try {
+          snap = await getDocs(query(collection(db, "invitations"), where("ownerId", "==", auth.currentUser.uid)));
+        } catch (e2) { console.error(e2); $("msg").textContent = "No se pudieron cargar las invitaciones."; return; }
+      }
+      invs = {};
+      $("sel").innerHTML = "";
+      snap.forEach((d) => {
+        invs[d.id] = d.data();
+        const o = document.createElement("option");
+        o.value = d.id; o.textContent = d.data().honoree || d.id;
+        $("sel").appendChild(o);
+      });
+      const pedida = new URLSearchParams(location.search).get("i");
+      if (pedida && invs[pedida]) $("sel").value = pedida;
+      if (!snap.size) { $("msg").textContent = "No hay invitaciones."; return; }
+      elegir();
+    }
+    $("sel").addEventListener("change", elegir);
+    $("filtro").addEventListener("change", pintar);
+
+    function elegir() {
+      actual = $("sel").value;
+      if (!actual) return;
+      estado();
+      cargarMensajes();
+    }
+
+    function estado() {
+      const abierto = invs[actual].guestbookOpen === true;
+      $("estado-libro").textContent = abierto
+        ? "Abierto: los invitados pueden dejar mensajes."
+        : "Cerrado: no se reciben mensajes nuevos.";
+      $("btn-toggle").textContent = abierto ? "Cerrar libro" : "Abrir libro";
+    }
+    $("btn-toggle").addEventListener("click", async () => {
+      const nuevo = !(invs[actual].guestbookOpen === true);
+      try {
+        await updateDoc(doc(db, "invitations", actual), { guestbookOpen: nuevo });
+        invs[actual].guestbookOpen = nuevo;
+        estado();
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudo cambiar el estado."; }
+    });
+
+    async function cargarMensajes() {
+      const id = actual;
+      $("lista").textContent = "Cargando...";
+      try {
+        const snap = await getDocs(query(collection(db, "wishes"), where("invitationId", "==", id)));
+        if (id !== actual) return;
+        mensajes = snap.docs.map((d) => ({ id: d.id, x: d.data() }))
+          .sort((a, b) => (b.x.createdAt?.seconds || 0) - (a.x.createdAt?.seconds || 0));
+        pintar();
+      } catch (e) {
+        console.error(e);
+        $("lista").textContent = "No se pudieron cargar los mensajes.";
+      }
+    }
+
+    const fecha = (ts) => ts && ts.toDate
+      ? ts.toDate().toLocaleDateString("es-AR", { day: "numeric", month: "short" }) + " " +
+        ts.toDate().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
+
+    function pintar() {
+      const pend = mensajes.filter((m) => !m.x.approved).length;
+      $("s-total").textContent = mensajes.length;
+      $("s-pend").textContent = pend;
+      $("s-ok").textContent = mensajes.length - pend;
+
+      const f = $("filtro").value;
+      const vis = mensajes.filter((m) => !f || (f === "ok" ? m.x.approved : !m.x.approved));
+      const cont = $("lista");
+      cont.textContent = "";
+      if (!mensajes.length) { cont.textContent = "Todavía no hay mensajes."; return; }
+      if (!vis.length) { cont.textContent = "No hay mensajes con ese filtro."; return; }
+
+      vis.forEach(({ id, x }) => {
+        const c = document.createElement("div");
+        c.className = "msj" + (x.approved ? " ok" : "");
+        const n = document.createElement("b"); n.textContent = x.name;
+        const p = document.createElement("p"); p.textContent = x.message;
+        const d = document.createElement("small");
+        d.textContent = (x.approved ? "Publicado" : "Pendiente") + " - " + fecha(x.createdAt);
+        c.append(n, p, d, document.createElement("br"));
+
+        const b = (t, cl, fn) => {
+          const el = document.createElement("button");
+          el.type = "button"; el.textContent = t; if (cl) el.className = cl; el.onclick = fn; return el;
+        };
+        c.append(
+          b(x.approved ? "Ocultar" : "Aprobar", x.approved ? "sec" : "", async () => {
+            try { await updateDoc(doc(db, "wishes", id), { approved: !x.approved }); cargarMensajes(); }
+            catch (e) { console.error(e); $("msg").textContent = "No se pudo actualizar."; }
+          }),
+          b("Eliminar", "rojo", async () => {
+            if (!confirm("¿Eliminar este mensaje? No se puede deshacer.")) return;
+            try { await deleteDoc(doc(db, "wishes", id)); cargarMensajes(); }
+            catch (e) { console.error(e); $("msg").textContent = "No se pudo eliminar."; }
+          })
+        );
+        cont.appendChild(c);
+      });
+    }
+
+    $("btn-aprobar-todos").addEventListener("click", async () => {
+      const pend = mensajes.filter((m) => !m.x.approved);
+      if (!pend.length) { $("msg").textContent = "No hay mensajes pendientes."; return; }
+      if (!confirm("¿Aprobar y publicar " + pend.length + " mensaje(s)?")) return;
+      try {
+        for (let i = 0; i < pend.length; i += 400) {
+          const b = writeBatch(db);
+          pend.slice(i, i + 400).forEach((m) => b.update(doc(db, "wishes", m.id), { approved: true }));
+          await b.commit();
+        }
+        $("msg").textContent = "Mensajes aprobados.";
+        cargarMensajes();
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudieron aprobar."; }
+    });
+
+    function aprobados() {
+      return mensajes.filter((m) => m.x.approved).slice().reverse();
+    }
+    const titulo = () => "Libro de mensajes - " + (invs[actual] ? invs[actual].honoree || actual : "");
+
+    $("btn-txt").addEventListener("click", () => {
+      const lista = aprobados();
+      if (!lista.length) { $("msg").textContent = "No hay mensajes aprobados para descargar."; return; }
+      const texto = titulo() + "\n\n" +
+        lista.map((m) => m.x.message + "\n- " + m.x.name).join("\n\n----------\n\n") + "\n";
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(new Blob([texto], { type: "text/plain;charset=utf-8" }));
+      a.download = "libro-" + actual + ".txt";
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    });
+
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+    $("btn-imprimir").addEventListener("click", () => {
+      const lista = aprobados();
+      if (!lista.length) { $("msg").textContent = "No hay mensajes aprobados para imprimir."; return; }
+      const w = window.open("", "_blank");
+      if (!w) { $("msg").textContent = "El navegador bloqueó la ventana. Permitila e intentá de nuevo."; return; }
+      w.document.write(
+        "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + esc(titulo()) + "</title>" +
+        "<style>body{font-family:Georgia,serif;max-width:700px;margin:30px auto;padding:0 20px;color:#1a1a1a}" +
+        "h1{text-align:center;color:#8a6a1f}.m{border-bottom:1px solid #ddd;padding:14px 0;page-break-inside:avoid}" +
+        ".m p{margin:0;white-space:pre-wrap}.n{font-style:italic;margin-top:6px;color:#8a6a1f}</style></head><body>" +
+        "<h1>" + esc(titulo()) + "</h1>" +
+        lista.map((m) => "<div class='m'><p>" + esc(m.x.message) + "</p><div class='n'>" + esc(m.x.name) + "</div></div>").join("") +
+        "</body></html>");
+      w.document.close();
+      setTimeout(() => w.print(), 400);
+    });
+  </script>
+</body>
+  </html>
