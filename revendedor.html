@@ -74,7 +74,7 @@
 
       <h2>Nuevo pedido</h2>
       <div class="caja">
-        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara la invitación.</p>
+        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara el producto.</p>
         <form id="form" novalidate>
           <input id="f-cliente" placeholder="Nombre del cliente" maxlength="80">
           <input id="f-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
@@ -103,7 +103,10 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Pase QR" };
+    const NOMBRES = {
+      basico: "Invitación Básica", premium: "Invitación Premium",
+      pase: "Pase QR Esencial", pase_premium: "Pase QR Premium"
+    };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
 
@@ -173,9 +176,10 @@
 
     async function cargarPrecios() {
       precios = {};
-      const [pq, ps] = await Promise.all([
+      const [pq, ps, pp] = await Promise.all([
         getDoc(doc(db, "settings", "packages")),
-        getDoc(doc(db, "settings", "pase"))
+        getDoc(doc(db, "settings", "pase")),
+        getDoc(doc(db, "settings", "pasePremium"))
       ]);
       if (pq.exists()) {
         ["basico", "premium"].forEach((k) => {
@@ -183,6 +187,7 @@
         });
       }
       if (ps.exists() && ps.data().price >= 0) precios.pase = ps.data().price;
+      if (pp.exists() && pp.data().price >= 0) precios.pase_premium = pp.data().price;
     }
 
     function pintarCabecera(u) {
@@ -199,7 +204,7 @@
       cont.textContent = "";
       const sel = $("f-producto");
       sel.innerHTML = "";
-      const claves = Object.keys(precios);
+      const claves = Object.keys(NOMBRES).filter((k) => k in precios);
       if (!claves.length) cont.textContent = "El administrador todavía no cargó los precios.";
       claves.forEach((k) => {
         const c = document.createElement("div"); c.className = "caja";
@@ -288,4 +293,4 @@
     }
   </script>
 </body>
-          </html>
+        </html>
