@@ -43,30 +43,18 @@
     .botones{display:flex;gap:8px;margin-top:16px}
     .botones button,.botones a{flex:1;padding:13px;border:0;border-radius:30px;background:var(--ac);
       color:#fff;font-family:inherit;font-size:1rem;text-decoration:none;cursor:pointer}
-    #btn-mas{width:100%;margin-top:10px;padding:13px;border:1px solid var(--ac);border-radius:30px;
-      background:transparent;color:var(--ac);font-family:inherit;font-size:1rem;cursor:pointer}
-
-    .fondo{position:fixed;inset:0;z-index:60;background:rgba(0,0,0,.6);display:flex;
-      align-items:flex-end;justify-content:center}
-    .hoja{background:#fff;color:#1a1a1a;width:100%;max-width:480px;max-height:86vh;overflow:auto;
-      border-radius:22px 22px 0 0;padding:18px 18px 28px;text-align:left;animation:sube .35s ease}
-    @keyframes sube{from{transform:translateY(100%)}to{transform:none}}
-    .cab{display:flex;align-items:center;justify-content:space-between}
-    .cab h2{margin:0;color:var(--ac);font-weight:normal;font-size:1.3rem}
-    .cab button{width:38px;height:38px;border-radius:50%;border:0;background:#f1ece0;font-size:1.5rem;
-      line-height:1;cursor:pointer}
-    .hoja h3{margin:18px 0 6px;font-size:.85rem;letter-spacing:2px;text-transform:uppercase;color:#8a6a1f;
-      font-weight:normal}
-    .hoja p{margin:0}
+    .panel{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:18px;
+      padding:16px;margin-top:16px;color:#fff;text-align:left}
+    .panel h2{margin:0 0 10px;font-size:1rem;letter-spacing:2px;text-transform:uppercase;color:var(--ac);font-weight:normal}
+    .panel p{margin:0}
     .it{display:grid;grid-template-columns:62px 1fr;gap:6px 10px;font-size:.95rem}
     .it b{color:var(--ac);text-align:right}
     .mini{width:100%;border-radius:10px;cursor:zoom-in;display:block}
     .galeria{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .galeria img{width:100%;height:110px;object-fit:cover;border-radius:10px;cursor:zoom-in}
-    .cal{width:100%;margin-top:18px;padding:13px;border:0;border-radius:30px;background:var(--ac);
-      color:#fff;font-family:inherit;font-size:1rem;cursor:pointer}
-
-    .grande{position:fixed;inset:0;z-index:80;background:#fff;color:#1a1a1a;display:flex;
+    #btn-cal{width:100%;margin-top:16px;padding:13px;border:1px solid var(--ac);border-radius:30px;
+      background:transparent;color:var(--ac);font-family:inherit;font-size:1rem;cursor:pointer}
+    .grande{position:fixed;inset:0;z-index:50;background:#fff;color:#1a1a1a;display:flex;
       flex-direction:column;align-items:center;justify-content:center;padding:20px;overflow:auto}
     .grande img{max-width:min(94vw,520px);max-height:80vh;height:auto}
     .grande img.qr{width:min(90vw,440px);image-rendering:pixelated}
@@ -102,7 +90,14 @@
       <button id="btn-ampliar" type="button">Ampliar QR</button>
       <a id="btn-guardar" download="pase.png">Guardar QR</a>
     </div>
-    <button id="btn-mas" type="button" hidden>Más información del evento</button>
+
+    <div id="extra" hidden>
+      <div id="b-host" class="panel" hidden><h2>Mensaje del anfitrión</h2><p id="host"></p></div>
+      <div id="b-it" class="panel" hidden><h2>Itinerario</h2><div id="it" class="it"></div></div>
+      <div id="b-plano" class="panel" hidden><h2>Plano del salón</h2><img id="plano" class="mini" alt="Plano del salón"></div>
+      <div id="b-fotos" class="panel" hidden><h2>Fotos del evento</h2><div id="fotos" class="galeria"></div></div>
+      <button id="btn-cal" type="button" hidden>Agregar al calendario</button>
+    </div>
   </main>
 
   <script type="module">
@@ -239,89 +234,56 @@
       $("btn-guardar").download = "pase-" + idG + ".png";
       $("btn-ampliar").addEventListener("click", () => ampliar(png, g.name, true));
 
-      if (premium) masInformacion(d, fotos);
+      if (premium) extras(d, fotos);
 
       $("estado").hidden = true;
       $("ticket").hidden = false;
       $("botones").hidden = false;
     }
 
-    function masInformacion(d, fotos) {
-      const itinerario = (Array.isArray(d.itinerary) ? d.itinerary : []).filter((x) => x && x.title);
-      const ics = archivoCalendario(d);
-      const galeria = fotos.slice(1);
-      const hay = d.hostMessage || itinerario.length || imgOk(d.planImage) || galeria.length || ics;
-      if (!hay) return;
-      $("btn-mas").hidden = false;
-      $("btn-mas").addEventListener("click", () => {
-        const fondo = document.createElement("div");
-        fondo.className = "fondo";
-        const hoja = document.createElement("div");
-        hoja.className = "hoja";
-        const cab = document.createElement("div");
-        cab.className = "cab";
-        const h2 = document.createElement("h2");
-        h2.textContent = "Información del evento";
-        const x = document.createElement("button");
-        x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label", "Cerrar");
-        cab.append(h2, x);
-        hoja.appendChild(cab);
-
-        const titulo = (t) => { const h = document.createElement("h3"); h.textContent = t; hoja.appendChild(h); };
-
-        if (d.hostMessage) {
-          titulo("Mensaje del anfitrión");
-          const m = document.createElement("p"); m.textContent = d.hostMessage; hoja.appendChild(m);
-        }
-        if (itinerario.length) {
-          titulo("Itinerario");
-          const it = document.createElement("div"); it.className = "it";
-          itinerario.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
-          itinerario.forEach((i) => {
-            const h = document.createElement("b"); h.textContent = i.time || "";
-            const t = document.createElement("span"); t.textContent = i.title;
-            it.append(h, t);
-          });
-          hoja.appendChild(it);
-        }
-        if (imgOk(d.planImage)) {
-          titulo("Plano del salón");
+    function extras(d, fotos) {
+      let hay = false;
+      if (d.hostMessage) {
+        $("host").textContent = d.hostMessage; $("b-host").hidden = false; hay = true;
+      }
+      const it = (Array.isArray(d.itinerary) ? d.itinerary : []).filter((x) => x && x.title);
+      if (it.length) {
+        it.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
+        it.forEach((x) => {
+          const h = document.createElement("b"); h.textContent = x.time || "";
+          const t = document.createElement("span"); t.textContent = x.title;
+          $("it").append(h, t);
+        });
+        $("b-it").hidden = false; hay = true;
+      }
+      if (imgOk(d.planImage)) {
+        $("plano").src = d.planImage;
+        $("plano").addEventListener("click", () => ampliar(d.planImage, "Plano del salón", false));
+        $("b-plano").hidden = false; hay = true;
+      }
+      const gal = fotos.slice(1);
+      if (gal.length) {
+        gal.forEach((s, i) => {
           const im = document.createElement("img");
-          im.className = "mini"; im.src = d.planImage; im.alt = "Plano del salón";
-          im.addEventListener("click", () => ampliar(d.planImage, "Plano del salón", false));
-          hoja.appendChild(im);
-        }
-        if (galeria.length) {
-          titulo("Fotos del evento");
-          const gal = document.createElement("div"); gal.className = "galeria";
-          galeria.forEach((s, i) => {
-            const im = document.createElement("img");
-            im.src = s; im.alt = "Foto " + (i + 1); im.loading = "lazy";
-            im.addEventListener("click", () => ampliar(s, "", false));
-            gal.appendChild(im);
-          });
-          hoja.appendChild(gal);
-        }
-        if (ics) {
-          const b = document.createElement("button");
-          b.type = "button"; b.className = "cal"; b.textContent = "Agregar al calendario";
-          b.addEventListener("click", () => {
-            const blob = new Blob([ics], { type: "text/calendar" });
-            const a = document.createElement("a");
-            a.href = URL.createObjectURL(blob);
-            a.download = "evento.ics";
-            a.click();
-            setTimeout(() => URL.revokeObjectURL(a.href), 10000);
-          });
-          hoja.appendChild(b);
-        }
-
-        fondo.appendChild(hoja);
-        document.body.appendChild(fondo);
-        const cerrar = () => fondo.remove();
-        x.addEventListener("click", cerrar);
-        fondo.addEventListener("click", (e) => { if (e.target === fondo) cerrar(); });
-      });
+          im.src = s; im.alt = "Foto " + (i + 1); im.loading = "lazy";
+          im.addEventListener("click", () => ampliar(s, "", false));
+          $("fotos").appendChild(im);
+        });
+        $("b-fotos").hidden = false; hay = true;
+      }
+      const ics = archivoCalendario(d);
+      if (ics) {
+        $("btn-cal").hidden = false; hay = true;
+        $("btn-cal").addEventListener("click", () => {
+          const blob = new Blob([ics], { type: "text/calendar" });
+          const a = document.createElement("a");
+          a.href = URL.createObjectURL(blob);
+          a.download = "evento.ics";
+          a.click();
+          setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+        });
+      }
+      if (hay) $("extra").hidden = false;
     }
 
     cargar();
