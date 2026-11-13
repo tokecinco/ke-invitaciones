@@ -63,13 +63,12 @@ function construir(d) {
   cierre(d, fecha);
 }
 
-/* Itinerario */
+/* Itinerario: se muestra en el mismo orden en que se cargó */
 function itinerario(d) {
   const lista = (Array.isArray(d.itinerary) ? d.itinerary : [])
     .filter((x) => x && typeof x.title === "string" && x.title.trim())
     .slice(0, 12);
   if (!lista.length) return;
-  lista.sort((a, b) => String(a.time || "").localeCompare(String(b.time || "")));
 
   const s = el("section");
   s.id = "sec-itinerario";
