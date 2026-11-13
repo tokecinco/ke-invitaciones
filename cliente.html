@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Mi cuenta - KE Invitaciones</title>
+  <title>Mi panel - KE Invitaciones</title>
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
@@ -14,22 +14,35 @@
     textarea{min-height:70px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
     .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .panelx{border-top:1px dashed #d8cbb0;margin-top:10px;padding-top:6px}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:8px 0}
     .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.85rem}
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
     .resp{border-left:5px solid #4caf50;padding:6px 10px;margin:6px 0;background:#fffdf8}
     .resp.no{border-left-color:#c0392b}
+    .msj{border-left:5px solid #e0a800;padding:6px 10px;margin:6px 0;background:#fffdf8}
+    .msj.ok{border-left-color:#2e9e57}
+    .msj p{margin:4px 0;white-space:pre-wrap}
+    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+    .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;background:#eee}
+    #visor{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.94);display:flex;flex-direction:column;
+      align-items:center;justify-content:center;padding:14px;gap:8px}
+    #visor img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:6px}
+    #visor a,#visor button{width:200px;text-align:center;display:block;padding:12px;border-radius:10px;border:0;
+      background:#c9a24b;color:#fff;text-decoration:none;font-family:inherit;font-size:1rem;margin:0}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px}
     .msg{min-height:1.4em}
   </style>
 </head>
 <body>
-  <h1>Mi cuenta</h1>
+  <h1>Mi panel</h1>
 
   <section id="acceso">
-    <p>Entrá o creá tu cuenta para ver tus invitaciones.</p>
+    <p>Entrá con tu cuenta. Si recibiste un enlace por WhatsApp, abrilo directamente: no necesitás cuenta.</p>
     <input id="email" type="email" placeholder="Email" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña (mínimo 6 caracteres)" autocomplete="current-password">
     <button id="btn-entrar" type="button">Entrar</button>
@@ -38,22 +51,25 @@
   </section>
 
   <section id="panel" hidden>
-    <p>Sesión: <b id="quien"></b></p>
-    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
-    <h2>Mis invitaciones</h2>
+    <p id="modo"></p>
+    <button id="btn-salir" class="sec" type="button">Salir</button>
+    <h2>Mi invitación</h2>
     <div id="lista"></div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut }
+    import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, setDoc, updateDoc, collection, getDocs, query, where, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, limit, startAfter, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
+    const params = new URLSearchParams(location.search);
+    const idCod = params.get("i");
+    const codigo = params.get("c");
 
     function h(tag, texto, clase) {
       const e = document.createElement(tag);
@@ -61,11 +77,14 @@
       if (clase) e.className = clase;
       return e;
     }
-    function linkDe(id) {
-      return location.origin + location.pathname.replace(/cliente\.html$/, "") + "i/" + id;
-    }
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+    const linkDe = (id) => base() + "i/" + id;
+    const hora = (ts) => ts && ts.toDate
+      ? ts.toDate().toLocaleDateString("es-AR", { day: "numeric", month: "short" }) + " " +
+        ts.toDate().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
+
     function errorAuth(e) {
-      const c = e && e.code || "";
+      const c = (e && e.code) || "";
       if (c.includes("email-already-in-use")) return "Ese email ya tiene una cuenta. Probá con Entrar.";
       if (c.includes("weak-password")) return "La contraseña es muy corta (mínimo 6 caracteres).";
       if (c.includes("invalid-email")) return "El email no es válido.";
@@ -81,7 +100,6 @@
         $("acc-msg").textContent = "";
       } catch (e) { $("acc-msg").textContent = errorAuth(e); }
     });
-
     $("btn-crear").addEventListener("click", async () => {
       $("acc-msg").textContent = "Creando cuenta...";
       try {
@@ -91,22 +109,41 @@
         $("acc-msg").textContent = "";
       } catch (e) { $("acc-msg").textContent = errorAuth(e); }
     });
-
-    $("btn-salir").addEventListener("click", () => signOut(auth));
-
-    onAuthStateChanged(auth, (u) => {
-      $("acceso").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) { $("quien").textContent = u.email; cargar(u.uid); }
+    $("btn-salir").addEventListener("click", () => {
+      signOut(auth).then(() => { location.href = location.pathname; });
     });
 
-    async function cargar(uid) {
+    onAuthStateChanged(auth, async (u) => {
+      if (!u) {
+        if (idCod && codigo) {
+          $("acceso").hidden = true;
+          $("panel").hidden = false;
+          $("modo").textContent = "Entrando con tu código...";
+          try { await signInAnonymously(auth); }
+          catch (e) {
+            console.error(e);
+            $("modo").textContent = "No se pudo iniciar el acceso por código. Avisale al administrador.";
+          }
+          return;
+        }
+        $("acceso").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("acceso").hidden = true;
+      $("panel").hidden = false;
+      if (u.isAnonymous) await modoCodigo(u); else await modoCuenta(u);
+    });
+
+    /* Con cuenta */
+    async function modoCuenta(u) {
+      $("modo").textContent = "Sesión: " + u.email;
       const cont = $("lista");
       cont.textContent = "Cargando...";
       try {
         const [inv, pag] = await Promise.all([
-          getDocs(query(collection(db, "invitations"), where("ownerId", "==", uid))),
-          getDocs(query(collection(db, "payments"), where("ownerId", "==", uid)))
+          getDocs(query(collection(db, "invitations"), where("ownerId", "==", u.uid))),
+          getDocs(query(collection(db, "payments"), where("ownerId", "==", u.uid)))
         ]);
         const pagos = {};
         pag.forEach((d) => { pagos[d.id] = d.data(); });
@@ -122,39 +159,86 @@
       }
     }
 
+    /* Con código */
+    async function modoCodigo(u) {
+      $("modo").textContent = "Acceso por código";
+      const cont = $("lista");
+      if (!idCod) {
+        cont.textContent = "Abrí el enlace que te enviamos por WhatsApp para entrar a tu panel.";
+        return;
+      }
+      cont.textContent = "Cargando...";
+      if (codigo) {
+        try {
+          await setDoc(doc(db, "grants", u.uid + "_" + idCod), {
+            invitationId: idCod, code: codigo, uid: u.uid, createdAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.error(e);
+          cont.textContent = "El código no es válido o ya no está vigente. Pedile un enlace nuevo al administrador.";
+          return;
+        }
+      }
+      try {
+        const s = await getDoc(doc(db, "invitations", idCod));
+        if (!s.exists()) { cont.textContent = "No se encontró la invitación."; return; }
+        let p = null;
+        try {
+          const ps = await getDoc(doc(db, "payments", idCod));
+          if (ps.exists()) p = ps.data();
+        } catch (e) { console.error(e); }
+        cont.textContent = "";
+        cont.appendChild(tarjeta(idCod, s.data(), p));
+      } catch (e) {
+        console.error(e);
+        cont.textContent = "No se pudo abrir el panel. Pedile un enlace nuevo al administrador.";
+      }
+    }
+
+    /* Tarjeta de la invitación */
     function tarjeta(id, x, p) {
       const t = h("div", "", "caja");
       t.appendChild(h("b", x.honoree || id));
       t.appendChild(h("div", (x.active ? "Publicada" : "No publicada") + " - " + (x.date || "")));
-      const a = h("a", linkDe(id)); a.href = linkDe(id); a.target = "_blank";
-      a.style.wordBreak = "break-all";
+      const a = h("a", linkDe(id));
+      a.href = linkDe(id); a.target = "_blank"; a.style.wordBreak = "break-all";
       t.appendChild(a);
-
-      const pago = p
+      t.appendChild(h("p", p
         ? "Pago: " + (ETIQ[p.status] || p.status) + " - Cobrado " + $$(p.received) + " de " + $$(p.price) +
           " - Saldo " + $$(Math.max((p.price || 0) - (p.received || 0), 0))
-        : "Pago: todavía sin registrar";
-      t.appendChild(h("p", pago));
+        : "Pago: todavía sin registrar"));
 
       const bCopiar = h("button", "Copiar enlace");
-      bCopiar.onclick = () => navigator.clipboard.writeText(linkDe(id)).then(() => { bCopiar.textContent = "Copiado"; });
-      const bConf = h("button", "Ver confirmaciones", "sec");
+      bCopiar.onclick = () => navigator.clipboard.writeText(linkDe(id)).then(() => { bCopiar.textContent = "Copiado ✓"; });
+      const bConf = h("button", "Confirmaciones", "sec");
       const bEdit = h("button", "Editar datos", "sec");
-      t.append(bCopiar, bConf, bEdit);
+      const bAlbum = h("button", "Álbum de fotos", "sec");
+      const bLibro = h("button", "Libro de mensajes", "sec");
+      t.append(bCopiar, bConf, bEdit, bAlbum, bLibro);
 
-      const panelConf = h("div"); panelConf.hidden = true;
-      const panelEdit = h("div"); panelEdit.hidden = true;
-      t.append(panelConf, panelEdit);
+      const pConf = h("div", "", "panelx"); pConf.hidden = true;
+      const pEdit = h("div", "", "panelx"); pEdit.hidden = true;
+      const pAlbum = h("div", "", "panelx"); pAlbum.hidden = true;
+      const pLibro = h("div", "", "panelx"); pLibro.hidden = true;
+      t.append(pConf, pEdit, pAlbum, pLibro);
 
-      let confCargadas = false;
-      bConf.onclick = async () => {
-        panelConf.hidden = !panelConf.hidden;
-        if (panelConf.hidden || confCargadas) return;
-        panelConf.textContent = "Cargando...";
+      confirmaciones(id, bConf, pConf);
+      edicion(id, x, bEdit, pEdit);
+      album(id, x, bAlbum, pAlbum);
+      libro(id, x, bLibro, pLibro);
+      return t;
+    }
+
+    function confirmaciones(id, boton, panel) {
+      let cargadas = false;
+      boton.onclick = async () => {
+        panel.hidden = !panel.hidden;
+        if (panel.hidden || cargadas) return;
+        panel.textContent = "Cargando...";
         try {
           const s = await getDocs(query(collection(db, "rsvps"), where("invitationId", "==", id)));
-          const lista = s.docs.map((r) => r.data());
-          lista.sort((m, n) => (n.createdAt?.seconds || 0) - (m.createdAt?.seconds || 0));
+          const lista = s.docs.map((r) => r.data())
+            .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
           let conf = 0, pers = 0, no = 0, msj = 0;
           const cuerpo = h("div");
           lista.forEach((r) => {
@@ -170,17 +254,19 @@
           [[conf, "Confirmaron"], [pers, "Personas"], [no, "No asisten"], [msj, "Mensajes"]].forEach(([v, l]) => {
             const c = h("div", "", "stat"); c.appendChild(h("b", String(v))); c.append(l); stats.appendChild(c);
           });
-          panelConf.textContent = "";
-          panelConf.appendChild(stats);
-          if (!lista.length) panelConf.appendChild(h("p", "Todavía no hay respuestas."));
-          panelConf.appendChild(cuerpo);
-          confCargadas = true;
+          panel.textContent = "";
+          panel.appendChild(stats);
+          if (!lista.length) panel.appendChild(h("p", "Todavía no hay respuestas."));
+          panel.appendChild(cuerpo);
+          cargadas = true;
         } catch (e) {
           console.error(e);
-          panelConf.textContent = "No se pudieron cargar las confirmaciones.";
+          panel.textContent = "No se pudieron cargar las confirmaciones.";
         }
       };
+    }
 
+    function edicion(id, x, boton, panel) {
       const campos = [
         ["welcome", "Texto de bienvenida", "input"],
         ["message", "Mensaje personalizado", "textarea"],
@@ -191,13 +277,13 @@
       campos.forEach(([k, ph, tipo]) => {
         const el = document.createElement(tipo);
         el.placeholder = ph; el.value = x[k] || ""; el.maxLength = 400;
-        entradas[k] = el; panelEdit.appendChild(el);
+        entradas[k] = el; panel.appendChild(el);
       });
-      const bGuardar = h("button", "Guardar cambios");
+      const guardar = h("button", "Guardar cambios");
       const msg = h("p", "", "msg");
-      panelEdit.append(bGuardar, msg);
-      bEdit.onclick = () => { panelEdit.hidden = !panelEdit.hidden; };
-      bGuardar.onclick = async () => {
+      panel.append(guardar, msg);
+      boton.onclick = () => { panel.hidden = !panel.hidden; };
+      guardar.onclick = async () => {
         msg.textContent = "Guardando...";
         try {
           await updateDoc(doc(db, "invitations", id), {
@@ -213,7 +299,114 @@
           msg.textContent = "No se pudo guardar.";
         }
       };
-      return t;
+    }
+
+    function interruptor(id, x, campo, nombre, panel) {
+      const estado = h("p");
+      const b = h("button", "Abrir");
+      const pintar = () => {
+        const on = x[campo] === true;
+        estado.textContent = nombre + ": " + (on ? "abierto" : "cerrado");
+        b.textContent = on ? "Cerrar" : "Abrir";
+      };
+      b.onclick = async () => {
+        const nuevo = !(x[campo] === true);
+        try {
+          await updateDoc(doc(db, "invitations", id), { [campo]: nuevo });
+          x[campo] = nuevo;
+          pintar();
+        } catch (e) { console.error(e); estado.textContent = "No se pudo cambiar el estado."; }
+      };
+      pintar();
+      panel.append(estado, b);
+    }
+
+    function visor(src, nombre) {
+      const v = h("div"); v.id = "visor";
+      const im = document.createElement("img"); im.src = src; im.alt = "";
+      const d = h("a", "Descargar"); d.href = src; d.download = nombre;
+      const c = h("button", "Cerrar");
+      c.onclick = () => v.remove();
+      v.append(im, d, c);
+      document.body.appendChild(v);
+    }
+
+    function album(id, x, boton, panel) {
+      interruptor(id, x, "albumOpen", "Álbum colaborativo", panel);
+      const enlace = base() + "album.html?i=" + encodeURIComponent(id);
+      const bCop = h("button", "Copiar enlace para invitados", "sec");
+      bCop.onclick = () => navigator.clipboard.writeText(enlace).then(() => { bCop.textContent = "Copiado ✓"; });
+      const grid = h("div", "", "grid");
+      const mas = h("button", "Ver más fotos", "sec"); mas.hidden = true;
+      const aviso = h("p");
+      panel.append(bCop, aviso, grid, mas);
+
+      let cargado = false, ultimo = null;
+      async function fotos() {
+        try {
+          const partes = [collection(db, "photos"), where("invitationId", "==", id)];
+          if (ultimo) partes.push(startAfter(ultimo));
+          partes.push(limit(24));
+          const s = await getDocs(query(...partes));
+          s.docs.forEach((d) => {
+            const im = document.createElement("img");
+            im.src = d.data().image; im.alt = "Foto del evento"; im.loading = "lazy";
+            im.onclick = () => visor(d.data().image, "foto-" + d.id + ".jpg");
+            grid.appendChild(im);
+          });
+          if (s.size) ultimo = s.docs[s.docs.length - 1];
+          mas.hidden = s.size < 24;
+          aviso.textContent = grid.children.length ? "" : "Todavía no hay fotos en el álbum.";
+        } catch (e) { console.error(e); aviso.textContent = "No se pudieron cargar las fotos."; }
+      }
+      mas.onclick = fotos;
+      boton.onclick = () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden && !cargado) { cargado = true; fotos(); }
+      };
+    }
+
+    function libro(id, x, boton, panel) {
+      interruptor(id, x, "guestbookOpen", "Libro de mensajes", panel);
+      const lista = h("div");
+      panel.appendChild(lista);
+      let cargado = false;
+
+      async function mensajes() {
+        lista.textContent = "Cargando...";
+        try {
+          const s = await getDocs(query(collection(db, "wishes"), where("invitationId", "==", id)));
+          const ms = s.docs.map((d) => ({ id: d.id, m: d.data() }))
+            .sort((a, b) => (b.m.createdAt?.seconds || 0) - (a.m.createdAt?.seconds || 0));
+          lista.textContent = "";
+          if (!ms.length) { lista.textContent = "Todavía no hay mensajes."; return; }
+          ms.forEach(({ id: mid, m }) => {
+            const c = h("div", "", "msj" + (m.approved ? " ok" : ""));
+            c.appendChild(h("b", m.name));
+            c.appendChild(h("p", m.message));
+            c.appendChild(h("small", (m.approved ? "Publicado" : "Pendiente") + " - " + hora(m.createdAt)));
+            c.appendChild(document.createElement("br"));
+            const ap = h("button", m.approved ? "Ocultar" : "Aprobar", m.approved ? "sec" : "");
+            ap.onclick = async () => {
+              try { await updateDoc(doc(db, "wishes", mid), { approved: !m.approved }); mensajes(); }
+              catch (e) { console.error(e); }
+            };
+            const del = h("button", "Eliminar", "rojo");
+            del.onclick = async () => {
+              if (!confirm("¿Eliminar este mensaje? No se puede deshacer.")) return;
+              try { await deleteDoc(doc(db, "wishes", mid)); mensajes(); }
+              catch (e) { console.error(e); }
+            };
+            c.append(ap, del);
+            lista.appendChild(c);
+          });
+        } catch (e) { console.error(e); lista.textContent = "No se pudieron cargar los mensajes."; }
+      }
+
+      boton.onclick = () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden && !cargado) { cargado = true; mensajes(); }
+      };
     }
   </script>
 </body>
