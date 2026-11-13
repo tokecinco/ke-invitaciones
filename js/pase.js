@@ -95,8 +95,7 @@ function ampliar(src, nombre) {
 
 async function construir(d, g) {
   const base = location.origin + location.pathname.replace(/[^/]*$/, "");
-  const parametros = "?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
-  const url = base + "acceso.html" + parametros;
+  const url = base + "acceso.html?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
 
   let src;
   try {
@@ -146,14 +145,10 @@ async function construir(d, g) {
   const bGuardar = el("a", "boton", "Guardar QR");
   bGuardar.href = src;
   bGuardar.download = "pase-" + idInvitado + ".png";
-  const bPase = el("a", "boton", "Abrir pase");
-  bPase.href = "pase.html" + parametros;
-  bPase.target = "_blank";
-  bPase.rel = "noopener";
-  botones.append(bAmpliar, bGuardar, bPase);
+  botones.append(bAmpliar, bGuardar);
   s.appendChild(botones);
 
   const rsvp = $("form-rsvp");
   const ref = rsvp ? rsvp.closest("section") : null;
   if (ref) ref.insertAdjacentElement("afterend", s);
-                                          }
+}
