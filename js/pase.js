@@ -28,9 +28,10 @@ async function iniciar() {
     const g = gs.data();
     if (d.active !== true || g.invitationId !== idInv || d.pass === false) return;
 
+    // El pase está incluido en el Premium. En el Básico, solo si el paquete lo permite.
     const clave = d.package === "premium" ? "premium" : "basico";
     let permitido = clave === "premium";
-    if (pq.exists() && pq.data()[clave]) permitido = !!pq.data()[clave].personalized;
+    if (!permitido && pq.exists() && pq.data()[clave]) permitido = !!pq.data()[clave].personalized;
     if (!permitido) return;
 
     cuandoListo(() => construir(d, g));
@@ -94,7 +95,8 @@ function ampliar(src, nombre) {
 
 async function construir(d, g) {
   const base = location.origin + location.pathname.replace(/[^/]*$/, "");
-  const url = base + "acceso.html?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
+  const parametros = "?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
+  const url = base + "acceso.html" + parametros;
 
   let src;
   try {
@@ -144,10 +146,14 @@ async function construir(d, g) {
   const bGuardar = el("a", "boton", "Guardar QR");
   bGuardar.href = src;
   bGuardar.download = "pase-" + idInvitado + ".png";
-  botones.append(bAmpliar, bGuardar);
+  const bPase = el("a", "boton", "Abrir pase");
+  bPase.href = "pase.html" + parametros;
+  bPase.target = "_blank";
+  bPase.rel = "noopener";
+  botones.append(bAmpliar, bGuardar, bPase);
   s.appendChild(botones);
 
   const rsvp = $("form-rsvp");
   const ref = rsvp ? rsvp.closest("section") : null;
   if (ref) ref.insertAdjacentElement("afterend", s);
-        }
+                                          }
