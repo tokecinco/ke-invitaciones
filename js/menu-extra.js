@@ -3,6 +3,7 @@ const GRUPOS = [
     ["Álbum de fotos", "galeria.html"], ["Libro de mensajes", "libro.html"],
     ["Regalos", "regalos.html"], ["Pases QR", "pases.html"]
   ]],
+  ["Clientes", [["Accesos por código", "accesos.html"], ["Cuentas de clientes", "clientes.html"]]],
   ["Revendedores", [["Pedidos", "pedidos.html"], ["Revendedores", "revendedores.html"]]]
 ];
 
@@ -26,4 +27,4 @@ function agregar(m) {
     });
     m.append(h, g);
   });
-}
+                  }
