@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Accesos por código - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Accesos por código</h1>
+  <p><a href="dashboard.html">Menú</a> - <a href="clientes.html">Cuentas de clientes</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Generá un código para que un cliente <b>sin cuenta</b> entre a su panel. Se lo enviás por WhatsApp y no tiene que registrarse.</p>
+    <label>Invitación</label>
+    <select id="sel"></select>
+
+    <div class="caja">
+      <h2>Panel del cliente</h2>
+      <p id="estado"></p>
+      <div id="con-codigo" hidden>
+        <input id="enlace" readonly>
+        <button id="btn-wa" type="button">Enviar por WhatsApp</button>
+        <button id="btn-copiar" type="button" class="sec">Copiar enlace</button>
+        <button id="btn-cambiar" type="button" class="sec">Cambiar código</button>
+        <button id="btn-quitar" type="button" class="rojo">Quitar acceso por código</button>
+      </div>
+      <button id="btn-generar" type="button" hidden>Generar código</button>
+      <p id="msg" class="msg"></p>
+      <small>Quien tenga el enlace puede ver y administrar esa invitación, así que tratalo como una contraseña. Si lo cambiás o lo quitás, los enlaces anteriores dejan de funcionar.</small>
+    </div>
+
+    <button id="btn-salir" type="button" class="sec">Cerrar sesión</button>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const CAR = "abcdefghjkmnpqrstuvwxyz23456789";
+    let invs = {};
+    let codigo = "";
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) cargar();
+    });
+
+    function nuevoCodigo() {
+      const a = new Uint8Array(12);
+      crypto.getRandomValues(a);
+      return Array.from(a, (b) => CAR[b % CAR.length]).join("");
+    }
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+    const enlaceDe = (id, c) => base() + "cliente.html?i=" + encodeURIComponent(id) + "&c=" + encodeURIComponent(c);
+
+    async function cargar() {
+      try {
+        const snap = await getDocs(collection(db, "invitations"));
+        invs = {};
+        $("sel").innerHTML = "";
+        snap.forEach((d) => {
+          invs[d.id] = d.data();
+          const o = document.createElement("option");
+          o.value = d.id; o.textContent = (d.data().honoree || d.id) + " (" + d.id + ")";
+          $("sel").appendChild(o);
+        });
+        const pedida = new URLSearchParams(location.search).get("i");
+        if (pedida && invs[pedida]) $("sel").value = pedida;
+        if (!snap.size) { $("estado").textContent = "No hay invitaciones."; return; }
+        elegir();
+      } catch (e) {
+        console.error(e);
+        $("estado").textContent = "No se pudieron cargar las invitaciones.";
+      }
+    }
+    $("sel").addEventListener("change", elegir);
+
+    async function elegir() {
+      const id = $("sel").value;
+      if (!id) return;
+      $("msg").textContent = "";
+      codigo = "";
+      try {
+        const s = await getDoc(doc(db, "secrets", id));
+        if (s.exists()) codigo = s.data().code || "";
+        const g = await getDocs(query(collection(db, "grants"), where("invitationId", "==", id)));
+        pintar(id, g.size);
+      } catch (e) {
+        console.error(e);
+        $("estado").textContent = "No se pudo consultar el acceso.";
+      }
+    }
+
+    function pintar(id, dispositivos) {
+      const hay = !!codigo;
+      $("con-codigo").hidden = !hay;
+      $("btn-generar").hidden = hay;
+      $("estado").textContent = hay
+        ? "Código activo. Dispositivos que ya entraron: " + dispositivos + "."
+        : "Esta invitación todavía no tiene código de acceso.";
+      if (hay) $("enlace").value = enlaceDe(id, codigo);
+    }
+
+    async function guardarCodigo(id) {
+      const c = nuevoCodigo();
+      await setDoc(doc(db, "secrets", id), { code: c, createdAt: serverTimestamp() });
+      codigo = c;
+    }
+
+    $("btn-generar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      try { await guardarCodigo(id); pintar(id, 0); $("msg").textContent = "Código generado."; }
+      catch (e) { console.error(e); $("msg").textContent = "No se pudo generar el código."; }
+    });
+
+    $("btn-cambiar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      if (!confirm("Los enlaces anteriores van a dejar de funcionar. ¿Cambiar el código?")) return;
+      try { await guardarCodigo(id); pintar(id, 0); $("msg").textContent = "Código cambiado. Enviale el enlace nuevo al cliente."; }
+      catch (e) { console.error(e); $("msg").textContent = "No se pudo cambiar el código."; }
+    });
+
+    $("btn-quitar").addEventListener("click", async () => {
+      const id = $("sel").value;
+      if (!confirm("¿Quitar el acceso por código? Los enlaces enviados dejan de funcionar.")) return;
+      try {
+        const g = await getDocs(query(collection(db, "grants"), where("invitationId", "==", id)));
+        for (const d of g.docs) await deleteDoc(d.ref);
+        await deleteDoc(doc(db, "secrets", id));
+        codigo = "";
+        pintar(id, 0);
+        $("msg").textContent = "Acceso por código quitado.";
+      } catch (e) { console.error(e); $("msg").textContent = "No se pudo quitar el acceso."; }
+    });
+
+    $("btn-copiar").addEventListener("click", () => {
+      navigator.clipboard.writeText($("enlace").value).then(() => { $("btn-copiar").textContent = "Copiado ✓"; });
+    });
+
+    $("btn-wa").addEventListener("click", () => {
+      const t = "Hola! Este es el enlace de tu panel para ver las confirmaciones y administrar tu invitación: " + $("enlace").value;
+      window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+    });
+  </script>
+</body>
+          </html>
