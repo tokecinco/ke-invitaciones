@@ -74,7 +74,7 @@
 
       <h2>Nuevo pedido</h2>
       <div class="caja">
-        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara el producto.</p>
+        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara la invitación.</p>
         <form id="form" novalidate>
           <input id="f-cliente" placeholder="Nombre del cliente" maxlength="80">
           <input id="f-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
@@ -103,10 +103,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const NOMBRES = {
-      basico: "Invitación Básica", premium: "Invitación Premium",
-      pase: "Pase QR Esencial", pase_premium: "Pase QR Premium"
-    };
+    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
 
@@ -176,18 +173,12 @@
 
     async function cargarPrecios() {
       precios = {};
-      const [pq, ps, pp] = await Promise.all([
-        getDoc(doc(db, "settings", "packages")),
-        getDoc(doc(db, "settings", "pase")),
-        getDoc(doc(db, "settings", "pasePremium"))
-      ]);
+      const pq = await getDoc(doc(db, "settings", "packages"));
       if (pq.exists()) {
         ["basico", "premium"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
       }
-      if (ps.exists() && ps.data().price >= 0) precios.pase = ps.data().price;
-      if (pp.exists() && pp.data().price >= 0) precios.pase_premium = pp.data().price;
     }
 
     function pintarCabecera(u) {
@@ -293,4 +284,4 @@
     }
   </script>
 </body>
-        </html>
+  </html>
