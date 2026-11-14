@@ -83,12 +83,14 @@ function dibujarQR(texto) {
   return c.toDataURL("image/png");
 }
 
-function ampliar(src, nombre) {
+function ampliar(src, nombre, mesa) {
   const f = el("div", "pase-full");
   const img = document.createElement("img");
   img.src = src;
   img.alt = "Código QR de acceso";
-  f.append(img, el("p", null, nombre), el("small", null, "Tocá para cerrar"));
+  f.append(img, el("p", null, nombre));
+  if (mesa) f.appendChild(el("p", null, "Mesa " + mesa));
+  f.appendChild(el("small", null, "Tocá para cerrar"));
   f.addEventListener("click", () => f.remove());
   document.body.appendChild(f);
 }
@@ -123,6 +125,19 @@ async function construir(d, g) {
   pase.appendChild(el("p", "pase-nombre", g.name));
   pase.appendChild(el("p", "pase-lugares", g.seats + (g.seats === 1 ? " lugar reservado" : " lugares reservados")));
 
+  const mesa = String(g.table || "").trim();
+  if (mesa) {
+    const m = el("div", "pase-mesa");
+    m.style.cssText = "margin:12px auto 0;max-width:220px;border:1px solid var(--acento);" +
+      "border-radius:14px;padding:8px 12px;background:var(--suave)";
+    const t = el("div", null, "Tu mesa");
+    t.style.cssText = "font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:#777";
+    const n = el("div", null, mesa);
+    n.style.cssText = "font-size:1.9rem;color:var(--acento);line-height:1.2";
+    m.append(t, n);
+    pase.appendChild(m);
+  }
+
   const fecha = d.date ? new Date(d.date + "T" + (d.time || "00:00") + ":00") : null;
   if (fecha && !isNaN(fecha)) {
     pase.appendChild(el("p", "pase-fecha",
@@ -141,7 +156,7 @@ async function construir(d, g) {
   const botones = el("div", "pase-botones");
   const bAmpliar = el("button", "boton", "Ampliar QR");
   bAmpliar.type = "button";
-  bAmpliar.addEventListener("click", () => ampliar(src, g.name));
+  bAmpliar.addEventListener("click", () => ampliar(src, g.name, mesa));
   const bGuardar = el("a", "boton", "Guardar QR");
   bGuardar.href = src;
   bGuardar.download = "pase-" + idInvitado + ".png";
