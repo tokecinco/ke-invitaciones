@@ -32,25 +32,11 @@
   </section>
 
   <section id="panel" hidden>
-    <p>Generá un código para que un cliente <b>sin cuenta</b> entre a su panel. Se lo enviás por WhatsApp y no tiene que registrarse.</p>
+    <p>Generá códigos para entrar <b>sin cuenta</b>. Se envían por WhatsApp.</p>
     <label>Invitación</label>
     <select id="sel"></select>
-
-    <div class="caja">
-      <h2>Panel del cliente</h2>
-      <p id="estado"></p>
-      <div id="con-codigo" hidden>
-        <input id="enlace" readonly>
-        <button id="btn-wa" type="button">Enviar por WhatsApp</button>
-        <button id="btn-copiar" type="button" class="sec">Copiar enlace</button>
-        <button id="btn-cambiar" type="button" class="sec">Cambiar código</button>
-        <button id="btn-quitar" type="button" class="rojo">Quitar acceso por código</button>
-      </div>
-      <button id="btn-generar" type="button" hidden>Generar código</button>
-      <p id="msg" class="msg"></p>
-      <small>Quien tenga el enlace puede ver y administrar esa invitación, así que tratalo como una contraseña. Si lo cambiás o lo quitás, los enlaces anteriores dejan de funcionar.</small>
-    </div>
-
+    <p id="msg" class="msg"></p>
+    <div id="bloques"></div>
     <button id="btn-salir" type="button" class="sec">Cerrar sesión</button>
   </section>
 
@@ -58,13 +44,13 @@
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, deleteField, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     const CAR = "abcdefghjkmnpqrstuvwxyz23456789";
     let invs = {};
-    let codigo = "";
+    let sec = { code: "", doorCode: "" };
 
     $("btn-login").addEventListener("click", async () => {
       try {
@@ -84,7 +70,21 @@
       return Array.from(a, (b) => CAR[b % CAR.length]).join("");
     }
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
-    const enlaceDe = (id, c) => base() + "cliente.html?i=" + encodeURIComponent(id) + "&c=" + encodeURIComponent(c);
+
+    const TIPOS = [
+      {
+        campo: "code", coleccion: "grants", titulo: "Panel del cliente",
+        texto: "Para que el cliente vea las confirmaciones, el pago, el álbum y el libro de mensajes de su invitación.",
+        enlace: (id, c) => base() + "cliente.html?i=" + encodeURIComponent(id) + "&c=" + encodeURIComponent(c),
+        mensaje: (l) => "Hola! Este es el enlace de tu panel para ver las confirmaciones y administrar tu invitación: " + l
+      },
+      {
+        campo: "doorCode", coleccion: "doorGrants", titulo: "Control de acceso (puerta)",
+        texto: "Para quien controla el ingreso: solo puede escanear QR, ver la lista de invitados y registrar ingresos.",
+        enlace: (id, c) => base() + "acceso.html?i=" + encodeURIComponent(id) + "&d=" + encodeURIComponent(c),
+        mensaje: (l) => "Hola! Este es el enlace para controlar el acceso al evento. Abrilo desde tu celular y tocá \"Escanear QR\" en la puerta: " + l
+      }
+    ];
 
     async function cargar() {
       try {
@@ -99,11 +99,11 @@
         });
         const pedida = new URLSearchParams(location.search).get("i");
         if (pedida && invs[pedida]) $("sel").value = pedida;
-        if (!snap.size) { $("estado").textContent = "No hay invitaciones."; return; }
+        if (!snap.size) { $("msg").textContent = "No hay invitaciones."; return; }
         elegir();
       } catch (e) {
         console.error(e);
-        $("estado").textContent = "No se pudieron cargar las invitaciones.";
+        $("msg").textContent = "No se pudieron cargar las invitaciones.";
       }
     }
     $("sel").addEventListener("change", elegir);
@@ -112,68 +112,84 @@
       const id = $("sel").value;
       if (!id) return;
       $("msg").textContent = "";
-      codigo = "";
+      sec = { code: "", doorCode: "" };
       try {
         const s = await getDoc(doc(db, "secrets", id));
-        if (s.exists()) codigo = s.data().code || "";
-        const g = await getDocs(query(collection(db, "grants"), where("invitationId", "==", id)));
-        pintar(id, g.size);
+        if (s.exists()) sec = { code: s.data().code || "", doorCode: s.data().doorCode || "" };
+        const cuentas = await Promise.all(TIPOS.map((t) =>
+          getDocs(query(collection(db, t.coleccion), where("invitationId", "==", id)))));
+        pintar(id, cuentas.map((c) => c.size));
       } catch (e) {
         console.error(e);
-        $("estado").textContent = "No se pudo consultar el acceso.";
+        $("msg").textContent = "No se pudo consultar el acceso.";
       }
     }
 
     function pintar(id, dispositivos) {
-      const hay = !!codigo;
-      $("con-codigo").hidden = !hay;
-      $("btn-generar").hidden = hay;
-      $("estado").textContent = hay
-        ? "Código activo. Dispositivos que ya entraron: " + dispositivos + "."
-        : "Esta invitación todavía no tiene código de acceso.";
-      if (hay) $("enlace").value = enlaceDe(id, codigo);
+      const cont = $("bloques");
+      cont.textContent = "";
+      TIPOS.forEach((t, i) => cont.appendChild(bloque(id, t, dispositivos[i])));
     }
 
-    async function guardarCodigo(id) {
-      const c = nuevoCodigo();
-      await setDoc(doc(db, "secrets", id), { code: c, createdAt: serverTimestamp() });
-      codigo = c;
+    function bloque(id, t, dispositivos) {
+      const c = document.createElement("div"); c.className = "caja";
+      const h = document.createElement("h2"); h.textContent = t.titulo;
+      const p = document.createElement("p"); p.textContent = t.texto;
+      c.append(h, p);
+
+      const codigo = sec[t.campo];
+      const est = document.createElement("p");
+      const btn = (texto, clase, fn) => {
+        const b = document.createElement("button");
+        b.type = "button"; b.textContent = texto; if (clase) b.className = clase; b.onclick = fn; return b;
+      };
+
+      if (!codigo) {
+        est.textContent = "Todavía no tiene código.";
+        c.appendChild(est);
+        c.appendChild(btn("Generar código", "", async () => {
+          try {
+            await setDoc(doc(db, "secrets", id),
+              { [t.campo]: nuevoCodigo(), updatedAt: serverTimestamp() }, { merge: true });
+            elegir();
+          } catch (e) { console.error(e); $("msg").textContent = "No se pudo generar el código."; }
+        }));
+        return c;
+      }
+
+      est.textContent = "Código activo. Dispositivos que ya entraron: " + dispositivos + ".";
+      const link = t.enlace(id, codigo);
+      const inp = document.createElement("input"); inp.readOnly = true; inp.value = link;
+      c.append(est, inp,
+        btn("Enviar por WhatsApp", "", () =>
+          window.open("https://wa.me/?text=" + encodeURIComponent(t.mensaje(link)), "_blank")),
+        btn("Copiar enlace", "sec", function () {
+          navigator.clipboard.writeText(link).then(() => { this.textContent = "Copiado ✓"; });
+        }),
+        btn("Cambiar código", "sec", async () => {
+          if (!confirm("Los enlaces anteriores van a dejar de funcionar. ¿Cambiar el código?")) return;
+          try {
+            await setDoc(doc(db, "secrets", id),
+              { [t.campo]: nuevoCodigo(), updatedAt: serverTimestamp() }, { merge: true });
+            elegir();
+            $("msg").textContent = "Código cambiado. Enviá el enlace nuevo.";
+          } catch (e) { console.error(e); $("msg").textContent = "No se pudo cambiar el código."; }
+        }),
+        btn("Quitar este acceso", "rojo", async () => {
+          if (!confirm("¿Quitar este acceso? Los enlaces enviados dejan de funcionar.")) return;
+          try {
+            const g = await getDocs(query(collection(db, t.coleccion), where("invitationId", "==", id)));
+            for (const d of g.docs) await deleteDoc(d.ref);
+            await updateDoc(doc(db, "secrets", id), { [t.campo]: deleteField() });
+            sec[t.campo] = "";
+            if (!sec.code && !sec.doorCode) await deleteDoc(doc(db, "secrets", id));
+            elegir();
+            $("msg").textContent = "Acceso quitado.";
+          } catch (e) { console.error(e); $("msg").textContent = "No se pudo quitar el acceso."; }
+        })
+      );
+      return c;
     }
-
-    $("btn-generar").addEventListener("click", async () => {
-      const id = $("sel").value;
-      try { await guardarCodigo(id); pintar(id, 0); $("msg").textContent = "Código generado."; }
-      catch (e) { console.error(e); $("msg").textContent = "No se pudo generar el código."; }
-    });
-
-    $("btn-cambiar").addEventListener("click", async () => {
-      const id = $("sel").value;
-      if (!confirm("Los enlaces anteriores van a dejar de funcionar. ¿Cambiar el código?")) return;
-      try { await guardarCodigo(id); pintar(id, 0); $("msg").textContent = "Código cambiado. Enviale el enlace nuevo al cliente."; }
-      catch (e) { console.error(e); $("msg").textContent = "No se pudo cambiar el código."; }
-    });
-
-    $("btn-quitar").addEventListener("click", async () => {
-      const id = $("sel").value;
-      if (!confirm("¿Quitar el acceso por código? Los enlaces enviados dejan de funcionar.")) return;
-      try {
-        const g = await getDocs(query(collection(db, "grants"), where("invitationId", "==", id)));
-        for (const d of g.docs) await deleteDoc(d.ref);
-        await deleteDoc(doc(db, "secrets", id));
-        codigo = "";
-        pintar(id, 0);
-        $("msg").textContent = "Acceso por código quitado.";
-      } catch (e) { console.error(e); $("msg").textContent = "No se pudo quitar el acceso."; }
-    });
-
-    $("btn-copiar").addEventListener("click", () => {
-      navigator.clipboard.writeText($("enlace").value).then(() => { $("btn-copiar").textContent = "Copiado ✓"; });
-    });
-
-    $("btn-wa").addEventListener("click", () => {
-      const t = "Hola! Este es el enlace de tu panel para ver las confirmaciones y administrar tu invitación: " + $("enlace").value;
-      window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
-    });
   </script>
 </body>
-          </html>
+  </html>
