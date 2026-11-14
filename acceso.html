@@ -24,6 +24,9 @@
     .tarjeta .mesa{font-size:1.6rem;font-weight:bold;background:rgba(255,255,255,.25);border-radius:12px;padding:6px;margin:8px 0}
     .tarjeta input,.tarjeta label{color:#1a1a1a}
     .tarjeta button{background:#1a1a1a}
+    #camara{background:#000;border-radius:14px;padding:8px;margin:10px 0;text-align:center}
+    #video{width:100%;border-radius:10px;max-height:60vh;object-fit:cover}
+    #camara button{background:#c0392b}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
@@ -35,10 +38,10 @@
 </head>
 <body>
   <h1>Control de acceso</h1>
-  <p><a href="dashboard.html">Menú</a></p>
+  <p id="menu"><a href="dashboard.html">Menú</a></p>
 
   <section id="login">
-    <p>Entrá con tu cuenta (administrador o cliente) para controlar los ingresos.</p>
+    <p>Entrá con tu cuenta, o abrí el enlace que te enviaron por WhatsApp.</p>
     <input id="email" type="email" placeholder="Email" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
@@ -46,12 +49,20 @@
   </section>
 
   <section id="panel" hidden>
+    <p id="modo"></p>
+
+    <button id="btn-escanear" type="button">Escanear QR</button>
+    <div id="camara" hidden>
+      <video id="video" playsinline muted></video>
+      <p id="msg-cam" class="msg" style="color:#fff"></p>
+      <button id="btn-cerrar-cam" type="button">Cerrar cámara</button>
+    </div>
+
     <div id="escaneo" hidden>
       <div id="tarjeta"></div>
     </div>
 
     <h2>Resumen de ingresos</h2>
-    <p>Para registrar un ingreso, escaneá el QR del invitado con la cámara del celular, o buscalo en la lista.</p>
     <select id="sel"></select>
     <div class="stats">
       <div class="stat"><b id="s-inv">0</b>Invitados</div>
@@ -60,22 +71,24 @@
     </div>
     <input id="buscar" type="search" placeholder="Buscar por nombre o mesa">
     <div id="lista"></div>
-    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <button id="btn-salir" class="sec" type="button">Salir</button>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+    import { signInWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, getDoc, updateDoc, deleteField, serverTimestamp, collection, getDocs, query, where }
+    import { doc, getDoc, setDoc, updateDoc, deleteField, serverTimestamp, collection, getDocs, query, where }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     const params = new URLSearchParams(location.search);
-    const idInv = params.get("i");
-    const idGuest = params.get("g");
+    const pInv = params.get("i");
+    const pGuest = params.get("g");
+    const pDoor = params.get("d");
     let nombresInv = {};
     let guests = [];
+    let anonimo = false;
 
     function el(tag, clase, texto) {
       const e = document.createElement(tag);
@@ -92,88 +105,74 @@
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
-    $("btn-salir").addEventListener("click", () => signOut(auth));
-
-    onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) { if (idInv && idGuest) verificar(); cargarInvitaciones(); }
+    $("btn-salir").addEventListener("click", () => {
+      detener();
+      signOut(auth).then(() => { location.href = location.pathname; });
     });
 
-    /* Verificación de un pase */
-    async function verificar() {
-      $("escaneo").hidden = false;
-      $("tarjeta").textContent = "Verificando...";
-      try {
-        const [gs, inv] = await Promise.all([
-          getDoc(doc(db, "guests", idGuest)),
-          getDoc(doc(db, "invitations", idInv))
-        ]);
-        if (!gs.exists() || !inv.exists() || gs.data().invitationId !== idInv) {
-          return tarjeta("mal", "QR NO VÁLIDO", "Este código no corresponde a una invitación.", null);
+    function mostrarPanel() { $("login").hidden = true; $("panel").hidden = false; }
+
+    onAuthStateChanged(auth, async (u) => {
+      if (!u) {
+        if (pInv && pDoor) {
+          mostrarPanel();
+          $("modo").textContent = "Entrando con tu código...";
+          try { await signInAnonymously(auth); }
+          catch (e) {
+            console.error(e);
+            $("modo").textContent = "No se pudo iniciar el acceso por código. Avisale al administrador.";
+          }
+          return;
         }
-        pintar(gs.data(), inv.data());
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      mostrarPanel();
+      anonimo = u.isAnonymous;
+      if (anonimo) await modoCodigo(u); else await modoCuenta();
+    });
+
+    /* Acceso con código (sin cuenta) */
+    async function modoCodigo(u) {
+      $("modo").textContent = "Acceso por código";
+      $("menu").hidden = true;
+      if (!pInv) { $("lista").textContent = "Abrí el enlace que te enviaron por WhatsApp para controlar el acceso."; return; }
+      if (pDoor) {
+        try {
+          await setDoc(doc(db, "doorGrants", u.uid + "_" + pInv), {
+            invitationId: pInv, code: pDoor, uid: u.uid, createdAt: serverTimestamp()
+          });
+        } catch (e) {
+          console.error(e);
+          $("lista").textContent = "El código no es válido o ya no está vigente. Pedí un enlace nuevo.";
+          return;
+        }
+      }
+      try {
+        const s = await getDoc(doc(db, "invitations", pInv));
+        if (!s.exists()) { $("lista").textContent = "No se encontró la invitación."; return; }
+        nombresInv = { [pInv]: s.data().honoree || pInv };
+        $("sel").innerHTML = "";
+        const o = document.createElement("option");
+        o.value = pInv; o.textContent = nombresInv[pInv];
+        $("sel").appendChild(o);
       } catch (e) {
         console.error(e);
-        tarjeta("mal", "SIN PERMISO", "Tu cuenta no puede controlar esta invitación.", null);
+        $("lista").textContent = "No se pudo abrir el control de acceso. Pedí un enlace nuevo.";
+        return;
       }
+      await cargarLista();
+      if (pGuest) verificar(pInv, pGuest);
     }
 
-    function tarjeta(clase, titulo, texto, extra) {
-      const t = $("tarjeta");
-      t.textContent = "";
-      const c = el("div", "tarjeta " + clase);
-      c.append(el("h2", null, titulo), el("p", null, texto));
-      if (extra) c.appendChild(extra);
-      t.appendChild(c);
+    /* Acceso con cuenta */
+    async function modoCuenta() {
+      $("modo").textContent = "Sesión iniciada";
+      await cargarInvitaciones();
+      if (pInv && pGuest) verificar(pInv, pGuest);
     }
 
-    function pintar(g, inv) {
-      const caja = el("div");
-      caja.appendChild(el("div", "nombre", g.name));
-      caja.appendChild(el("p", null, (inv.honoree || "") + " - " + g.seats + (g.seats === 1 ? " lugar" : " lugares")));
-      const u = ubicacion(g);
-      if (u) caja.appendChild(el("div", "mesa", u));
-
-      if (g.checkedIn) {
-        const b = el("button", null, "Deshacer ingreso");
-        b.type = "button";
-        b.onclick = async () => {
-          if (!confirm("¿Deshacer el ingreso de " + g.name + "?")) return;
-          try {
-            await updateDoc(doc(db, "guests", idGuest), {
-              checkedIn: deleteField(), checkedInAt: deleteField(), checkedInCount: deleteField()
-            });
-            verificar(); cargarLista();
-          } catch (e) { console.error(e); alert("No se pudo deshacer."); }
-        };
-        caja.appendChild(b);
-        tarjeta("ya", "YA INGRESÓ",
-          (g.checkedInCount || 0) + " persona(s) a las " + hora(g.checkedInAt), caja);
-      } else {
-        const l = el("label", null, "Personas que ingresan");
-        const n = document.createElement("input");
-        n.type = "number"; n.min = "1"; n.max = String(g.seats); n.value = String(g.seats);
-        n.inputMode = "numeric";
-        const b = el("button", null, "Registrar ingreso");
-        b.type = "button";
-        b.onclick = async () => {
-          const cant = parseInt(n.value, 10);
-          if (!(cant >= 1 && cant <= g.seats)) { alert("La cantidad debe ser entre 1 y " + g.seats + "."); return; }
-          b.disabled = true;
-          try {
-            await updateDoc(doc(db, "guests", idGuest), {
-              checkedIn: true, checkedInAt: serverTimestamp(), checkedInCount: cant
-            });
-            verificar(); cargarLista();
-          } catch (e) { console.error(e); alert("No se pudo registrar el ingreso."); b.disabled = false; }
-        };
-        caja.append(l, n, b);
-        tarjeta("ok", "PASE VÁLIDO", "Todavía no ingresó.", caja);
-      }
-    }
-
-    /* Resumen y búsqueda */
     async function cargarInvitaciones() {
       let snap;
       try {
@@ -191,10 +190,85 @@
         o.value = d.id; o.textContent = nombresInv[d.id];
         $("sel").appendChild(o);
       });
-      if (idInv && nombresInv[idInv]) $("sel").value = idInv;
+      if (pInv && nombresInv[pInv]) $("sel").value = pInv;
       if (!snap.size) { $("lista").textContent = "No hay invitaciones."; return; }
       cargarLista();
     }
+
+    /* Verificación de un pase */
+    async function verificar(inv, g) {
+      $("escaneo").hidden = false;
+      $("tarjeta").textContent = "Verificando...";
+      try {
+        const [gs, iv] = await Promise.all([
+          getDoc(doc(db, "guests", g)),
+          getDoc(doc(db, "invitations", inv))
+        ]);
+        if (!gs.exists() || !iv.exists() || gs.data().invitationId !== inv) {
+          return tarjeta("mal", "QR NO VÁLIDO", "Este código no corresponde a una invitación.", null);
+        }
+        pintar(inv, g, gs.data(), iv.data());
+      } catch (e) {
+        console.error(e);
+        tarjeta("mal", "SIN PERMISO", "Esta sesión no puede controlar esta invitación.", null);
+      }
+    }
+
+    function tarjeta(clase, titulo, texto, extra) {
+      const t = $("tarjeta");
+      t.textContent = "";
+      const c = el("div", "tarjeta " + clase);
+      c.append(el("h2", null, titulo), el("p", null, texto));
+      if (extra) c.appendChild(extra);
+      t.appendChild(c);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function pintar(inv, gid, g, iv) {
+      const caja = el("div");
+      caja.appendChild(el("div", "nombre", g.name));
+      caja.appendChild(el("p", null, (iv.honoree || "") + " - " + g.seats + (g.seats === 1 ? " lugar" : " lugares")));
+      const u = ubicacion(g);
+      if (u) caja.appendChild(el("div", "mesa", u));
+
+      if (g.checkedIn) {
+        const b = el("button", null, "Deshacer ingreso");
+        b.type = "button";
+        b.onclick = async () => {
+          if (!confirm("¿Deshacer el ingreso de " + g.name + "?")) return;
+          try {
+            await updateDoc(doc(db, "guests", gid), {
+              checkedIn: deleteField(), checkedInAt: deleteField(), checkedInCount: deleteField()
+            });
+            verificar(inv, gid); cargarLista();
+          } catch (e) { console.error(e); alert("No se pudo deshacer."); }
+        };
+        caja.appendChild(b);
+        tarjeta("ya", "YA INGRESÓ", (g.checkedInCount || 0) + " persona(s) a las " + hora(g.checkedInAt), caja);
+      } else {
+        const l = el("label", null, "Personas que ingresan");
+        const n = document.createElement("input");
+        n.type = "number"; n.min = "1"; n.max = String(g.seats); n.value = String(g.seats);
+        n.inputMode = "numeric";
+        const b = el("button", null, "Registrar ingreso");
+        b.type = "button";
+        b.onclick = async () => {
+          const cant = parseInt(n.value, 10);
+          if (!(cant >= 1 && cant <= g.seats)) { alert("La cantidad debe ser entre 1 y " + g.seats + "."); return; }
+          b.disabled = true;
+          try {
+            await updateDoc(doc(db, "guests", gid), {
+              checkedIn: true, checkedInAt: serverTimestamp(), checkedInCount: cant
+            });
+            verificar(inv, gid); cargarLista();
+          } catch (e) { console.error(e); alert("No se pudo registrar el ingreso."); b.disabled = false; }
+        };
+        caja.append(l, n, b);
+        tarjeta("ok", "PASE VÁLIDO", "Todavía no ingresó.", caja);
+      }
+    }
+
+    /* Lista y búsqueda */
     $("sel").addEventListener("change", cargarLista);
     $("buscar").addEventListener("input", pintarLista);
 
@@ -257,6 +331,86 @@
         cont.appendChild(f);
       });
     }
+
+    /* Escáner de QR dentro de la página */
+    let stream = null, escaneando = false;
+
+    function cargarScript(src) {
+      return new Promise((ok, mal) => {
+        const s = document.createElement("script");
+        s.src = src; s.onload = ok; s.onerror = () => mal(new Error("script"));
+        document.head.appendChild(s);
+      });
+    }
+
+    function detener() {
+      escaneando = false;
+      if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+      $("camara").hidden = true;
+    }
+    $("btn-cerrar-cam").addEventListener("click", detener);
+
+    function procesar(texto) {
+      try {
+        const u = new URL(texto);
+        const i = u.searchParams.get("i"), g = u.searchParams.get("g");
+        if (!i || !g || !/acceso\.html$/.test(u.pathname)) return false;
+        if ($("sel").value !== i && nombresInv[i]) { $("sel").value = i; cargarLista(); }
+        verificar(i, g);
+        return true;
+      } catch (e) { return false; }
+    }
+
+    $("btn-escanear").addEventListener("click", async () => {
+      $("camara").hidden = false;
+      $("msg-cam").textContent = "";
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+      } catch (e) {
+        $("msg-cam").textContent = "No se pudo abrir la cámara. Revisá el permiso o escaneá con la cámara del celular.";
+        return;
+      }
+      const v = $("video");
+      v.srcObject = stream;
+      await v.play();
+      escaneando = true;
+
+      let detector = null;
+      if ("BarcodeDetector" in window) {
+        try { detector = new window.BarcodeDetector({ formats: ["qr_code"] }); } catch (e) {}
+      }
+      if (!detector && !window.jsQR) {
+        try { await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"); }
+        catch (e) {
+          $("msg-cam").textContent = "Este celular no permite escanear desde la página. Usá la cámara del celular.";
+          detener();
+          return;
+        }
+      }
+      $("msg-cam").textContent = "Apuntá la cámara al código QR.";
+
+      const lienzo = document.createElement("canvas");
+      const ctx = lienzo.getContext("2d", { willReadFrequently: true });
+      const ciclo = async () => {
+        if (!escaneando) return;
+        let texto = "";
+        try {
+          if (detector) {
+            const r = await detector.detect(v);
+            if (r.length) texto = r[0].rawValue;
+          } else if (v.videoWidth) {
+            lienzo.width = v.videoWidth; lienzo.height = v.videoHeight;
+            ctx.drawImage(v, 0, 0);
+            const img = ctx.getImageData(0, 0, lienzo.width, lienzo.height);
+            const r = window.jsQR(img.data, img.width, img.height);
+            if (r) texto = r.data;
+          }
+        } catch (e) {}
+        if (texto && procesar(texto)) { detener(); return; }
+        setTimeout(() => requestAnimationFrame(ciclo), 150);
+      };
+      ciclo();
+    });
   </script>
 </body>
 </html>
