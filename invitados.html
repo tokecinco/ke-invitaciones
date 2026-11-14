@@ -21,6 +21,8 @@
     .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .caja.si{border-left:5px solid #4caf50}
     .caja.no{border-left:5px solid #c0392b}
+    .mesa{display:grid;grid-template-columns:1fr auto;gap:6px;align-items:center}
+    .mesa button{margin:0}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
@@ -46,8 +48,8 @@
 
     <div id="agregar">
       <h2>Agregar invitados</h2>
-      <label>Uno por línea: Nombre; cantidad de lugares</label>
-      <textarea id="f-lista" placeholder="Familia Pérez; 4&#10;Juan Gómez; 1&#10;Ana y Luis; 2"></textarea>
+      <label>Uno por línea: Nombre; cantidad de lugares; mesa (la mesa es opcional)</label>
+      <textarea id="f-lista" placeholder="Familia Pérez; 4; 12&#10;Juan Gómez; 1; 3&#10;Ana y Luis; 2"></textarea>
       <button id="btn-agregar" type="button">Agregar a la lista</button>
       <p id="msg" class="msg"></p>
     </div>
@@ -65,7 +67,7 @@
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, getDoc, setDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
@@ -92,7 +94,6 @@
         if (pq.exists()) {
           const g = pq.data();
           if (g.basico) personalizado.basico = !!g.basico.personalized;
-          if (g.premium) personalizado.premium = !!g.premium.personalized;
         }
         invitaciones = {};
         inv.forEach((d) => { invitaciones[d.id] = d.data(); });
@@ -113,9 +114,9 @@
       }
     }
 
+    // Premium siempre permite invitados personalizados; Básico solo si el paquete lo incluye.
     function permitido(id) {
-      const k = invitaciones[id] && invitaciones[id].package === "premium" ? "premium" : "basico";
-      return !!personalizado[k];
+      return invitaciones[id] && (invitaciones[id].package === "premium" || personalizado.basico);
     }
 
     function cambio() {
@@ -124,7 +125,7 @@
       const ok = permitido(id);
       $("agregar").hidden = !ok;
       $("aviso").hidden = ok;
-      $("aviso").textContent = "El paquete de esta invitación no incluye invitaciones personalizadas. Cambiala a Premium desde Invitaciones, o activá la opción en Paquetes.";
+      $("aviso").textContent = "El paquete de esta invitación no incluye invitaciones personalizadas con pase. Cambiala a Premium desde Invitaciones.";
       listar();
     }
     $("sel").addEventListener("change", cambio);
@@ -146,15 +147,15 @@
       let cuantos = 0;
       try {
         for (const l of lineas) {
-          const partes = l.split(";");
-          const nombre = partes[0].trim().slice(0, 80);
-          let lugares = parseInt((partes[1] || "1").trim(), 10);
+          const p = l.split(";").map((s) => s.trim());
+          const nombre = (p[0] || "").slice(0, 80);
+          let lugares = parseInt(p[1] || "1", 10);
           if (!nombre) continue;
           if (!(lugares >= 1)) lugares = 1;
           if (lugares > 20) lugares = 20;
-          await setDoc(doc(db, "guests", nuevoId()), {
-            invitationId: inv, name: nombre, seats: lugares, createdAt: serverTimestamp()
-          });
+          const datos = { invitationId: inv, name: nombre, seats: lugares, createdAt: serverTimestamp() };
+          if (p[2]) datos.table = p[2].slice(0, 30);
+          await setDoc(doc(db, "guests", nuevoId()), datos);
           cuantos++;
         }
         $("f-lista").value = "";
@@ -194,9 +195,25 @@
           t.className = "caja" + (r ? (r.attending ? " si" : " no") : "");
           const n = document.createElement("b"); n.textContent = x.name;
           const e = document.createElement("div");
-          e.textContent = x.seats + " lugar(es) - " +
-            (r ? (r.attending ? "Confirmó " + r.guests + " persona(s)" : "No asiste") : "Sin respuesta");
+          e.textContent = x.seats + " lugar(es)" + (x.table ? " - mesa " + x.table : " - sin mesa") + " - " +
+            (r ? (r.attending ? "Confirmó " + r.guests + " persona(s)" : "No asiste") : "Sin respuesta") +
+            (x.checkedIn ? " - Ya ingresó" : "");
           t.append(n, e);
+
+          const fm = document.createElement("div"); fm.className = "mesa";
+          const mesa = document.createElement("input");
+          mesa.placeholder = "Mesa"; mesa.maxLength = 30; mesa.value = x.table || "";
+          const gm = document.createElement("button");
+          gm.type = "button"; gm.className = "sec"; gm.textContent = "Guardar mesa";
+          gm.onclick = async () => {
+            try {
+              await updateDoc(doc(db, "guests", id), { table: mesa.value.trim() });
+              gm.textContent = "Guardada ✓";
+              e.textContent = e.textContent.replace(/ - (mesa [^-]*|sin mesa)/, mesa.value.trim() ? " - mesa " + mesa.value.trim() : " - sin mesa");
+            } catch (err) { console.error(err); $("msg").textContent = "No se pudo guardar la mesa."; }
+          };
+          fm.append(mesa, gm);
+          t.appendChild(fm);
 
           const b = (texto, clase, fn) => {
             const el = document.createElement("button");
