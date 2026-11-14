@@ -89,7 +89,7 @@ function montar() {
   caja.querySelectorAll(".para").forEach((p) => texto.appendChild(p));
 
   btn.className = "sello";
-  btn.textContent = "abrir";
+  btn.textContent = "KE";
   btn.setAttribute("aria-label", "Abrir invitación");
 
   sobre3d.append(carta, el("div", "sobre-frente"), texto, el("div", "solapa"), btn);
