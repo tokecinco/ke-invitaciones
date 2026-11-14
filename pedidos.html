@@ -101,10 +101,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const PROD = {
-      basico: "Invitación Básica", premium: "Invitación Premium",
-      pase: "Pase QR Esencial", pase_premium: "Pase QR Premium"
-    };
+    const PROD = { basico: "Invitación Básica", premium: "Invitación Premium" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -125,13 +122,11 @@
 
     async function cargar() {
       try {
-        const [os, rs, is, pq, ps, pp] = await Promise.all([
+        const [os, rs, is, pq] = await Promise.all([
           getDocs(collection(db, "orders")),
           getDocs(collection(db, "resellers")),
           getDocs(collection(db, "invitations")),
-          getDoc(doc(db, "settings", "packages")),
-          getDoc(doc(db, "settings", "pase")),
-          getDoc(doc(db, "settings", "pasePremium"))
+          getDoc(doc(db, "settings", "packages"))
         ]);
         pedidos = os.docs.map((d) => ({ id: d.id, ...d.data() }));
         revs = {}; rs.forEach((d) => { revs[d.id] = d.data(); });
@@ -140,8 +135,6 @@
         if (pq.exists()) ["basico", "premium"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
-        if (ps.exists() && ps.data().price >= 0) precios.pase = ps.data().price;
-        if (pp.exists() && pp.data().price >= 0) precios.pase_premium = pp.data().price;
         armarSelectores();
         pintar();
       } catch (e) {
@@ -236,11 +229,6 @@
       lista.forEach((p) => cont.appendChild(tarjeta(p)));
     }
 
-    function paqueteDe(i) {
-      if (i.kind === "pase") return i.passTier === "premium" ? "pase_premium" : "pase";
-      return i.package || "basico";
-    }
-
     function tarjeta(p) {
       const c = document.createElement("div");
       c.className = "caja " + p.status;
@@ -290,12 +278,12 @@
       campo("Cobrado ($)", cobr);
 
       const inv = document.createElement("select");
-      inv.appendChild(opcion("", "Todavía sin invitación o evento"));
+      inv.appendChild(opcion("", "Todavía sin invitación"));
       Object.keys(invs).sort((a, b) => (invs[a].honoree || a).localeCompare(invs[b].honoree || b, "es"))
         .forEach((id) => inv.appendChild(opcion(id, (invs[id].honoree || id) + " (" + id + ")")));
       if (p.invitationId && !invs[p.invitationId]) inv.appendChild(opcion(p.invitationId, p.invitationId));
       inv.value = p.invitationId || "";
-      campo("Invitación o evento entregado", inv);
+      campo("Invitación entregada", inv);
 
       const nota = document.createElement("input");
       nota.maxLength = 200; nota.value = p.adminNote || "";
@@ -343,7 +331,7 @@
       }));
 
       fila.appendChild(b("Registrar cobro en Pagos", "sec", async () => {
-        if (!inv.value || !invs[inv.value]) { $("msg").textContent = "Primero elegí la invitación o el evento entregado y guardá."; return; }
+        if (!inv.value || !invs[inv.value]) { $("msg").textContent = "Primero elegí la invitación entregada y guardá."; return; }
         const ap = parseInt(precio.value, 10) || 0;
         const co = parseInt(cobr.value, 10) || 0;
         if (co > ap) { $("msg").textContent = "Lo cobrado no puede superar el precio acordado."; return; }
@@ -353,7 +341,7 @@
           const i = invs[inv.value];
           await setDoc(doc(db, "payments", inv.value), {
             invitationId: inv.value, ownerId: i.ownerId || auth.currentUser.uid,
-            honoree: i.honoree || "", package: paqueteDe(i),
+            honoree: i.honoree || "", package: i.package === "premium" ? "premium" : "basico",
             price: ap, received: co,
             status: ap > 0 && co >= ap ? "pagado" : (co > 0 ? "senado" : "pendiente"),
             note: "Pedido de " + p.clientName + (r ? " (revendedor " + r.name + ")" : ""),
@@ -365,10 +353,8 @@
 
       if (p.invitationId && invs[p.invitationId]) {
         const a = document.createElement("a");
-        const ev = invs[p.invitationId];
-        a.href = ev.kind === "pase" ? "pases.html" : base() + "i/" + p.invitationId;
-        a.target = "_blank"; a.rel = "noopener";
-        a.textContent = ev.kind === "pase" ? "Abrir Pases QR" : "Ver invitación";
+        a.href = base() + "i/" + p.invitationId; a.target = "_blank"; a.rel = "noopener";
+        a.textContent = "Ver invitación";
         a.style.display = "inline-block"; a.style.margin = "10px 10px 0 0";
         fila.appendChild(a);
       }
