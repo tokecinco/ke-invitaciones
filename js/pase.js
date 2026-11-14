@@ -15,6 +15,7 @@ function el(tag, clase, texto) {
 }
 
 if (idInv && idInvitado) iniciar();
+else if (idInv) iniciarDemo();
 
 async function iniciar() {
   try {
@@ -34,7 +35,23 @@ async function iniciar() {
     if (!permitido && pq.exists() && pq.data()[clave]) permitido = !!pq.data()[clave].personalized;
     if (!permitido) return;
 
-    cuandoListo(() => construir(d, g));
+    cuandoListo(() => construir(d, g, false));
+  } catch (e) { console.error(e); }
+}
+
+// Invitaciones elegidas como demostración de un modelo: muestran un pase de ejemplo.
+async function iniciarDemo() {
+  try {
+    const [inv, site] = await Promise.all([
+      getDoc(doc(db, "invitations", idInv)),
+      getDoc(doc(db, "settings", "site"))
+    ]);
+    if (!inv.exists() || !site.exists()) return;
+    const d = inv.data();
+    if (d.active !== true || d.pass === false) return;
+    const demos = site.data().demos || {};
+    if (!Object.values(demos).includes(idInv)) return;
+    cuandoListo(() => construir(d, { name: "Nombre del invitado", seats: 2, table: "5" }, true));
   } catch (e) { console.error(e); }
 }
 
@@ -95,9 +112,11 @@ function ampliar(src, nombre, mesa) {
   document.body.appendChild(f);
 }
 
-async function construir(d, g) {
+async function construir(d, g, demo) {
   const base = location.origin + location.pathname.replace(/[^/]*$/, "");
-  const url = base + "acceso.html?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
+  const url = demo
+    ? base
+    : base + "acceso.html?i=" + encodeURIComponent(idInv) + "&g=" + encodeURIComponent(idInvitado);
 
   let src;
   try {
@@ -117,7 +136,7 @@ async function construir(d, g) {
   ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' +
     '<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/>' +
     '<path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>';
-  s.append(ic, el("h2", null, "Tu pase digital"));
+  s.append(ic, el("h2", null, demo ? "Pase digital" : "Tu pase digital"));
 
   const pase = el("div", "pase");
   const titulo = [d.honoree, d.eventType].filter(Boolean).join(" - ");
@@ -150,20 +169,30 @@ async function construir(d, g) {
   img.src = src;
   img.alt = "Código QR de acceso";
   pase.appendChild(img);
-  pase.appendChild(el("p", "pase-ayuda", "Mostrá este código en la entrada"));
+  pase.appendChild(el("p", "pase-ayuda", demo ? "Código de ejemplo" : "Mostrá este código en la entrada"));
   s.appendChild(pase);
 
   const botones = el("div", "pase-botones");
   const bAmpliar = el("button", "boton", "Ampliar QR");
   bAmpliar.type = "button";
   bAmpliar.addEventListener("click", () => ampliar(src, g.name, mesa));
-  const bGuardar = el("a", "boton", "Guardar QR");
-  bGuardar.href = src;
-  bGuardar.download = "pase-" + idInvitado + ".png";
-  botones.append(bAmpliar, bGuardar);
+  botones.appendChild(bAmpliar);
+  if (!demo) {
+    const bGuardar = el("a", "boton", "Guardar QR");
+    bGuardar.href = src;
+    bGuardar.download = "pase-" + idInvitado + ".png";
+    botones.appendChild(bGuardar);
+  }
   s.appendChild(botones);
+
+  if (demo) {
+    const nota = el("p", null,
+      "Ejemplo: así ve su pase cada invitado con su enlace personal. Viene incluido en el paquete Premium.");
+    nota.style.cssText = "margin:14px auto 0;max-width:340px;font-size:.9rem;font-style:italic";
+    s.appendChild(nota);
+  }
 
   const rsvp = $("form-rsvp");
   const ref = rsvp ? rsvp.closest("section") : null;
   if (ref) ref.insertAdjacentElement("afterend", s);
-}
+      }
