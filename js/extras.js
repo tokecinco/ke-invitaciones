@@ -4,10 +4,12 @@ import { doc, getDoc }
 
 const idInvitacion = new URLSearchParams(location.search).get("i");
 
-const css = document.createElement("link");
-css.rel = "stylesheet";
-css.href = "css/extras.css";
-document.head.appendChild(css);
+["css/extras.css", "css/fondos.css"].forEach((href) => {
+  const css = document.createElement("link");
+  css.rel = "stylesheet";
+  css.href = href;
+  document.head.appendChild(css);
+});
 
 const ICONOS = {
   reloj: '<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',
@@ -69,7 +71,7 @@ new MutationObserver((cambios, obs) => {
   obs.disconnect();
 }).observe(document.body, { childList: true });
 
-/* Decoración flotante según la plantilla (corazones, estrellas, nubes, burbujas) */
+/* Decoración y fondo según la plantilla */
 async function decoracion() {
   if (!idInvitacion) return;
   try {
@@ -77,9 +79,23 @@ async function decoracion() {
     if (!inv.exists() || !inv.data().template) return;
     const t = await getDoc(doc(db, "templates", inv.data().template));
     if (!t.exists()) return;
-    const deco = t.data().deco;
-    if (["corazones", "estrellas", "nubes", "burbujas"].includes(deco)) {
-      document.body.classList.add("deco-" + deco);
+    const x = t.data();
+
+    if (["corazones", "estrellas", "nubes", "burbujas"].includes(x.deco)) {
+      document.body.classList.add("deco-" + x.deco);
+    }
+
+    if (typeof x.fondo === "string" && /^[a-z0-9-]{2,30}$/.test(x.fondo)) {
+      document.body.classList.add("fondo-" + x.fondo);
+      const p = document.getElementById("portada");
+      if (p && !p.querySelector(".rama")) {
+        ["izq", "der"].forEach((lado) => {
+          const r = document.createElement("div");
+          r.className = "rama rama-" + lado;
+          r.setAttribute("aria-hidden", "true");
+          p.appendChild(r);
+        });
+      }
     }
   } catch (e) { console.error(e); }
 }
