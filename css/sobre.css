@@ -70,3 +70,6 @@
   from { transform:translate(0, 0) scale(1); opacity:1; }
   to   { transform:translate(var(--dx), var(--dy)) scale(.2); opacity:0; }
                             }
+/* Sello con la palabra "Abrir" en letra chica */
+.sello { font-size:0; letter-spacing:0; }
+.sello::after { content:"Abrir"; font-size:.68rem; letter-spacing:.5px; font-weight:normal; }
