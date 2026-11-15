@@ -76,3 +76,152 @@ body[class*="fondo-boda-"] .galeria img:nth-child(even),
 body[class*="fondo-boda-"] .galeria img:first-child {
   border:0; border-radius:2px; box-shadow:none; transform:none; background:none;
   }
+/* ===== Casamiento romántico noche (azul noche y dorado) ===== */
+body.fondo-noche {
+  background-color:var(--fondo);
+  background-image:
+    radial-gradient(1.5px 1.5px at 12% 14%, rgba(255,240,200,.75), transparent 60%),
+    radial-gradient(1px 1px at 82% 9%, rgba(255,240,200,.6), transparent 60%),
+    radial-gradient(1.5px 1.5px at 33% 47%, rgba(255,240,200,.55), transparent 60%),
+    radial-gradient(1px 1px at 68% 38%, rgba(255,240,200,.7), transparent 60%),
+    radial-gradient(1.5px 1.5px at 90% 62%, rgba(255,240,200,.5), transparent 60%),
+    radial-gradient(1px 1px at 18% 78%, rgba(255,240,200,.65), transparent 60%),
+    radial-gradient(1.5px 1.5px at 55% 86%, rgba(255,240,200,.55), transparent 60%),
+    radial-gradient(1px 1px at 76% 92%, rgba(255,240,200,.6), transparent 60%);
+  background-attachment:fixed;
+}
+body.fondo-noche::before {
+  content:""; position:fixed; inset:10px; border:1px solid rgba(201,162,75,.5);
+  pointer-events:none; z-index:5;
+}
+body.fondo-noche::after {
+  content:""; position:fixed; inset:18px; pointer-events:none; z-index:5;
+  background:
+    linear-gradient(var(--acento), var(--acento)) top left / 34px 1px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top left / 1px 34px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top right / 34px 1px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top right / 1px 34px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom left / 34px 1px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom left / 1px 34px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom right / 34px 1px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom right / 1px 34px no-repeat;
+}
+body.fondo-noche .rama { display:none; }
+
+body.fondo-noche .portada.con-foto::after {
+  background:linear-gradient(180deg, rgba(15,27,45,.3), rgba(15,27,45,.88));
+}
+body.fondo-noche .portada.con-foto { color:var(--texto); text-shadow:0 2px 14px rgba(0,0,0,.5); }
+body.fondo-noche .portada.con-foto h1,
+body.fondo-noche .portada.con-foto .para b { color:var(--acento); }
+body.fondo-noche #nombre {
+  color:var(--acento); text-transform:uppercase; letter-spacing:.14em; font-weight:normal;
+  font-size:clamp(1.8rem, 8.5vw, 3rem); line-height:1.25;
+}
+body.fondo-noche .tipo { letter-spacing:.4em; font-size:.75rem; color:var(--texto); }
+body.fondo-noche .linea { height:1px; background:var(--acento); position:relative; overflow:visible; }
+body.fondo-noche .linea::after {
+  content:"\25C6"; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  font-size:.6rem; color:var(--acento);
+}
+
+body.fondo-noche h2 {
+  color:var(--acento); font-size:.95rem; letter-spacing:.35em; text-transform:uppercase; font-weight:normal;
+}
+body.fondo-noche h2::after {
+  width:46px; height:5px; background:none;
+  border-top:1px solid var(--acento); border-bottom:1px solid var(--acento);
+}
+body.fondo-noche .boton {
+  background:var(--acento); color:var(--fondo); border-radius:2px; letter-spacing:.18em;
+  text-transform:uppercase; font-size:.76rem; box-shadow:none; padding:12px 22px;
+}
+body.fondo-noche .cuenta div {
+  background:var(--suave); border:1px solid rgba(201,162,75,.45); border-radius:2px; box-shadow:none;
+}
+body.fondo-noche .cuenta b { color:var(--acento); font-weight:normal; }
+body.fondo-noche .icono { background:transparent; border:1px solid var(--acento); }
+body.fondo-noche .tarjeta-esp,
+body.fondo-noche .libro-card,
+body.fondo-noche .regalo-alias {
+  background:var(--suave); border:1px solid rgba(201,162,75,.3); border-radius:2px; box-shadow:none;
+}
+body.fondo-noche input,
+body.fondo-noche select,
+body.fondo-noche textarea {
+  background:var(--suave); color:var(--texto); border:1px solid rgba(201,162,75,.4); border-radius:2px;
+}
+body.fondo-noche ::placeholder { color:rgba(243,234,216,.55); }
+body.fondo-noche .galeria img,
+body.fondo-noche .galeria img:nth-child(odd),
+body.fondo-noche .galeria img:nth-child(even),
+body.fondo-noche .galeria img:first-child {
+  border:1px solid rgba(201,162,75,.6); padding:4px; background:var(--suave);
+  border-radius:0; box-shadow:none; transform:none;
+}
+body.fondo-noche .pase-mesa { background:#f3ead8 !important; }
+
+/* ===== Casamiento boho (tonos tierra, arco de colores y pampas) ===== */
+body.fondo-boho .brillo { display:none !important; }
+body.fondo-boho .portada {
+  background:var(--fondo);
+  justify-content:flex-start;
+  padding-top:calc(6vh + 30px + max(40vh, 240px) + 40px);
+  padding-bottom:90px;
+}
+body.fondo-boho .portada::before {
+  inset:auto; top:calc(6vh + 30px); left:0; right:0; margin:0 auto;
+  width:min(58vw, 260px); height:40vh; min-height:240px;
+  border-radius:999px 999px 0 0;
+  background-color:var(--suave); animation:none;
+  box-shadow:0 0 0 10px #ecdcc8, 0 0 0 20px #deb496, 0 0 0 30px #c07a58;
+  clip-path:inset(-40px -40px 0 -40px);
+}
+body.fondo-boho .portada::after,
+body.fondo-boho .portada.con-foto::after { display:none; }
+body.fondo-boho .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-boho .portada.con-foto h1,
+body.fondo-boho .portada.con-foto .para b { color:var(--acento); }
+
+body.fondo-boho .portada > .rama {
+  position:absolute; width:120px; height:210px; z-index:1; pointer-events:none;
+  background:#c59a7a; opacity:.55; bottom:50px;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 220'%3E%3Cg fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M60 218C60 160 58 110 60 46'/%3E%3Cpath d='M60 160C48 142 40 128 30 112'/%3E%3Cpath d='M60 150C72 132 80 118 90 104'/%3E%3C/g%3E%3Cg fill='black'%3E%3Cellipse cx='60' cy='36' rx='10' ry='34'/%3E%3Cellipse cx='46' cy='56' rx='7' ry='28' transform='rotate(-18 46 56)'/%3E%3Cellipse cx='74' cy='56' rx='7' ry='28' transform='rotate(18 74 56)'/%3E%3Cellipse cx='28' cy='92' rx='6' ry='22' transform='rotate(-32 28 92)'/%3E%3Cellipse cx='92' cy='88' rx='6' ry='22' transform='rotate(32 92 88)'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 220'%3E%3Cg fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M60 218C60 160 58 110 60 46'/%3E%3Cpath d='M60 160C48 142 40 128 30 112'/%3E%3Cpath d='M60 150C72 132 80 118 90 104'/%3E%3C/g%3E%3Cg fill='black'%3E%3Cellipse cx='60' cy='36' rx='10' ry='34'/%3E%3Cellipse cx='46' cy='56' rx='7' ry='28' transform='rotate(-18 46 56)'/%3E%3Cellipse cx='74' cy='56' rx='7' ry='28' transform='rotate(18 74 56)'/%3E%3Cellipse cx='28' cy='92' rx='6' ry='22' transform='rotate(-32 28 92)'/%3E%3Cellipse cx='92' cy='88' rx='6' ry='22' transform='rotate(32 92 88)'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
+body.fondo-boho .portada > .rama-izq { left:-20px; transform:rotate(8deg); }
+body.fondo-boho .portada > .rama-der { right:-20px; transform:scaleX(-1) rotate(8deg); }
+
+body.fondo-boho #nombre {
+  color:var(--acento); font-style:italic; font-weight:normal; letter-spacing:.02em;
+  font-size:clamp(2.2rem, 10vw, 3.4rem); line-height:1.15; text-transform:none;
+}
+body.fondo-boho .tipo { letter-spacing:.3em; font-size:.78rem; }
+body.fondo-boho .linea { background:var(--acento); height:1px; }
+
+body.fondo-boho h2 { font-style:italic; font-weight:normal; font-size:1.7rem; }
+body.fondo-boho h2::after {
+  content:"\273F\FE0E"; background:none; width:auto; height:auto;
+  font-size:1rem; margin:6px auto 0; color:var(--acento);
+}
+body.fondo-boho .boton {
+  border-radius:999px; background:var(--acento); color:var(--fondo); letter-spacing:.08em; box-shadow:none;
+}
+body.fondo-boho .cuenta div {
+  aspect-ratio:1; min-width:68px; padding:0; display:flex; flex-direction:column;
+  align-items:center; justify-content:center; border-radius:50%;
+  background:var(--suave); border:1px dashed var(--acento); box-shadow:none;
+}
+body.fondo-boho .icono { background:var(--suave); border:1px dashed var(--acento); }
+body.fondo-boho .tarjeta-esp,
+body.fondo-boho .libro-card,
+body.fondo-boho .regalo-alias { border-radius:22px; box-shadow:none; }
+body.fondo-boho input,
+body.fondo-boho select,
+body.fondo-boho textarea { border-radius:14px; }
+body.fondo-boho .galeria img,
+body.fondo-boho .galeria img:nth-child(odd),
+body.fondo-boho .galeria img:nth-child(even),
+body.fondo-boho .galeria img:first-child {
+  border:0; background:none; box-shadow:none; transform:none; border-radius:120px 120px 10px 10px;
+}
