@@ -48,6 +48,7 @@
     const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
     const PALATINO = "'Palatino Linotype', Palatino, serif";
     const TREBUCHET = "'Trebuchet MS', sans-serif";
+    const GEORGIA = "Georgia, serif";
 
     const NUEVAS = [
       { id: "babyshower-nina", name: "Baby shower niña", category: "babyshower",
@@ -64,7 +65,13 @@
         colors: { fondo: "#faf7f1", texto: "#34382f", acento: "#6f8265", suave: "#ece9df" } },
       { id: "boda-moderna-terracota", name: "Casamiento moderno terracota", category: "boda",
         font: PALATINO, fondo: "boda-terracota",
-        colors: { fondo: "#fbf5ee", texto: "#3b2f2a", acento: "#b0654a", suave: "#f1e4da" } }
+        colors: { fondo: "#fbf5ee", texto: "#3b2f2a", acento: "#b0654a", suave: "#f1e4da" } },
+      { id: "boda-noche", name: "Casamiento romántico noche", category: "boda",
+        font: PALATINO, fondo: "noche",
+        colors: { fondo: "#0f1b2d", texto: "#f3ead8", acento: "#c9a24b", suave: "#1b2b44" } },
+      { id: "boda-boho", name: "Casamiento boho", category: "boda",
+        font: GEORGIA, fondo: "boho",
+        colors: { fondo: "#fbf4ea", texto: "#4a3a2e", acento: "#b9714f", suave: "#f0e0cf" } }
     ];
 
     $("btn-login").addEventListener("click", async () => {
