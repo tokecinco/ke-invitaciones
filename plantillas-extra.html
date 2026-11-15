@@ -46,17 +46,25 @@
 
     const $ = (id) => document.getElementById(id);
     const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+    const PALATINO = "'Palatino Linotype', Palatino, serif";
+    const TREBUCHET = "'Trebuchet MS', sans-serif";
 
     const NUEVAS = [
       { id: "babyshower-nina", name: "Baby shower niña", category: "babyshower",
-        font: "'Trebuchet MS', sans-serif", deco: "corazones",
+        font: TREBUCHET, deco: "corazones",
         colors: { fondo: "#fff6f9", texto: "#4a3b42", acento: "#e08fb0", suave: "#fde3ee" } },
       { id: "babyshower-nino", name: "Baby shower niño", category: "babyshower",
-        font: "'Trebuchet MS', sans-serif", deco: "estrellas",
+        font: TREBUCHET, deco: "estrellas",
         colors: { fondo: "#f4f9ff", texto: "#364150", acento: "#6aa6d6", suave: "#dcebfa" } },
       { id: "babyshower-neutro", name: "Baby shower neutro", category: "babyshower",
-        font: "'Trebuchet MS', sans-serif", deco: "nubes",
-        colors: { fondo: "#f7fbf6", texto: "#3f4a3f", acento: "#8fb996", suave: "#e3f1e4" } }
+        font: TREBUCHET, deco: "nubes",
+        colors: { fondo: "#f7fbf6", texto: "#3f4a3f", acento: "#8fb996", suave: "#e3f1e4" } },
+      { id: "boda-moderna-salvia", name: "Casamiento moderno salvia", category: "boda",
+        font: PALATINO, fondo: "boda-salvia",
+        colors: { fondo: "#faf7f1", texto: "#34382f", acento: "#6f8265", suave: "#ece9df" } },
+      { id: "boda-moderna-terracota", name: "Casamiento moderno terracota", category: "boda",
+        font: PALATINO, fondo: "boda-terracota",
+        colors: { fondo: "#fbf5ee", texto: "#3b2f2a", acento: "#b0654a", suave: "#f1e4da" } }
     ];
 
     $("btn-login").addEventListener("click", async () => {
@@ -92,11 +100,13 @@
         for (const p of NUEVAS) {
           const ex = await getDoc(doc(db, "templates", p.id));
           if (ex.exists()) continue;
-          await setDoc(doc(db, "templates", p.id), {
+          const datos = {
             name: p.name, category: p.category, font: p.font, colors: p.colors,
-            deco: p.deco, sections: TODAS, sampleImage: "", active: true,
-            createdAt: serverTimestamp()
-          });
+            sections: TODAS, sampleImage: "", active: true, createdAt: serverTimestamp()
+          };
+          if (p.deco) datos.deco = p.deco;
+          if (p.fondo) datos.fondo = p.fondo;
+          await setDoc(doc(db, "templates", p.id), datos);
           creadas++;
         }
         $("msg").textContent = creadas
