@@ -225,3 +225,157 @@ body.fondo-boho .galeria img:nth-child(even),
 body.fondo-boho .galeria img:first-child {
   border:0; background:none; box-shadow:none; transform:none; border-radius:120px 120px 10px 10px;
 }
+/* ===== 15 años: princesa rosa y dorado ===== */
+body.fondo-princesa {
+  --corona: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 48'%3E%3Cpath d='M4 40 8 12l14 14L32 6l10 20 14-14 4 28Z' fill='black'/%3E%3Crect x='4' y='42' width='56' height='5' rx='2' fill='black'/%3E%3Ccircle cx='8' cy='10' r='4' fill='black'/%3E%3Ccircle cx='32' cy='4' r='4' fill='black'/%3E%3Ccircle cx='56' cy='10' r='4' fill='black'/%3E%3C/svg%3E");
+}
+body.fondo-princesa .rama { display:none; }
+body.fondo-princesa .portada.con-foto::after {
+  background:linear-gradient(180deg, rgba(120,40,90,.22), rgba(90,20,70,.72));
+}
+body.fondo-princesa .portada:not(.con-foto) h1 { color:var(--acento); }
+body.fondo-princesa #nombre {
+  font-style:italic; font-weight:normal; letter-spacing:.02em;
+  font-size:clamp(2.3rem, 10.5vw, 3.6rem); line-height:1.15;
+}
+body.fondo-princesa #nombre::before {
+  content:""; display:block; width:58px; height:42px; margin:0 auto 10px; background:#e6c35c;
+  -webkit-mask:var(--corona) center / contain no-repeat; mask:var(--corona) center / contain no-repeat;
+}
+body.fondo-princesa .tipo { letter-spacing:.3em; font-size:.78rem; }
+body.fondo-princesa .linea { background:#e6c35c; height:1px; }
+body.fondo-princesa h2 { font-style:italic; font-weight:normal; font-size:1.7rem; }
+body.fondo-princesa h2::after {
+  content:"\2726\FE0E"; background:none; width:auto; height:auto;
+  font-size:1rem; margin:6px auto 0; color:#d4af37;
+}
+body.fondo-princesa .boton {
+  background:linear-gradient(135deg, #c9a24b, #e6c35c 50%, #b8860b); color:#fff;
+  border-radius:999px; letter-spacing:.06em; box-shadow:0 6px 16px rgba(184,134,11,.3);
+}
+body.fondo-princesa .cuenta div {
+  background:#fff; border:1px solid rgba(184,134,11,.45); border-radius:16px; box-shadow:none;
+}
+body.fondo-princesa .icono { background:#fff; border:1px solid rgba(184,134,11,.5); }
+body.fondo-princesa .tarjeta-esp,
+body.fondo-princesa .libro-card,
+body.fondo-princesa .regalo-alias {
+  border:1px solid rgba(184,134,11,.35); border-radius:20px; box-shadow:none;
+}
+body.fondo-princesa input,
+body.fondo-princesa select,
+body.fondo-princesa textarea { border-radius:14px; }
+body.fondo-princesa .galeria img,
+body.fondo-princesa .galeria img:nth-child(odd),
+body.fondo-princesa .galeria img:nth-child(even),
+body.fondo-princesa .galeria img:first-child {
+  border:2px solid rgba(184,134,11,.5); padding:0; background:#fff; border-radius:16px;
+  box-shadow:none; transform:none;
+}
+
+/* ===== 15 años: lila con mariposas ===== */
+body.fondo-lila {
+  --mariposa: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cg fill='black'%3E%3Cpath d='M12 10C10 4 5 0 2 2 0 4 1 8 5 10 2 11 1 15 4 17 7 19 10 15 12 10Z'/%3E%3Cpath d='M12 10C14 4 19 0 22 2 24 4 23 8 19 10 22 11 23 15 20 17 17 19 14 15 12 10Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+body.fondo-lila .rama { display:none; }
+body.fondo-lila .brillo { background:none !important; width:auto !important; height:auto !important; border-radius:0; box-shadow:none; }
+body.fondo-lila .brillo::before {
+  content:""; display:block; width:22px; height:18px; background:var(--acento); opacity:.8;
+  -webkit-mask:var(--mariposa) center / contain no-repeat; mask:var(--mariposa) center / contain no-repeat;
+}
+body.fondo-lila .brillo:nth-child(3n)::before { width:30px; height:25px; }
+body.fondo-lila .brillo:nth-child(4n)::before { width:16px; height:13px; }
+
+body.fondo-lila .portada {
+  background:var(--fondo); justify-content:flex-start;
+  padding-top:calc(7vh + max(40vh, 250px) + 44px); padding-bottom:90px;
+}
+body.fondo-lila .portada::before {
+  inset:auto; top:7vh; left:0; right:0; margin:0 auto;
+  width:min(64vw, 270px); height:40vh; min-height:250px; border-radius:50%;
+  background-color:var(--suave); animation:none;
+  box-shadow:0 0 0 8px rgba(142,99,200,.14), 0 0 0 18px rgba(142,99,200,.07);
+}
+body.fondo-lila .portada::after,
+body.fondo-lila .portada.con-foto::after {
+  inset:auto; top:calc(7vh - 14px); left:0; right:0; margin:0 auto;
+  width:calc(min(64vw, 270px) + 28px); height:calc(max(40vh, 250px) + 28px);
+  border:1px dashed var(--acento); border-radius:50%; background:none; opacity:.7;
+}
+body.fondo-lila .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-lila .portada.con-foto h1,
+body.fondo-lila .portada.con-foto .para b { color:var(--acento); }
+body.fondo-lila #nombre {
+  color:var(--acento); font-style:italic; font-weight:normal; letter-spacing:.02em;
+  font-size:clamp(2.2rem, 10vw, 3.4rem); line-height:1.15;
+}
+body.fondo-lila .tipo { letter-spacing:.3em; font-size:.78rem; }
+body.fondo-lila .linea { background:var(--acento); height:1px; }
+body.fondo-lila h2 { font-style:italic; font-weight:normal; font-size:1.7rem; }
+body.fondo-lila .boton { border-radius:999px; letter-spacing:.06em; box-shadow:0 6px 16px rgba(142,99,200,.25); }
+body.fondo-lila .cuenta div { border-radius:18px; box-shadow:none; background:var(--suave); }
+body.fondo-lila .icono { background:var(--suave); border:1px solid rgba(142,99,200,.4); }
+body.fondo-lila .tarjeta-esp,
+body.fondo-lila .libro-card,
+body.fondo-lila .regalo-alias { border-radius:22px; box-shadow:none; }
+body.fondo-lila input,
+body.fondo-lila select,
+body.fondo-lila textarea { border-radius:14px; }
+body.fondo-lila .galeria img,
+body.fondo-lila .galeria img:nth-child(odd),
+body.fondo-lila .galeria img:nth-child(even),
+body.fondo-lila .galeria img:first-child {
+  border:0; padding:0; background:none; border-radius:22px; box-shadow:none; transform:none;
+}
+
+/* ===== 15 años: glam rosé (un 15 gigante y confeti) ===== */
+body.fondo-glam .rama { display:none; }
+body.fondo-glam .brillo { border-radius:2px !important; background:var(--acento) !important; width:7px !important; height:12px !important; }
+body.fondo-glam .brillo:nth-child(3n) { background:#e8b4a8 !important; }
+body.fondo-glam .brillo:nth-child(4n) {
+  background:#f3d9a8 !important; width:8px !important; height:8px !important; border-radius:50% !important;
+}
+body.fondo-glam .portada {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 300'%3E%3Ctext x='200' y='255' font-family='Georgia,serif' font-size='330' font-weight='bold' text-anchor='middle' fill='none' stroke='%23b76e79' stroke-width='2' opacity='.4'%3E15%3C/text%3E%3C/svg%3E") center 3vh / min(125vw, 500px) auto no-repeat,
+    var(--fondo);
+  justify-content:flex-start;
+  padding-top:calc(8vh + max(42vh, 260px) + 48px); padding-bottom:90px;
+}
+body.fondo-glam .portada::before {
+  inset:auto; top:8vh; left:0; right:0; margin:0 auto;
+  width:min(62vw, 260px); height:42vh; min-height:260px; border-radius:130px;
+  background-color:var(--suave); animation:none;
+  box-shadow:14px 14px 0 rgba(183,110,121,.45);
+}
+body.fondo-glam .portada::after,
+body.fondo-glam .portada.con-foto::after { display:none; }
+body.fondo-glam .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-glam .portada.con-foto h1,
+body.fondo-glam .portada.con-foto .para b { color:var(--texto); }
+body.fondo-glam #nombre {
+  color:var(--texto); text-transform:uppercase; letter-spacing:.14em; font-weight:bold;
+  font-size:clamp(1.7rem, 8vw, 2.6rem); line-height:1.25;
+}
+body.fondo-glam .tipo {
+  align-self:center; background:var(--acento); color:#fff; padding:5px 16px;
+  border-radius:20px; letter-spacing:.25em; font-size:.72rem;
+}
+body.fondo-glam .linea { background:var(--acento); height:2px; }
+body.fondo-glam h2 { text-transform:uppercase; letter-spacing:.3em; font-size:.95rem; font-weight:bold; }
+body.fondo-glam h2::after { height:3px; width:40px; }
+body.fondo-glam .boton { border-radius:999px; letter-spacing:.12em; text-transform:uppercase; font-size:.78rem; box-shadow:none; }
+body.fondo-glam .cuenta div { background:var(--acento); border-radius:14px; box-shadow:none; }
+body.fondo-glam .cuenta b,
+body.fondo-glam .cuenta span { color:#fff; }
+body.fondo-glam .icono { background:var(--suave); border:0; }
+body.fondo-glam .tarjeta-esp,
+body.fondo-glam .libro-card,
+body.fondo-glam .regalo-alias { border-radius:16px; box-shadow:6px 6px 0 rgba(183,110,121,.25); }
+body.fondo-glam .galeria img,
+body.fondo-glam .galeria img:nth-child(odd),
+body.fondo-glam .galeria img:nth-child(even),
+body.fondo-glam .galeria img:first-child {
+  border:0; padding:0; background:none; border-radius:12px;
+  box-shadow:8px 8px 0 rgba(183,110,121,.35); transform:none;
+}
