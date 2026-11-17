@@ -95,9 +95,10 @@
 
     const $ = (id) => document.getElementById(id);
     const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
+    // maxPhotos cuenta la portada: Básico = portada + 6, Premium = portada + 8
     let paquetes = {
-      basico:  { maxPhotos: 2, music: false },
-      premium: { maxPhotos: 6, music: true }
+      basico:  { maxPhotos: 7, music: false },
+      premium: { maxPhotos: 9, music: true }
     };
     let fotos = [];
     let fotosExistentes = [];
@@ -138,7 +139,8 @@
 
     function aplicarLimites() {
       const l = limites();
-      $("lbl-fotos").textContent = "Fotos (hasta " + l.maxPhotos + ", la primera es la portada)";
+      $("lbl-fotos").textContent = "Fotos: la primera es la portada, más hasta " +
+        Math.max(l.maxPhotos - 1, 0) + " de galería";
       $("f-musica").disabled = !l.music;
       $("f-musica").placeholder = l.music
         ? "Enlace de música (https://... .mp3) opcional"
@@ -156,19 +158,29 @@
       return location.origin + location.pathname.replace(/admin\.html$/, "") + "i/" + id;
     }
 
-    function comprimir(archivo) {
+    // La portada se guarda con mejor calidad; las demás se ajustan para que todo entre en la invitación.
+    function comprimir(archivo, esPortada) {
       return new Promise((ok, mal) => {
         const img = new Image();
         const url = URL.createObjectURL(archivo);
         img.onload = () => {
-          const max = 800;
-          const k = Math.min(1, max / Math.max(img.width, img.height));
-          const c = document.createElement("canvas");
-          c.width = Math.round(img.width * k);
-          c.height = Math.round(img.height * k);
-          c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
           URL.revokeObjectURL(url);
-          ok(c.toDataURL("image/jpeg", 0.6));
+          let max = esPortada ? 900 : 720;
+          let q = esPortada ? 0.65 : 0.6;
+          const tope = esPortada ? 150000 : 90000;
+          let out = "";
+          for (let i = 0; i < 6; i++) {
+            const k = Math.min(1, max / Math.max(img.width, img.height));
+            const c = document.createElement("canvas");
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            out = c.toDataURL("image/jpeg", q);
+            if (out.length <= tope) break;
+            max *= 0.85;
+            q = Math.max(0.4, q - 0.05);
+          }
+          ok(out);
         };
         img.onerror = () => mal(new Error("imagen"));
         img.src = url;
@@ -191,10 +203,12 @@
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
-        for (const a of archivos) fotos.push(await comprimir(a));
+        for (let i = 0; i < archivos.length; i++) fotos.push(await comprimir(archivos[i], i === 0));
         verFotos(fotos);
         let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
-        if (elegidas.length > max) t += " Este paquete permite hasta " + max + ", se usaron las primeras.";
+        if (elegidas.length > max) {
+          t += " Este paquete permite la portada + " + (max - 1) + " de galería: se usaron las primeras.";
+        }
         $("f-msg").textContent = t;
       } catch (err) {
         fotos = [];
@@ -266,9 +280,14 @@
 
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
       if (fotosFinal.length > l.maxPhotos) {
-        msg.textContent = "Este paquete permite hasta " + l.maxPhotos + " fotos. Elegí fotos nuevas o cambiá a Premium."; return;
+        msg.textContent = "Este paquete permite la portada + " + (l.maxPhotos - 1) +
+          " fotos de galería. Elegí fotos nuevas o cambiá a Premium.";
+        return;
       }
-      if (fotosFinal.join("").length > 900000) { msg.textContent = "Las fotos pesan demasiado. Usá menos fotos."; return; }
+      if (fotosFinal.join("").length > 980000) {
+        msg.textContent = "Las fotos pesan demasiado para una sola invitación. Usá menos fotos o más livianas.";
+        return;
+      }
 
       const datos = {
         package: $("f-paquete").value,
