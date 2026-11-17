@@ -47,14 +47,22 @@ async function iniciar() {
       c.appendChild(h("div", $$(p.price), "monto"));
       c.appendChild(h("p", "Seña de " + $$(p.deposit) + " para reservar"));
 
+      const galeria = Math.max((p.maxPhotos || 1) - 1, 0);
+      const fotos = galeria > 0
+        ? "Foto de portada + " + galeria + " foto" + (galeria === 1 ? "" : "s") + " en la galería"
+        : "Foto de portada";
+
       const ul = h("ul");
       [
         "Cuenta regresiva, fecha y mapa del lugar",
         "Confirmación de asistencia online",
-        "Hasta " + p.maxPhotos + " foto" + (p.maxPhotos === 1 ? "" : "s") + " en la galería"
+        fotos
       ].forEach((t) => ul.appendChild(h("li", t)));
       if (p.music) ul.appendChild(h("li", "Música de fondo"));
-      if (p.personalized) ul.appendChild(h("li", "Invitación personalizada por invitado"));
+      if (p.personalized) {
+        ul.appendChild(h("li", "Invitación personalizada por invitado"));
+        ul.appendChild(h("li", "Pase digital con código QR"));
+      }
       c.appendChild(ul);
 
       if (p.description) c.appendChild(h("p", p.description, "desc"));
