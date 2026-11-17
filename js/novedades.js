@@ -123,14 +123,14 @@ function playlist(d) {
   antesDelFormulario(s);
 }
 
-/* Hashtag de Instagram */
+/* Hashtag de Instagram: "Un recuerdo con vos" */
 function hashtag(d) {
   const tag = String(d.hashtag || "").replace(/^#+/, "")
     .replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 40);
   if (!tag) return;
   const s = el("section");
   s.id = "sec-hashtag";
-  s.appendChild(el("h2", null, "Nuestro hashtag"));
+  s.appendChild(el("h2", null, "Un recuerdo con vos"));
   s.appendChild(el("p", null, "Compartí tus fotos y videos del evento con:"));
   s.appendChild(el("p", "hashtag", "#" + tag));
   const caja = el("div", "botones");
