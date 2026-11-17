@@ -379,3 +379,28 @@ body.fondo-glam .galeria img:first-child {
   border:0; padding:0; background:none; border-radius:12px;
   box-shadow:8px 8px 0 rgba(183,110,121,.35); transform:none;
 }
+/* ===== Ajustes para que nada se salga de la pantalla en celulares ===== */
+html, body { max-width:100%; overflow-x:hidden; }
+img, iframe, video, canvas { max-width:100%; }
+h1, h2, h3, p { overflow-wrap:anywhere; }
+
+/* Botón flotante de música: fijo, sin cambios de tamaño ni sombras grandes */
+#btn-musica {
+  position:fixed; left:auto; top:auto;
+  right:max(14px, env(safe-area-inset-right)); bottom:max(14px, env(safe-area-inset-bottom));
+  width:46px; height:46px; margin:0; padding:0; transform:none;
+  box-shadow:0 2px 8px rgba(0,0,0,.25); animation:none; z-index:10;
+  display:flex; align-items:center; justify-content:center; line-height:1;
+  -webkit-tap-highlight-color:transparent;
+}
+#btn-musica[hidden] { display:none; }
+#btn-musica:not(.sonando) { animation:none; }
+#btn-musica.sonando { animation:musicaSuave 2s ease-in-out infinite; }
+@keyframes musicaSuave { 0%, 100% { opacity:1; } 50% { opacity:.75; } }
+
+/* Cuenta regresiva: las cajas se achican en pantallas angostas */
+.cuenta { gap:6px; max-width:100%; }
+.cuenta div, body[class*="fondo-"] .cuenta div {
+  min-width:0; flex:1 1 0; padding-left:2px; padding-right:2px;
+}
+.cuenta b { font-size:clamp(1.15rem, 6vw, 1.7rem); }
