@@ -27,14 +27,9 @@
     .msj{border-left:5px solid #e0a800;padding:6px 10px;margin:6px 0;background:#fffdf8}
     .msj.ok{border-left-color:#2e9e57}
     .msj p{margin:4px 0;white-space:pre-wrap}
-    .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
-    .grid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;background:#eee}
-    #visor{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.94);display:flex;flex-direction:column;
-      align-items:center;justify-content:center;padding:14px;gap:8px}
-    #visor img{max-width:100%;max-height:72vh;object-fit:contain;border-radius:6px}
-    #visor a,#visor button{width:200px;text-align:center;display:block;padding:12px;border-radius:10px;border:0;
-      background:#c9a24b;color:#fff;text-decoration:none;font-family:inherit;font-size:1rem;margin:0}
+    .vista{width:100%;border:1px solid #eadfc8;border-radius:8px;margin:8px 0}
     .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px}
+    .boton-link{display:inline-block;background:#c9a24b;color:#fff;text-decoration:none;border-radius:10px;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -61,7 +56,7 @@
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signInAnonymously, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, limit, startAfter, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
@@ -212,20 +207,20 @@
       bCopiar.onclick = () => navigator.clipboard.writeText(linkDe(id)).then(() => { bCopiar.textContent = "Copiado ✓"; });
       const bConf = h("button", "Confirmaciones", "sec");
       const bEdit = h("button", "Editar datos", "sec");
-      const bAlbum = h("button", "Álbum de fotos", "sec");
       const bLibro = h("button", "Libro de mensajes", "sec");
-      t.append(bCopiar, bConf, bEdit, bAlbum, bLibro);
+      const bHash = h("button", "Tarjeta del hashtag", "sec");
+      t.append(bCopiar, bConf, bEdit, bLibro, bHash);
 
       const pConf = h("div", "", "panelx"); pConf.hidden = true;
       const pEdit = h("div", "", "panelx"); pEdit.hidden = true;
-      const pAlbum = h("div", "", "panelx"); pAlbum.hidden = true;
       const pLibro = h("div", "", "panelx"); pLibro.hidden = true;
-      t.append(pConf, pEdit, pAlbum, pLibro);
+      const pHash = h("div", "", "panelx"); pHash.hidden = true;
+      t.append(pConf, pEdit, pLibro, pHash);
 
       confirmaciones(id, bConf, pConf);
       edicion(id, x, bEdit, pEdit);
-      album(id, x, bAlbum, pAlbum);
       libro(id, x, bLibro, pLibro);
+      tarjetaHashtag(x, bHash, pHash);
       return t;
     }
 
@@ -321,51 +316,6 @@
       panel.append(estado, b);
     }
 
-    function visor(src, nombre) {
-      const v = h("div"); v.id = "visor";
-      const im = document.createElement("img"); im.src = src; im.alt = "";
-      const d = h("a", "Descargar"); d.href = src; d.download = nombre;
-      const c = h("button", "Cerrar");
-      c.onclick = () => v.remove();
-      v.append(im, d, c);
-      document.body.appendChild(v);
-    }
-
-    function album(id, x, boton, panel) {
-      interruptor(id, x, "albumOpen", "Álbum colaborativo", panel);
-      const enlace = base() + "album.html?i=" + encodeURIComponent(id);
-      const bCop = h("button", "Copiar enlace para invitados", "sec");
-      bCop.onclick = () => navigator.clipboard.writeText(enlace).then(() => { bCop.textContent = "Copiado ✓"; });
-      const grid = h("div", "", "grid");
-      const mas = h("button", "Ver más fotos", "sec"); mas.hidden = true;
-      const aviso = h("p");
-      panel.append(bCop, aviso, grid, mas);
-
-      let cargado = false, ultimo = null;
-      async function fotos() {
-        try {
-          const partes = [collection(db, "photos"), where("invitationId", "==", id)];
-          if (ultimo) partes.push(startAfter(ultimo));
-          partes.push(limit(24));
-          const s = await getDocs(query(...partes));
-          s.docs.forEach((d) => {
-            const im = document.createElement("img");
-            im.src = d.data().image; im.alt = "Foto del evento"; im.loading = "lazy";
-            im.onclick = () => visor(d.data().image, "foto-" + d.id + ".jpg");
-            grid.appendChild(im);
-          });
-          if (s.size) ultimo = s.docs[s.docs.length - 1];
-          mas.hidden = s.size < 24;
-          aviso.textContent = grid.children.length ? "" : "Todavía no hay fotos en el álbum.";
-        } catch (e) { console.error(e); aviso.textContent = "No se pudieron cargar las fotos."; }
-      }
-      mas.onclick = fotos;
-      boton.onclick = () => {
-        panel.hidden = !panel.hidden;
-        if (!panel.hidden && !cargado) { cargado = true; fotos(); }
-      };
-    }
-
     function libro(id, x, boton, panel) {
       interruptor(id, x, "guestbookOpen", "Libro de mensajes", panel);
       const lista = h("div");
@@ -406,6 +356,120 @@
       boton.onclick = () => {
         panel.hidden = !panel.hidden;
         if (!panel.hidden && !cargado) { cargado = true; mensajes(); }
+      };
+    }
+
+    /* Tarjeta del hashtag con QR, para imprimir y poner en las mesas */
+    function cargarScript(src) {
+      return new Promise((ok, mal) => {
+        const s = document.createElement("script");
+        s.src = src; s.onload = ok; s.onerror = () => mal(new Error("script"));
+        document.head.appendChild(s);
+      });
+    }
+
+    async function generarTarjeta(tag, x) {
+      if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+      const url = "https://www.instagram.com/explore/tags/" + encodeURIComponent(tag) + "/";
+      const qr = window.qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      const n = qr.getModuleCount();
+
+      const W = 1200, H = 1600;
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const g = c.getContext("2d");
+      g.fillStyle = "#fffaf3";
+      g.fillRect(0, 0, W, H);
+      g.strokeStyle = "#c9a24b";
+      g.lineWidth = 3; g.strokeRect(40, 40, W - 80, H - 80);
+      g.lineWidth = 1; g.strokeRect(62, 62, W - 124, H - 124);
+      g.textAlign = "center";
+
+      const texto = (t, y, fuente, tam, ancho, color) => {
+        let s = tam;
+        do {
+          g.font = fuente.replace("%", s + "px");
+          if (g.measureText(t).width <= ancho) break;
+          s -= 4;
+        } while (s > 28);
+        g.fillStyle = color;
+        g.fillText(t, W / 2, y);
+      };
+
+      texto("Un recuerdo con vos", 230, "italic % Georgia, serif", 110, 960, "#3a3a3a");
+
+      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(W / 2 - 170, 290); g.lineTo(W / 2 - 22, 290);
+      g.moveTo(W / 2 + 22, 290); g.lineTo(W / 2 + 170, 290);
+      g.stroke();
+      g.fillStyle = "#c9a24b";
+      g.beginPath();
+      g.moveTo(W / 2, 277); g.lineTo(W / 2 + 12, 290); g.lineTo(W / 2, 303); g.lineTo(W / 2 - 12, 290);
+      g.closePath(); g.fill();
+
+      texto("Compartí tus fotos y videos", 385, "% Georgia, serif", 46, 960, "#555555");
+      texto("del evento con el hashtag", 442, "% Georgia, serif", 46, 960, "#555555");
+      texto("#" + tag, 590, "bold % Georgia, serif", 140, 960, "#b8892b");
+
+      const margen = 2;
+      const celda = Math.floor(600 / (n + margen * 2));
+      const lado = celda * (n + margen * 2);
+      const qx = Math.round((W - lado) / 2), qy = 700;
+      g.fillStyle = "#ffffff";
+      g.fillRect(qx - 30, qy - 30, lado + 60, lado + 60);
+      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeRect(qx - 30, qy - 30, lado + 60, lado + 60);
+      g.fillStyle = "#000000";
+      for (let f = 0; f < n; f++) {
+        for (let k = 0; k < n; k++) {
+          if (qr.isDark(f, k)) g.fillRect(qx + (k + margen) * celda, qy + (f + margen) * celda, celda, celda);
+        }
+      }
+
+      texto("Escaneá el código y mirá", 1400, "% Georgia, serif", 40, 960, "#555555");
+      texto("las fotos en Instagram", 1446, "% Georgia, serif", 40, 960, "#555555");
+      const evento = [x.honoree, x.eventType].filter(Boolean).join(" - ");
+      if (evento) texto(evento, 1500, "italic % Georgia, serif", 36, 960, "#b8892b");
+      return c.toDataURL("image/png");
+    }
+
+    function tarjetaHashtag(x, boton, panel) {
+      const tag = String(x.hashtag || "").replace(/^#+/, "").replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 40);
+      boton.onclick = async () => {
+        panel.hidden = !panel.hidden;
+        if (panel.hidden || panel.dataset.listo) return;
+        if (!tag) {
+          panel.textContent = "Todavía no se cargó el hashtag de tu invitación. Pedile al administrador que lo agregue y volvé a entrar.";
+          return;
+        }
+        panel.textContent = "Generando la tarjeta...";
+        try {
+          const png = await generarTarjeta(tag, x);
+          panel.textContent = "";
+          panel.dataset.listo = "1";
+          panel.appendChild(h("p", "Tarjeta lista para imprimir y poner en las mesas. Tamaño 3:4 (por ejemplo, 15 x 20 cm)."));
+          const im = document.createElement("img");
+          im.className = "vista"; im.src = png; im.alt = "Tarjeta del hashtag";
+          panel.appendChild(im);
+          const d = h("a", "Descargar tarjeta (PNG)", "boton-link");
+          d.href = png; d.download = "tarjeta-hashtag-" + tag + ".png";
+          const p = h("button", "Imprimir", "sec");
+          p.onclick = () => {
+            const w = window.open("", "_blank");
+            if (!w) { alert("El navegador bloqueó la ventana. Descargá la tarjeta e imprimila desde tu galería."); return; }
+            w.document.write("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Tarjeta del hashtag</title>" +
+              "<style>@page{margin:0}body{margin:0}img{width:100%;display:block}</style></head><body><img src='" + png + "'></body></html>");
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+          };
+          panel.append(d, p);
+        } catch (e) {
+          console.error(e);
+          panel.textContent = "No se pudo generar la tarjeta. Revisá tu conexión e intentá de nuevo.";
+        }
       };
     }
   </script>
