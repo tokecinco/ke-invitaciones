@@ -404,3 +404,5 @@ h1, h2, h3, p { overflow-wrap:anywhere; }
   min-width:0; flex:1 1 0; padding-left:2px; padding-right:2px;
 }
 .cuenta b { font-size:clamp(1.15rem, 6vw, 1.7rem); }
+/* Regalos: sin botón de copiar en el mensaje (el de copiar alias se mantiene) */
+#sec-regalo > button.boton { display:none !important; }
