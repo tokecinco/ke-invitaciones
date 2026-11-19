@@ -29,9 +29,9 @@ async function iniciar() {
     const g = gs.data();
     if (d.active !== true || g.invitationId !== idInv || d.pass === false) return;
 
-    // El pase está incluido en el Premium. En el Básico, solo si el paquete lo permite.
-    const clave = d.package === "premium" ? "premium" : "basico";
-    let permitido = clave === "premium";
+    // El pase está incluido en el Premium y en el Pase QR. En el Básico, solo si el paquete lo permite.
+    const clave = d.package === "premium" ? "premium" : (d.package === "pase" ? "pase" : "basico");
+    let permitido = clave === "premium" || clave === "pase";
     if (!permitido && pq.exists() && pq.data()[clave]) permitido = !!pq.data()[clave].personalized;
     if (!permitido) return;
 
@@ -195,4 +195,4 @@ async function construir(d, g, demo) {
   const rsvp = $("form-rsvp");
   const ref = rsvp ? rsvp.closest("section") : null;
   if (ref) ref.insertAdjacentElement("afterend", s);
-      }
+}
