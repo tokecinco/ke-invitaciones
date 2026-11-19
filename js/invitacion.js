@@ -9,8 +9,9 @@ const idInvitacion = params.get("i");
 const idInvitado = params.get("g");
 const REDUCIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const LIMITES = {
-  basico: { maxPhotos: 2, music: false, personalized: false },
-  premium: { maxPhotos: 6, music: true, personalized: true }
+  basico: { maxPhotos: 7, music: false, personalized: false },
+  premium: { maxPhotos: 9, music: true, personalized: true },
+  pase: { maxPhotos: 1, music: false, personalized: true }
 };
 
 function mostrarError(texto) {
@@ -39,7 +40,7 @@ async function cargar() {
   }
   if (d.active !== true) return mostrarError("Esta invitación no está disponible.");
 
-  const clave = d.package === "premium" ? "premium" : "basico";
+  const clave = d.package === "premium" ? "premium" : (d.package === "pase" ? "pase" : "basico");
   let lim = { ...LIMITES[clave] };
   try {
     const p = await getDoc(doc(db, "settings", "packages"));
@@ -52,6 +53,8 @@ async function cargar() {
       };
     }
   } catch (e) { console.error(e); }
+  // El paquete Pase QR es fijo: solo la portada, sin música y con invitación personalizada.
+  if (clave === "pase") lim = { ...LIMITES.pase };
 
   let invitado = null;
   if (idInvitado && lim.personalized) {
@@ -112,7 +115,7 @@ function mostrar(d, lim, invitado) {
 
   const antesDelFormulario = $("form-rsvp").closest("section");
   if (d.dressCode) agregarSeccion("sec-dress", "Dress code", d.dressCode, antesDelFormulario, false);
-  if (d.gift) agregarSeccion("sec-regalo", "Regalo", d.gift, antesDelFormulario, true);
+  if (d.gift && d.package !== "pase") agregarSeccion("sec-regalo", "Regalo", d.gift, antesDelFormulario, true);
 
   const hayMusica = lim.music && urlSegura(d.music);
   if (hayMusica) configurarMusica(d.music);
