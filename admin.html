@@ -11,7 +11,7 @@
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
-    input:disabled{background:#eee}
+    input:disabled,textarea:disabled{background:#eee}
     textarea{min-height:70px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
@@ -46,6 +46,7 @@
       <select id="f-paquete">
         <option value="basico">Básico</option>
         <option value="premium">Premium</option>
+        <option value="pase">Pase QR</option>
       </select>
       <label>Plantilla</label>
       <select id="f-template">
@@ -94,11 +95,12 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
-    // maxPhotos cuenta la portada: Básico = portada + 6, Premium = portada + 8
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+    // maxPhotos cuenta la portada: Básico = portada + 6, Premium = portada + 8, Pase QR = solo portada
     let paquetes = {
       basico:  { maxPhotos: 7, music: false },
-      premium: { maxPhotos: 9, music: true }
+      premium: { maxPhotos: 9, music: true },
+      pase:    { maxPhotos: 1, music: false }
     };
     let fotos = [];
     let fotosExistentes = [];
@@ -132,20 +134,29 @@
           });
         }
       } catch (e) { console.error(e); }
+      paquetes.pase = { maxPhotos: 1, music: false };
       aplicarLimites();
     }
 
     function limites() { return paquetes[$("f-paquete").value] || paquetes.basico; }
 
     function aplicarLimites() {
+      const k = $("f-paquete").value;
       const l = limites();
-      $("lbl-fotos").textContent = "Fotos: la primera es la portada, más hasta " +
-        Math.max(l.maxPhotos - 1, 0) + " de galería";
+      $("lbl-fotos").textContent = k === "pase"
+        ? "Foto de portada (este paquete incluye solo la portada)"
+        : "Fotos: la primera es la portada, más hasta " + Math.max(l.maxPhotos - 1, 0) + " de galería";
       $("f-musica").disabled = !l.music;
       $("f-musica").placeholder = l.music
         ? "Enlace de música (https://... .mp3) opcional"
-        : "Música: solo en el paquete Premium";
+        : "Música: no incluida en este paquete";
       if (!l.music) $("f-musica").value = "";
+      const sinRegalo = k === "pase";
+      $("f-regalo").disabled = sinRegalo;
+      $("f-regalo").placeholder = sinRegalo
+        ? "Regalos: no incluidos en este paquete"
+        : "Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')";
+      if (sinRegalo) $("f-regalo").value = "";
     }
     $("f-paquete").addEventListener("change", aplicarLimites);
 
@@ -207,7 +218,9 @@
         verFotos(fotos);
         let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
         if (elegidas.length > max) {
-          t += " Este paquete permite la portada + " + (max - 1) + " de galería: se usaron las primeras.";
+          t += max === 1
+            ? " Este paquete incluye solo la portada: se usó la primera."
+            : " Este paquete permite la portada + " + (max - 1) + " de galería: se usaron las primeras.";
         }
         $("f-msg").textContent = t;
       } catch (err) {
@@ -257,6 +270,9 @@
       if (x.music && !limites().music) {
         aviso += " Ojo: este paquete no incluye música y se va a quitar al guardar. Cambiá a Premium para conservarla.";
       }
+      if (x.gift && $("f-paquete").value === "pase") {
+        aviso += " Ojo: el Pase QR no incluye regalos y el texto de regalo se va a quitar al guardar.";
+      }
       $("aviso-edicion").textContent = aviso;
       $("aviso-edicion").hidden = false;
       $("f-msg").textContent = "";
@@ -280,8 +296,9 @@
 
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
       if (fotosFinal.length > l.maxPhotos) {
-        msg.textContent = "Este paquete permite la portada + " + (l.maxPhotos - 1) +
-          " fotos de galería. Elegí fotos nuevas o cambiá a Premium.";
+        msg.textContent = l.maxPhotos === 1
+          ? "Este paquete incluye solo la foto de portada. Elegí una sola foto."
+          : "Este paquete permite la portada + " + (l.maxPhotos - 1) + " fotos de galería. Elegí fotos nuevas o cambiá a Premium.";
         return;
       }
       if (fotosFinal.join("").length > 980000) {
@@ -303,7 +320,7 @@
         message: $("f-mensaje").value.trim(),
         info: $("f-info").value.trim(),
         dressCode: $("f-dress").value.trim(),
-        gift: $("f-regalo").value.trim(),
+        gift: $("f-paquete").value === "pase" ? "" : $("f-regalo").value.trim(),
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
         photos: fotosFinal
