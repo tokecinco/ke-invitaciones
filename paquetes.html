@@ -49,11 +49,12 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
-    const PAQ = [["basico", "Paquete Básico"], ["premium", "Paquete Premium"]];
+    const PAQ = [["basico", "Paquete Básico"], ["premium", "Paquete Premium"], ["pase", "Paquete Pase QR"]];
     // "galeria" = fotos de la galería SIN contar la portada
     const DEFECTO = {
       basico:  { price: "", deposit: "", galeria: 6, music: false, personalized: false, description: "" },
-      premium: { price: "", deposit: "", galeria: 8, music: true,  personalized: true,  description: "" }
+      premium: { price: "", deposit: "", galeria: 8, music: true,  personalized: true,  description: "" },
+      pase:    { price: "", deposit: "", description: "" }
     };
 
     $("btn-login").addEventListener("click", async () => {
@@ -73,6 +74,21 @@
       PAQ.forEach(([k, titulo]) => {
         const d = datos[k];
         const c = document.createElement("div"); c.className = "caja";
+        if (k === "pase") {
+          c.innerHTML =
+            "<h2></h2>" +
+            "<p class='aviso'>Incluye lo del Básico con foto de portada y el pase digital con QR para los invitados (con su mesa). No incluye música, playlist, hashtag, itinerario, libro de mensajes ni regalos.</p>" +
+            "<label>Precio ($) - dejalo vacío para no ofrecerlo</label><input id='pase-price' type='number' min='0' inputmode='numeric'>" +
+            "<label>Seña ($)</label><input id='pase-deposit' type='number' min='0' inputmode='numeric'>" +
+            "<label>Texto que se muestra en la página principal (opcional)</label>" +
+            "<textarea id='pase-desc' maxlength='300'></textarea>";
+          c.querySelector("h2").textContent = titulo;
+          cont.appendChild(c);
+          $("pase-price").value = d.price;
+          $("pase-deposit").value = d.deposit;
+          $("pase-desc").value = d.description || "";
+          return;
+        }
         c.innerHTML =
           "<h2></h2>" +
           "<label>Precio ($)</label><input id='" + k + "-price' type='number' min='0' inputmode='numeric'>" +
@@ -99,16 +115,20 @@
         const datos = JSON.parse(JSON.stringify(DEFECTO));
         if (s.exists()) {
           const g = s.data();
-          PAQ.forEach(([k]) => {
+          ["basico", "premium"].forEach((k) => {
             if (!g[k]) return;
             datos[k].price = g[k].price ?? "";
             datos[k].deposit = g[k].deposit ?? "";
             datos[k].music = !!g[k].music;
             datos[k].personalized = !!g[k].personalized;
             datos[k].description = g[k].description || "";
-            // Con el límite nuevo (v2) se respeta lo guardado; si no, se propone 6 y 8.
             if (g.v2 === true && g[k].maxPhotos >= 1) datos[k].galeria = g[k].maxPhotos - 1;
           });
+          if (g.pase) {
+            datos.pase.price = g.pase.price ?? "";
+            datos.pase.deposit = g.pase.deposit ?? "";
+            datos.pase.description = g.pase.description || "";
+          }
           if (g.v2 !== true) $("aviso").hidden = false;
         } else {
           const p = await getDoc(doc(db, "settings", "pricing"));
@@ -127,6 +147,17 @@
     $("btn-guardar").addEventListener("click", async () => {
       const salida = {};
       for (const [k, titulo] of PAQ) {
+        if (k === "pase") {
+          const price = parseInt($("pase-price").value, 10);
+          if (!(price >= 0)) continue; // sin precio: no se ofrece
+          const deposit = parseInt($("pase-deposit").value, 10) || 0;
+          if (deposit < 0 || deposit > price) { $("msg").textContent = titulo + ": la seña no puede superar el precio."; return; }
+          salida.pase = {
+            price: price, deposit: deposit, maxPhotos: 1, music: false, personalized: true,
+            description: $("pase-desc").value.trim()
+          };
+          continue;
+        }
         const price = parseInt($(k + "-price").value, 10);
         const deposit = parseInt($(k + "-deposit").value, 10);
         const galeria = parseInt($(k + "-fotos").value, 10);
