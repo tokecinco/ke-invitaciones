@@ -1,245 +1,387 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>KE Invitaciones - Invitaciones digitales interactivas</title>
-  <meta name="description" content="Invitaciones digitales interactivas para tus momentos especiales.">
-  <meta property="og:title" content="KE Invitaciones">
-  <meta property="og:description" content="Invitaciones digitales interactivas para tus momentos especiales.">
-  <meta property="og:type" content="website">
-  <style>
-    :root{--fondo:#fffaf3;--texto:#1a1a1a;--oro:#c9a24b;--rosa:#f6dde2;--negro:#1a1a1a}
-    *{box-sizing:border-box}
-    html{scroll-behavior:smooth}
-    body{margin:0;background:var(--fondo);color:var(--texto);font-family:Georgia,"Times New Roman",serif;line-height:1.55}
-    h1,h2,h3{font-weight:normal;margin:0}
-    h2{color:var(--oro);font-size:1.8rem;text-align:center;margin-bottom:18px}
-    section{padding:44px 18px;max-width:960px;margin:0 auto}
-    .logo{font-size:1.4rem;letter-spacing:3px;color:var(--oro)}
-    .logo b{color:var(--negro)}
-    header{display:flex;justify-content:space-between;align-items:center;padding:14px 18px;max-width:960px;margin:0 auto}
-    header a{color:var(--negro);text-decoration:none;font-size:.95rem}
-
-    .hero{text-align:center;padding:56px 18px 44px;background:linear-gradient(180deg,var(--rosa),var(--fondo));max-width:none}
-    .hero .in{max-width:640px;margin:0 auto;animation:sube .9s ease}
-    .hero h1{font-size:2.1rem;line-height:1.2}
-    .hero p{font-size:1.1rem;margin:14px 0 24px}
-    @keyframes sube{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
-
-    .btn{display:inline-block;background:var(--oro);color:#fff;border:0;border-radius:30px;padding:13px 26px;font-size:1rem;font-family:inherit;text-decoration:none;cursor:pointer;margin:5px;transition:transform .2s}
-    .btn:hover{transform:translateY(-2px)}
-    .btn.neg{background:var(--negro)}
-    .btn.borde{background:transparent;color:var(--negro);border:1px solid var(--negro)}
-
-    .pasos{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:14px}
-    .paso{background:#fff;border:1px solid #eadfc8;border-radius:14px;padding:18px;text-align:center}
-    .paso .n{display:inline-block;width:36px;height:36px;line-height:36px;border-radius:50%;background:var(--oro);color:#fff;margin-bottom:8px}
-
-    .chips{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:20px}
-    .chip{border:1px solid var(--oro);background:#fff;color:var(--negro);border-radius:20px;padding:8px 14px;font-size:.9rem;font-family:inherit;cursor:pointer}
-    .chip.on{background:var(--oro);color:#fff}
-
-    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}
-    .modelo{background:#fff;border:1px solid #eadfc8;border-radius:16px;overflow:hidden;display:flex;flex-direction:column;animation:sube .6s ease}
-    .portada{height:170px;display:flex;align-items:center;justify-content:center;font-size:1.5rem;background-size:cover;background-position:center}
-    .modelo .cuerpo{padding:14px;text-align:center}
-    .modelo small{color:#777}
-    .modelo .btn{padding:9px 16px;font-size:.9rem}
-
-    .precio{background:#fff;border:1px solid #eadfc8;border-radius:16px;padding:24px;text-align:center;max-width:420px;margin:0 auto}
-    .precio .monto{font-size:2.2rem;color:var(--oro)}
-    .promo{background:var(--rosa);border-radius:10px;padding:8px 12px;margin-top:12px}
-
-    details{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px 16px;margin:8px 0}
-    summary{cursor:pointer;font-weight:bold}
-    details p{margin:8px 0 0}
-
-    footer{background:var(--negro);color:#ddd;text-align:center;padding:26px 18px;font-size:.9rem}
-    footer a{color:var(--oro)}
-    #nota{text-align:center;color:#777}
-  </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Toke QR — Menús y Catálogos QR para Negocios</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
-  <header>
-    <div class="logo">KE <b>INVITACIONES</b></div>
-    <a href="cliente.html">Mi cuenta</a>
+  <header class="navbar">
+    <div class="navbar-inner">
+      <a href="index.html" class="brand">
+        <span class="brand-icon"><i data-lucide="qr-code"></i></span>
+        <span>Toke <span style="color:var(--turquoise-bright);">QR</span></span>
+      </a>
+      <div class="flex gap-1">
+        <a href="panel.html" class="btn btn-secondary btn-sm">
+          <i data-lucide="store" style="width:15px;height:15px;"></i>
+          Mi Negocio
+        </a>
+        <a href="admin.html" class="btn btn-outline btn-sm">
+          <i data-lucide="shield-check" style="width:15px;height:15px;"></i>
+          Admin
+        </a>
+      </div>
+    </div>
   </header>
 
-  <section class="hero">
-    <div class="in">
-      <h1>Una invitación especial para un momento inolvidable</h1>
-      <p>Invitaciones digitales interactivas para tus momentos especiales.</p>
-      <a class="btn" href="#modelos">Ver modelos</a>
-      <a class="btn neg" id="wa-principal" href="#" hidden target="_blank" rel="noopener">Solicitar por WhatsApp</a>
+  <main class="container">
+    <section class="landing-hero">
+      <div class="hero-badge">
+        <i data-lucide="zap" style="width:14px;height:14px;color:var(--turquoise-bright);"></i>
+        Plataforma de Menús y Catálogos QR
+      </div>
+      <h1>
+        Tu menú y catálogo <span class="gradient-text">QR inteligente</span> listo en minutos
+      </h1>
+      <p>
+        Crea tu carta digital o catálogo de productos desde el celular, recibe pedidos
+        y solicitudes de cuenta en tiempo real, y descarga tus carteles QR para mesas.
+      </p>
+      <div class="hero-pills">
+        <span class="tech-pill">
+          <i data-lucide="smartphone" style="width:14px;height:14px;color:var(--turquoise-bright);"></i>
+          100% móvil
+        </span>
+        <span class="tech-pill">
+          <i data-lucide="download" style="width:14px;height:14px;color:#c4b5fd;"></i>
+          Carteles QR en PNG
+        </span>
+        <span class="tech-pill">
+          <i data-lucide="message-circle" style="width:14px;height:14px;color:#4ade80;"></i>
+          WhatsApp integrado
+        </span>
+      </div>
+    </section>
+
+    <section class="container-sm" style="padding:0;margin-bottom:24px;">
+      <div class="glass-access-card">
+        <div class="flex-between mb-2">
+          <div>
+            <span class="text-xs font-bold" style="color:var(--turquoise-bright);text-transform:uppercase;letter-spacing:0.06em;">
+              Acceso Privado
+            </span>
+            <h2 style="font-size:1.15rem;color:#ffffff;margin-top:2px;">Ingresa a tu Negocio</h2>
+            <p class="text-xs" style="color:#94a3b8;margin-top:2px;">
+              Solo con tu código único. Sin correos ni contraseñas.
+            </p>
+          </div>
+          <div class="brand-icon" style="background:rgba(124,58,237,0.25);border:1px solid rgba(139,92,246,0.45);">
+            <i data-lucide="key-round"></i>
+          </div>
+        </div>
+
+        <form id="quickAccessForm" class="flex gap-2 mt-2" style="flex-wrap:wrap;">
+          <input
+            type="text"
+            id="quickCodeInput"
+            class="input"
+            placeholder="Ej: TOKE-XXXX-XXXX"
+            style="flex:1;min-width:180px;text-transform:uppercase;"
+            required
+          />
+          <button type="submit" class="btn btn-electric">
+            Entrar al Panel
+            <i data-lucide="arrow-right" style="width:16px;height:16px;"></i>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <section class="grid-2 mb-3">
+      <article class="service-showcase service-showcase-violet">
+        <div>
+          <div class="flex-between mb-2">
+            <span class="showcase-icon-violet">
+              <i data-lucide="utensils"></i>
+            </span>
+            <span class="badge" style="background:rgba(124,58,237,0.22);color:#ddd6fe;border:1px solid rgba(139,92,246,0.4);">
+              Gastronomía
+            </span>
+          </div>
+          <h3 style="font-size:1.22rem;color:#ffffff;margin-bottom:6px;">Menú QR para Mesas</h3>
+          <p class="text-sm" style="color:#cbd5e1;">
+            Ideal para bares, restaurantes, pizzerías y cafeterías con atención en mesa o mostrador.
+          </p>
+          <ul class="feature-list">
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#c4b5fd;flex-shrink:0;"></i>
+              <span>Los clientes escanean el QR, hacen pedidos y pueden <strong>pedir la cuenta</strong></span>
+            </li>
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#c4b5fd;flex-shrink:0;"></i>
+              <span>Alerta sonora en vivo al recibir pedidos y aviso por WhatsApp</span>
+            </li>
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#c4b5fd;flex-shrink:0;"></i>
+              <span>Carteles QR listos para imprimir y colocar en cada mesa</span>
+            </li>
+          </ul>
+        </div>
+        <a href="panel.html" class="btn btn-primary btn-block">
+          <i data-lucide="layout-grid" style="width:16px;height:16px;"></i>
+          Administrar mi Menú QR
+        </a>
+      </article>
+
+      <article class="service-showcase service-showcase-turquoise">
+        <div>
+          <div class="flex-between mb-2">
+            <span class="showcase-icon-turquoise">
+              <i data-lucide="shopping-bag"></i>
+            </span>
+            <span class="badge" style="background:rgba(6,182,212,0.2);color:#a5f3fc;border:1px solid rgba(45,212,191,0.4);">
+              Comercios
+            </span>
+          </div>
+          <h3 style="font-size:1.22rem;color:#ffffff;margin-bottom:6px;">Catálogos QR Interactivos</h3>
+          <p class="text-sm" style="color:#cbd5e1;">
+            Pensado para tiendas, almacenes y emprendimientos que muestran productos con precios al día.
+          </p>
+          <ul class="feature-list">
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#5eead4;flex-shrink:0;"></i>
+              <span>Carga fotos desde tu celular, categorías y pausa productos en un clic</span>
+            </li>
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#5eead4;flex-shrink:0;"></i>
+              <span>Control automático de ventas del día y total de la semana</span>
+            </li>
+            <li>
+              <i data-lucide="check-circle-2" style="width:15px;height:15px;color:#5eead4;flex-shrink:0;"></i>
+              <span>Comparte el enlace de tu catálogo por WhatsApp</span>
+            </li>
+          </ul>
+        </div>
+        <a href="panel.html" class="btn btn-turquoise btn-block">
+          <i data-lucide="store" style="width:16px;height:16px;"></i>
+          Gestionar mi Catálogo
+        </a>
+      </article>
+    </section>
+
+    <section id="packagesSection" class="mt-4">
+      <div class="text-center mb-3">
+        <span class="text-xs font-bold" style="color:var(--turquoise-bright);text-transform:uppercase;letter-spacing:0.08em;">
+          Planes Semanales
+        </span>
+        <h2 style="font-size:clamp(1.4rem,4vw,2rem);color:#ffffff;margin-top:4px;">
+          Elige tu plan de Menú y Catálogo QR
+        </h2>
+        <p class="text-sm" style="color:#cbd5e1;margin-top:4px;">
+          Sin contratos largos. Activa tu catálogo en minutos y comienza a vender hoy mismo.
+        </p>
+      </div>
+
+      <div id="landingPackagesGrid" class="grid-2">
+        <div class="card text-center" style="grid-column:1/-1;">
+          <p class="text-muted">Cargando planes disponibles...</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div id="requestPackageModal" class="modal-backdrop hidden">
+    <div class="modal">
+      <div class="flex-between mb-2">
+        <h2 style="font-size:1.18rem;color:var(--dark);">Solicitar Servicio Toke QR</h2>
+        <button type="button" class="btn btn-outline btn-sm" id="closeRequestModal">✕</button>
+      </div>
+      <div id="reqPkgSummary" class="card card-compact mb-3" style="background:var(--primary-soft);border-color:rgba(124,58,237,0.28);"></div>
+      <form id="requestPackageForm">
+        <input type="hidden" id="reqPkgId" />
+        <div class="form-group">
+          <label class="form-label" for="reqBizName">Nombre de tu negocio *</label>
+          <input type="text" id="reqBizName" class="input" placeholder="Ej: Resto Bar Central" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reqBizCategory">Rubro *</label>
+          <input type="text" id="reqBizCategory" class="input" placeholder="Ej: Restaurante, Pizzería, Tienda" required />
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="reqBizPhone">Tu WhatsApp (opcional)</label>
+          <input type="tel" id="reqBizPhone" class="input" placeholder="Ej: 5491122334455" />
+        </div>
+        <button type="submit" class="btn btn-whatsapp btn-block mt-2">
+          <i data-lucide="message-circle" style="width:17px;height:17px;"></i>
+          Enviar solicitud por WhatsApp
+        </button>
+      </form>
     </div>
-  </section>
+  </div>
 
-  <section id="como">
-    <h2>Cómo funciona</h2>
-    <div class="pasos">
-      <div class="paso"><div class="n">1</div><h3>Elegí un modelo</h3><p>Mirá las demostraciones y elegí el diseño que más te guste.</p></div>
-      <div class="paso"><div class="n">2</div><h3>Pasanos los datos</h3><p>Nombre, fecha, hora, lugar, fotos y el mensaje que quieras.</p></div>
-      <div class="paso"><div class="n">3</div><h3>Recibí tu enlace</h3><p>Creamos tu invitación y te enviamos el enlace y el código QR.</p></div>
-      <div class="paso"><div class="n">4</div><h3>Compartí y recibí respuestas</h3><p>Tus invitados confirman desde la invitación y vos ves todo en tu cuenta.</p></div>
-    </div>
-  </section>
-
-  <section id="modelos">
-    <h2>Modelos</h2>
-    <div class="chips" id="chips"></div>
-    <div class="grid" id="grid"></div>
-    <p id="nota">Cargando modelos...</p>
-  </section>
-
-  <section id="precios">
-    <h2>Precios</h2>
-    <div class="precio" id="precio">Cargando...</div>
-  </section>
-
-  <section id="faq">
-    <h2>Preguntas frecuentes</h2>
-    <details><summary>¿Cómo es una invitación digital?</summary><p>Es una página web con la información de tu evento: portada con foto, cuenta regresiva, fecha, ubicación en el mapa, galería y confirmación de asistencia. Se comparte con un enlace o un código QR, por ejemplo por WhatsApp.</p></details>
-    <details><summary>¿Cómo confirman asistencia mis invitados?</summary><p>Desde la misma invitación: escriben su nombre, indican si asisten y cuántas personas van, y pueden dejar un mensaje. Vos ves el total desde tu cuenta.</p></details>
-    <details><summary>¿Se puede agregar música?</summary><p>Sí. La invitación puede tener música de fondo con un botón para pausarla. Empieza cuando el invitado abre el sobre.</p></details>
-    <details><summary>¿Cómo se paga?</summary><p>El pago es manual: se abona una seña para reservar tu invitación y el saldo se coordina con nosotros por WhatsApp.</p></details>
-    <details><summary>¿Puedo cambiar datos después de publicada?</summary><p>Sí. Con tu cuenta podés editar el mensaje, el texto de bienvenida, la información adicional y el WhatsApp. Para otros cambios, escribinos.</p></details>
-    <details><summary>¿Hasta cuándo está disponible mi invitación?</summary><p>Hasta la fecha de vencimiento que se acuerde. Después deja de mostrarse.</p></details>
-  </section>
-
-  <footer>
-    <div class="logo">KE <b style="color:#fff">INVITACIONES</b></div>
-    <p>Invitaciones digitales interactivas</p>
-    <p><a href="cliente.html">Ingresar a mi cuenta</a></p>
+  <footer class="text-center text-xs text-muted mt-4" style="padding:22px 16px;">
+    © <span id="year"></span> <strong>Toke QR</strong> — Menús y Catálogos QR para Negocios
   </footer>
 
   <script type="module">
-    import { db } from "./js/firebase.js";
-    import { doc, getDoc, collection, getDocs }
-      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { db } from "./js/firebase-config.js";
+    import { doc, getDoc } from "https://www.gstatic.com/firebasejs/13.3.0/firebase-firestore.js";
+    import { formatCurrency, escapeHtml, buildWhatsAppUrl } from "./js/utils.js";
 
-    const $ = (id) => document.getElementById(id);
-    const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const CATEGORIAS = [
-      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
-      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
-      ["especial", "Eventos especiales"]
-    ];
-    const base = location.origin + location.pathname.replace(/[^/]*$/, "");
+    // REEMPLAZA ESTE NÚMERO CON TU WHATSAPP DE VENTAS (con código de país, sin +)
+    const ADMIN_WHATSAPP = "543815437283";
 
-    let whatsapp = "";
-    let demos = {};
-    let modelos = [];
-    let filtro = "";
-
-    function linkWa(texto) {
-      return "https://wa.me/" + whatsapp + "?text=" + encodeURIComponent(texto);
-    }
-
-    function dibujarChips() {
-      const cont = $("chips");
-      cont.textContent = "";
-      const lista = [["", "Todas"]].concat(CATEGORIAS);
-      lista.forEach(([v, t]) => {
-        const b = document.createElement("button");
-        b.type = "button"; b.className = "chip" + (v === filtro ? " on" : ""); b.textContent = t;
-        b.onclick = () => { filtro = v; dibujarChips(); dibujarModelos(); };
-        cont.appendChild(b);
-      });
-    }
-
-    function dibujarModelos() {
-      const grid = $("grid");
-      grid.textContent = "";
-      const lista = modelos.filter((m) => !filtro || m.category === filtro);
-      $("nota").textContent = lista.length ? "" : "Pronto vamos a sumar modelos en esta categoría.";
-      lista.forEach((m) => {
-        const c = document.createElement("div"); c.className = "modelo";
-        const p = document.createElement("div"); p.className = "portada";
-        const col = m.colors || {};
-        p.style.background = col.suave || "#f6dde2";
-        p.style.color = col.acento || "#c9a24b";
-        if (m.sampleImage && /^data:image\//.test(m.sampleImage)) {
-          p.style.backgroundImage = 'url("' + m.sampleImage + '")';
-        } else { p.textContent = m.name; }
-        const cu = document.createElement("div"); cu.className = "cuerpo";
-        const n = document.createElement("h3"); n.textContent = m.name;
-        const cat = document.createElement("small");
-        cat.textContent = (CATEGORIAS.find((x) => x[0] === m.category) || [0, ""])[1];
-        cu.append(n, cat, document.createElement("br"));
-        if (demos[m.id]) {
-          const a = document.createElement("a");
-          a.className = "btn borde"; a.textContent = "Ver demostración";
-          a.href = base + "i/" + demos[m.id]; a.target = "_blank"; a.rel = "noopener";
-          cu.appendChild(a);
-        }
-        if (whatsapp) {
-          const a = document.createElement("a");
-          a.className = "btn"; a.textContent = "Elegir modelo";
-          a.href = linkWa("Hola! Me interesa la invitación digital modelo \"" + m.name + "\".");
-          a.target = "_blank"; a.rel = "noopener";
-          cu.appendChild(a);
-        }
-        c.append(p, cu);
-        grid.appendChild(c);
-      });
-    }
-
-    async function iniciar() {
-      dibujarChips();
-      try {
-        const [site, pricing, tp] = await Promise.all([
-          getDoc(doc(db, "settings", "site")),
-          getDoc(doc(db, "settings", "pricing")),
-          getDocs(collection(db, "templates"))
-        ]);
-
-        const s = site.exists() ? site.data() : {};
-        whatsapp = String(s.whatsapp || "").replace(/\D/g, "");
-        demos = s.demos || {};
-        if (whatsapp) {
-          $("wa-principal").href = linkWa("Hola! Quiero pedir una invitación digital.");
-          $("wa-principal").hidden = false;
-        }
-
-        modelos = tp.docs.map((d) => ({ id: d.id, ...d.data() })).filter((m) => m.active !== false);
-        dibujarModelos();
-
-        const caja = $("precio");
-        caja.textContent = "";
-        if (pricing.exists() && pricing.data().price >= 0) {
-          const p = pricing.data();
-          const t = document.createElement("h3"); t.textContent = "Invitación digital interactiva";
-          const m = document.createElement("div"); m.className = "monto"; m.textContent = $$(p.price);
-          const se = document.createElement("p");
-          se.textContent = "Se reserva con una seña de " + $$(p.deposit) + " y el saldo se abona luego.";
-          caja.append(t, m, se);
-          if (s.promo) {
-            const pr = document.createElement("div"); pr.className = "promo"; pr.textContent = s.promo;
-            caja.appendChild(pr);
-          }
-        } else {
-          caja.textContent = "Consultá el precio por WhatsApp.";
-        }
-        if (whatsapp) {
-          const a = document.createElement("a");
-          a.className = "btn neg"; a.textContent = "Consultar por WhatsApp";
-          a.href = linkWa("Hola! Quiero consultar por las invitaciones digitales.");
-          a.target = "_blank"; a.rel = "noopener";
-          caja.appendChild(document.createElement("br"));
-          caja.appendChild(a);
-        }
-      } catch (e) {
-        console.error(e);
-        $("nota").textContent = "No se pudieron cargar los modelos. Intentá de nuevo más tarde.";
-        $("precio").textContent = "Consultá el precio por WhatsApp.";
+    const FALLBACK_PACKAGES = {
+      basic: {
+        id: "basic",
+        name: "Paquete Básico",
+        weeklyPrice: 5000,
+        maxProducts: 15,
+        durationDays: 7
+      },
+      premium: {
+        id: "premium",
+        name: "Paquete Premium",
+        weeklyPrice: 9500,
+        maxProducts: 80,
+        durationDays: 7
       }
+    };
+
+    let loadedPackages = { ...FALLBACK_PACKAGES };
+
+    lucide.createIcons();
+    document.getElementById("year").textContent = new Date().getFullYear();
+
+    document.getElementById("quickAccessForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const code = document.getElementById("quickCodeInput").value.trim().toUpperCase();
+      if (code) {
+        window.location.href = `panel.html?code=${encodeURIComponent(code)}`;
+      }
+    });
+
+    async function loadLandingPackages() {
+      try {
+        const [basicSnap, premiumSnap] = await Promise.all([
+          getDoc(doc(db, "packages", "basic")),
+          getDoc(doc(db, "packages", "premium"))
+        ]);
+        if (basicSnap.exists()) loadedPackages.basic = { id: "basic", ...basicSnap.data() };
+        if (premiumSnap.exists()) loadedPackages.premium = { id: "premium", ...premiumSnap.data() };
+      } catch (err) {
+        console.warn("Usando valores por defecto para paquetes:", err);
+      }
+      renderPackagesGrid();
     }
-    iniciar();
+
+    function renderPackagesGrid() {
+      const grid = document.getElementById("landingPackagesGrid");
+      const order = ["basic", "premium"];
+
+      grid.innerHTML = order
+        .map((key) => {
+          const pkg = loadedPackages[key];
+          const isPremium = key === "premium";
+          const days = pkg.durationDays || 7;
+
+          return `
+            <article class="service-showcase ${isPremium ? "service-showcase-violet" : "service-showcase-turquoise"}">
+              <div>
+                <div class="flex-between mb-2">
+                  <span class="badge" style="${
+                    isPremium
+                      ? "background:linear-gradient(135deg,#7c3aed,#06b6d4);color:#fff;"
+                      : "background:rgba(6,182,212,0.2);color:#a5f3fc;border:1px solid rgba(45,212,191,0.4);"
+                  }">
+                    ${isPremium ? "⭐ Más elegido" : "Plan Inicial"}
+                  </span>
+                  <span class="text-xs" style="color:#94a3b8;">Duración: ${days} días</span>
+                </div>
+
+                <h3 style="font-size:1.3rem;color:#ffffff;">${escapeHtml(pkg.name)}</h3>
+                <div class="mt-2 mb-3">
+                  <span style="font-size:2rem;font-weight:800;color:${isPremium ? "#c4b5fd" : "#5eead4"};">
+                    ${formatCurrency(pkg.weeklyPrice)}
+                  </span>
+                  <span class="text-sm" style="color:#94a3b8;"> / ${days} días</span>
+                </div>
+
+                <ul class="feature-list">
+                  <li>
+                    <i data-lucide="check-circle-2" style="width:16px;height:16px;color:#5eead4;flex-shrink:0;"></i>
+                    <span>Menú y Catálogo QR (hasta <strong>${pkg.maxProducts}</strong> productos)</span>
+                  </li>
+                  <li>
+                    <i data-lucide="check-circle-2" style="width:16px;height:16px;color:#5eead4;flex-shrink:0;"></i>
+                    <span>Pedidos en tiempo real y botón <strong>Pedir cuenta</strong> en mesa</span>
+                  </li>
+                  <li>
+                    <i data-lucide="check-circle-2" style="width:16px;height:16px;color:#5eead4;flex-shrink:0;"></i>
+                    <span>Cartel QR imprimible en PNG y avisos por WhatsApp</span>
+                  </li>
+                  <li>
+                    <i data-lucide="check-circle-2" style="width:16px;height:16px;color:#5eead4;flex-shrink:0;"></i>
+                    <span>Historial de ventas del día y de la semana</span>
+                  </li>
+                </ul>
+              </div>
+
+              <button
+                type="button"
+                class="btn ${isPremium ? "btn-electric" : "btn-turquoise"} btn-block request-pkg-btn"
+                data-pkg="${key}"
+              >
+                <i data-lucide="send" style="width:16px;height:16px;"></i>
+                Solicitar ${escapeHtml(pkg.name)}
+              </button>
+            </article>
+          `;
+        })
+        .join("");
+
+      grid.querySelectorAll(".request-pkg-btn").forEach((btn) => {
+        btn.addEventListener("click", () => openRequestModal(btn.dataset.pkg));
+      });
+      lucide.createIcons();
+    }
+
+    const modalEl = document.getElementById("requestPackageModal");
+
+    function openRequestModal(pkgKey) {
+      const pkg = loadedPackages[pkgKey];
+      if (!pkg) return;
+      document.getElementById("reqPkgId").value = pkgKey;
+      document.getElementById("reqPkgSummary").innerHTML = `
+        <div class="flex-between">
+          <strong style="color:var(--dark);">${escapeHtml(pkg.name)}</strong>
+          <strong style="color:var(--primary);">${formatCurrency(pkg.weeklyPrice)} / ${pkg.durationDays || 7} días</strong>
+        </div>
+        <div class="text-xs text-muted mt-1">
+          Incluye Menú y Catálogo QR hasta ${pkg.maxProducts} productos.
+        </div>
+      `;
+      modalEl.classList.remove("hidden");
+    }
+
+    document.getElementById("closeRequestModal").addEventListener("click", () => {
+      modalEl.classList.add("hidden");
+    });
+
+    document.getElementById("requestPackageForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+      const pkgKey = document.getElementById("reqPkgId").value;
+      const pkg = loadedPackages[pkgKey];
+      const bizName = document.getElementById("reqBizName").value.trim();
+      const bizCat = document.getElementById("reqBizCategory").value.trim();
+      const bizPhone = document.getElementById("reqBizPhone").value.trim();
+
+      const msg =
+        `¡Hola! Quiero solicitar el *${pkg.name}* (${formatCurrency(pkg.weeklyPrice)} / ${pkg.durationDays || 7} días) de *Toke QR*.\n` +
+        `• Servicio: Menú y Catálogo QR\n` +
+        `• Negocio: ${bizName}\n` +
+        `• Rubro: ${bizCat}` +
+        (bizPhone ? `\n• Mi WhatsApp: ${bizPhone}` : "");
+
+      const waUrl = buildWhatsAppUrl(ADMIN_WHATSAPP, msg);
+      window.open(waUrl, "_blank");
+      modalEl.classList.add("hidden");
+    });
+
+    loadLandingPackages();
   </script>
-  <script type="module" src="js/paquetes-index.js"></script>
-  <script type="module" src="js/pase-venta.js"></script>
-  <script type="module" src="js/referido.js"></script>
-  <script type="module" src="js/disenos.js"></script>
 </body>
-</html>
+          </html>
