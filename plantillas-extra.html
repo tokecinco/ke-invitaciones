@@ -10,11 +10,11 @@
     *{box-sizing:border-box}
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
     h1,h2{color:#c9a24b}
+    h2{margin:22px 0 6px;font-size:1.1rem}
     input,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     a{color:#c9a24b}
-    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
-    .cat{font-size:.85rem;color:#777}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:8px 0}
     .muestra{display:flex;gap:6px;margin-top:6px}
     .muestra span{flex:1;height:26px;border-radius:6px;border:1px solid #ddd}
     .msg{min-height:1.4em}
@@ -56,6 +56,7 @@
     const TIMES = "'Times New Roman', serif";
 
     const NUEVAS = [
+      /* Baby shower */
       { id: "babyshower-nina", name: "Baby shower niña", category: "babyshower",
         font: TREBUCHET, deco: "corazones",
         colors: { fondo: "#fff6f9", texto: "#4a3b42", acento: "#e08fb0", suave: "#fde3ee" } },
@@ -65,6 +66,8 @@
       { id: "babyshower-neutro", name: "Baby shower neutro", category: "babyshower",
         font: TREBUCHET, deco: "nubes",
         colors: { fondo: "#f7fbf6", texto: "#3f4a3f", acento: "#8fb996", suave: "#e3f1e4" } },
+
+      /* Casamientos */
       { id: "boda-moderna-salvia", name: "Casamiento moderno salvia", category: "boda",
         font: PALATINO, fondo: "boda-salvia",
         colors: { fondo: "#faf7f1", texto: "#34382f", acento: "#6f8265", suave: "#ece9df" } },
@@ -77,6 +80,8 @@
       { id: "boda-boho", name: "Casamiento boho", category: "boda",
         font: GEORGIA, fondo: "boho",
         colors: { fondo: "#fbf4ea", texto: "#4a3a2e", acento: "#b9714f", suave: "#f0e0cf" } },
+
+      /* 15 años */
       { id: "quince-princesa", name: "15 años princesa rosa y dorado", category: "quince",
         font: GEORGIA, fondo: "princesa",
         colors: { fondo: "#fff5f8", texto: "#5a3a46", acento: "#b8860b", suave: "#fde0ea" } },
@@ -128,7 +133,38 @@
         colors: { fondo: "#f3f8f5", texto: "#1f3a2f", acento: "#2f7d5b", suave: "#dcece3" } },
       { id: "aniversario-vintage", name: "Aniversario vintage", category: "aniversario",
         font: TIMES,
-        colors: { fondo: "#f7efe2", texto: "#4a3a2a", acento: "#a0643a", suave: "#ecdcc4" } }
+        colors: { fondo: "#f7efe2", texto: "#4a3a2a", acento: "#a0643a", suave: "#ecdcc4" } },
+
+      /* Cumpleaños infantiles */
+      { id: "cumple-dinosaurios", name: "Cumpleaños dinosaurios", category: "cumpleanos",
+        font: TREBUCHET,
+        colors: { fondo: "#f6f3e4", texto: "#33401f", acento: "#4f8a2b", suave: "#e3efc9" } },
+      { id: "cumple-safari", name: "Cumpleaños safari", category: "cumpleanos",
+        font: TREBUCHET,
+        colors: { fondo: "#fbf3e0", texto: "#4a3a1f", acento: "#c47a1c", suave: "#f1e0b8" } },
+      { id: "cumple-espacio", name: "Cumpleaños espacio", category: "cumpleanos",
+        font: TREBUCHET, deco: "estrellas",
+        colors: { fondo: "#0d1330", texto: "#eef0ff", acento: "#7aa2ff", suave: "#1a2250" } },
+      { id: "cumple-unicornio", name: "Cumpleaños unicornio", category: "cumpleanos",
+        font: TREBUCHET, deco: "nubes",
+        colors: { fondo: "#fdf4fb", texto: "#5a3a63", acento: "#b565c9", suave: "#f5dff3" } },
+      { id: "cumple-superheroes", name: "Cumpleaños superhéroes", category: "cumpleanos",
+        font: VERDANA,
+        colors: { fondo: "#f3f6ff", texto: "#1c2540", acento: "#d62839", suave: "#dfe6fb" } },
+
+      /* Bautismos */
+      { id: "bautismo-celeste", name: "Bautismo celeste", category: "bautismo",
+        font: GEORGIA, deco: "nubes",
+        colors: { fondo: "#f4f9ff", texto: "#33475b", acento: "#5b9bd5", suave: "#dcebfa" } },
+      { id: "bautismo-rosa", name: "Bautismo rosa", category: "bautismo",
+        font: GEORGIA, deco: "nubes",
+        colors: { fondo: "#fff6f8", texto: "#5a3f47", acento: "#d9849f", suave: "#fbe1e9" } },
+      { id: "bautismo-blanco-dorado", name: "Bautismo blanco y dorado", category: "bautismo",
+        font: PALATINO, deco: "estrellas",
+        colors: { fondo: "#ffffff", texto: "#3a3426", acento: "#b8963e", suave: "#f6f0df" } },
+      { id: "bautismo-verde-suave", name: "Bautismo verde suave", category: "bautismo",
+        font: GEORGIA, deco: "nubes",
+        colors: { fondo: "#f6faf4", texto: "#3a4a38", acento: "#7da27a", suave: "#e2eedd" } }
     ];
 
     const CATEGORIAS_BASE = [
@@ -150,19 +186,26 @@
       if (u) dibujar();
     });
 
+    // La lista se muestra agrupada por categoría
     function dibujar() {
       const cont = $("lista");
       cont.textContent = "";
-      NUEVAS.forEach((p) => {
-        const c = document.createElement("div"); c.className = "caja";
-        const n = document.createElement("b"); n.textContent = p.name;
-        const k = document.createElement("div"); k.className = "cat"; k.textContent = NOMBRE_CAT[p.category] || p.category;
-        const m = document.createElement("div"); m.className = "muestra";
-        ["fondo", "suave", "acento", "texto"].forEach((x) => {
-          const s = document.createElement("span"); s.style.background = p.colors[x]; m.appendChild(s);
+      const orden = [];
+      NUEVAS.forEach((p) => { if (!orden.includes(p.category)) orden.push(p.category); });
+      orden.forEach((cat) => {
+        const h = document.createElement("h2");
+        h.textContent = NOMBRE_CAT[cat] || cat;
+        cont.appendChild(h);
+        NUEVAS.filter((p) => p.category === cat).forEach((p) => {
+          const c = document.createElement("div"); c.className = "caja";
+          const n = document.createElement("b"); n.textContent = p.name;
+          const m = document.createElement("div"); m.className = "muestra";
+          ["fondo", "suave", "acento", "texto"].forEach((x) => {
+            const s = document.createElement("span"); s.style.background = p.colors[x]; m.appendChild(s);
+          });
+          c.append(n, m);
+          cont.appendChild(c);
         });
-        c.append(n, k, m);
-        cont.appendChild(c);
       });
     }
 
