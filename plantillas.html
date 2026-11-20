@@ -20,6 +20,9 @@
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
     .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
+    .caja .ancho{width:100%;margin:5px 0;font-size:1rem;padding:12px}
+    .fila{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid #f0e6d2}
+    .fila button{margin:0;padding:6px 12px;font-size:.85rem}
     .colores{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .check{display:flex;align-items:center;margin:6px 0}
     .vista{border-radius:12px;padding:20px;text-align:center;border:1px solid #d8cbb0;margin:10px 0}
@@ -30,7 +33,7 @@
 </head>
 <body>
   <h1>Plantillas</h1>
-  <p><a href="admin.html">Panel</a> - <a href="clientes.html">Clientes</a></p>
+  <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Panel</a> - <a href="plantillas-extra.html">Plantillas prearmadas</a></p>
 
   <section id="login">
     <input id="email" type="email" placeholder="Email" autocomplete="username">
@@ -45,6 +48,15 @@
       <p>Carga en la base de datos las 3 plantillas que ya usa el sistema (cumpleaños, 15 años y casamiento). Las que ya existan no se tocan.</p>
       <button id="btn-base" type="button">Cargar plantillas base</button>
       <p id="base-msg" class="msg"></p>
+    </div>
+
+    <div class="caja">
+      <b>Categorías</b>
+      <p>Son los grupos que se ven en "Nuestros Diseños" de la página principal. Entre paréntesis está la cantidad de plantillas de cada una.</p>
+      <div id="cats"></div>
+      <input id="n-cat" placeholder="Nombre de la categoría nueva" maxlength="40">
+      <button id="btn-cat" class="ancho" type="button">Crear categoría</button>
+      <p id="cat-msg" class="msg"></p>
     </div>
 
     <h2 id="titulo-form">Nueva plantilla</h2>
@@ -95,10 +107,11 @@
 
     const $ = (id) => document.getElementById(id);
 
-    const CATEGORIAS = [
+    // Categorías que se usan mientras todavía no hayas creado o eliminado ninguna
+    const CATEGORIAS_BASE = [
       ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
       ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
-      ["especial", "Eventos especiales"]
+      ["especial", "Eventos especiales"], ["pase", "Pase QR"]
     ];
     const FUENTES = [
       ["Georgia, serif", "Georgia (clásica)"],
@@ -124,6 +137,9 @@
         colors: { fondo: "#ffffff", texto: "#1a1a1a", acento: "#c9a24b", suave: "#f3efe6" } }
     ];
 
+    let categorias = CATEGORIAS_BASE.map((c) => c.slice());
+    let plantillas = [];
+    let ultimaCat = null;
     let editId = null;
     let muestra = "";
     let muestraActual = "";
@@ -133,7 +149,6 @@
         const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o);
       });
     }
-    llenarSelect($("f-cat"), CATEGORIAS);
     llenarSelect($("f-fuente"), FUENTES);
     SECCIONES.forEach(([k, t]) => {
       const f = document.createElement("label"); f.className = "check";
@@ -167,7 +182,7 @@
     onAuthStateChanged(auth, (u) => {
       $("login").hidden = !!u;
       $("panel").hidden = !u;
-      if (u) listar();
+      if (u) iniciar();
     });
 
     function slug(t) {
@@ -176,6 +191,97 @@
     }
     function azar() { return Math.random().toString(36).slice(2, 6); }
 
+    /* Categorías */
+    async function cargarCategorias() {
+      try {
+        const s = await getDoc(doc(db, "settings", "categories"));
+        if (s.exists() && Array.isArray(s.data().items)) {
+          categorias = s.data().items
+            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string")
+            .map((c) => [c.id, c.name]);
+          return;
+        }
+      } catch (e) { console.error(e); }
+      categorias = CATEGORIAS_BASE.map((c) => c.slice());
+    }
+
+    function llenarCategorias() {
+      const sel = $("f-cat");
+      sel.textContent = "";
+      llenarSelect(sel, categorias);
+      const o = document.createElement("option"); o.value = ""; o.textContent = "Sin categoría";
+      sel.appendChild(o);
+      const opciones = Array.from(sel.options).map((x) => x.value);
+      if (ultimaCat !== null && opciones.includes(ultimaCat)) sel.value = ultimaCat;
+      else sel.selectedIndex = 0;
+    }
+    $("f-cat").addEventListener("change", () => { ultimaCat = $("f-cat").value; });
+
+    function nombreCategoria(id) {
+      return (categorias.find((c) => c[0] === id) || [0, "Sin categoría"])[1];
+    }
+
+    async function guardarCategorias(lista) {
+      await setDoc(doc(db, "settings", "categories"), {
+        items: lista.map(([id, name]) => ({ id: id, name: name })),
+        updatedAt: serverTimestamp()
+      });
+      categorias = lista;
+      llenarCategorias();
+      pintarCategorias();
+    }
+
+    function pintarCategorias() {
+      const cont = $("cats");
+      cont.textContent = "";
+      if (!categorias.length) { cont.textContent = "No hay categorías. Creá la primera acá abajo."; return; }
+      categorias.forEach(([id, nombre]) => {
+        const usan = plantillas.filter((p) => p.x.category === id).length;
+        const f = document.createElement("div"); f.className = "fila";
+        const t = document.createElement("span"); t.textContent = nombre + " (" + usan + ")";
+        const b = document.createElement("button"); b.type = "button"; b.className = "rojo"; b.textContent = "Eliminar";
+        b.onclick = () => eliminarCategoria(id, nombre, usan);
+        f.append(t, b);
+        cont.appendChild(f);
+      });
+    }
+
+    async function eliminarCategoria(id, nombre, usan) {
+      const texto = usan
+        ? "La categoría \"" + nombre + "\" tiene " + usan + " plantilla(s). Si la eliminás, esas plantillas quedan sin categoría y solo se ven en \"Todos\". ¿Eliminar?"
+        : "¿Eliminar la categoría \"" + nombre + "\"?";
+      if (!confirm(texto)) return;
+      try {
+        await guardarCategorias(categorias.filter((c) => c[0] !== id));
+        $("cat-msg").textContent = "Categoría eliminada.";
+      } catch (e) {
+        console.error(e);
+        $("cat-msg").textContent = "No se pudo eliminar.";
+      }
+    }
+
+    $("btn-cat").addEventListener("click", async () => {
+      const msg = $("cat-msg");
+      const nombre = $("n-cat").value.trim();
+      if (!nombre) { msg.textContent = "Escribí el nombre de la categoría."; return; }
+      if (categorias.some((c) => c[1].toLowerCase() === nombre.toLowerCase())) {
+        msg.textContent = "Ya existe una categoría con ese nombre."; return;
+      }
+      if (categorias.length >= 20) { msg.textContent = "Llegaste al máximo de 20 categorías."; return; }
+      let id = slug(nombre) || "categoria";
+      if (categorias.some((c) => c[0] === id)) id += "-" + azar();
+      msg.textContent = "Creando...";
+      try {
+        await guardarCategorias(categorias.concat([[id, nombre]]));
+        $("n-cat").value = "";
+        msg.textContent = "Categoría creada: " + nombre + ".";
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "No se pudo crear la categoría.";
+      }
+    });
+
+    /* Imagen de muestra */
     function comprimir(archivo) {
       return new Promise((ok, mal) => {
         const img = new Image();
@@ -202,7 +308,7 @@
     });
 
     function salirDeEdicion() {
-      editId = null; muestra = ""; muestraActual = "";
+      editId = null; muestra = ""; muestraActual = ""; ultimaCat = null;
       $("form").reset();
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = true; });
       $("c-fondo").value = "#fffaf3"; $("c-texto").value = "#1a1a1a";
@@ -218,7 +324,9 @@
       salirDeEdicion();
       editId = id;
       $("f-nombre").value = x.name || "";
-      $("f-cat").value = x.category || "especial";
+      const cat = x.category || "";
+      $("f-cat").value = Array.from($("f-cat").options).some((o) => o.value === cat) ? cat : "";
+      ultimaCat = $("f-cat").value;
       $("f-fuente").value = x.font || FUENTES[0][0];
       const c = x.colors || {};
       $("c-fondo").value = c.fondo || "#fffaf3"; $("c-texto").value = c.texto || "#1a1a1a";
@@ -266,7 +374,7 @@
           msg.textContent = "Plantilla creada con identificador: " + id;
         }
         salirDeEdicion();
-        listar();
+        refrescar();
       } catch (err) {
         console.error(err);
         msg.textContent = "No se pudo guardar.";
@@ -289,7 +397,7 @@
           creadas++;
         }
         $("base-msg").textContent = creadas ? "Se cargaron " + creadas + " plantilla(s) base." : "Las plantillas base ya estaban cargadas.";
-        listar();
+        refrescar();
       } catch (err) {
         console.error(err);
         $("base-msg").textContent = "No se pudo cargar.";
@@ -301,15 +409,15 @@
       cont.textContent = "Cargando...";
       try {
         const snap = await getDocs(collection(db, "templates"));
+        plantillas = snap.docs.map((d) => ({ id: d.id, x: d.data() }))
+          .sort((a, b) => String(a.x.name || a.id).localeCompare(String(b.x.name || b.id), "es"));
         cont.textContent = "";
-        if (snap.empty) { cont.textContent = "Todavía no hay plantillas. Tocá \"Cargar plantillas base\"."; return; }
-        snap.forEach((d) => {
-          const x = d.data();
+        if (!plantillas.length) { cont.textContent = "Todavía no hay plantillas. Tocá \"Cargar plantillas base\"."; return; }
+        plantillas.forEach(({ id, x }) => {
           const t = document.createElement("div"); t.className = "caja";
-          const n = document.createElement("b"); n.textContent = x.name || d.id;
+          const n = document.createElement("b"); n.textContent = x.name || id;
           const info = document.createElement("div");
-          const cat = (CATEGORIAS.find((c) => c[0] === x.category) || [0, "Sin categoría"])[1];
-          info.textContent = cat + " - identificador: " + d.id;
+          info.textContent = nombreCategoria(x.category) + " - identificador: " + id;
           t.append(n, info);
           if (x.sampleImage && /^data:image\//.test(x.sampleImage)) {
             const im = document.createElement("img");
@@ -317,11 +425,11 @@
             t.appendChild(im);
           }
           const be = document.createElement("button"); be.type = "button"; be.textContent = "Editar";
-          be.onclick = () => editar(d.id, x);
+          be.onclick = () => editar(id, x);
           const bd = document.createElement("button"); bd.type = "button"; bd.className = "rojo"; bd.textContent = "Eliminar";
           bd.onclick = async () => {
-            if (!confirm("¿Eliminar la plantilla " + (x.name || d.id) + "? Las invitaciones que la usan volverán al diseño estándar.")) return;
-            try { await deleteDoc(doc(db, "templates", d.id)); listar(); }
+            if (!confirm("¿Eliminar la plantilla " + (x.name || id) + "? Las invitaciones que la usan volverán al diseño estándar.")) return;
+            try { await deleteDoc(doc(db, "templates", id)); refrescar(); }
             catch (err) { console.error(err); $("f-msg").textContent = "No se pudo eliminar."; }
           };
           t.append(be, bd);
@@ -331,6 +439,17 @@
         console.error(err);
         cont.textContent = "No se pudieron cargar las plantillas.";
       }
+    }
+
+    async function refrescar() {
+      await listar();
+      pintarCategorias();
+    }
+
+    async function iniciar() {
+      await cargarCategorias();
+      llenarCategorias();
+      await refrescar();
     }
   </script>
 </body>
