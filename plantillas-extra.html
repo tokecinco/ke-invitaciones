@@ -14,6 +14,7 @@
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .cat{font-size:.85rem;color:#777}
     .muestra{display:flex;gap:6px;margin-top:6px}
     .muestra span{flex:1;height:26px;border-radius:6px;border:1px solid #ddd}
     .msg{min-height:1.4em}
@@ -32,9 +33,9 @@
 
   <section id="panel" hidden>
     <p>Cargá plantillas ya armadas. Las que ya existan no se tocan. Después podés editarlas en Plantillas.</p>
-    <div id="lista"></div>
     <button id="btn-cargar" type="button">Cargar todas</button>
     <p id="msg" class="msg"></p>
+    <div id="lista"></div>
   </section>
 
   <script type="module">
@@ -52,6 +53,7 @@
     const TREBUCHET = "'Trebuchet MS', sans-serif";
     const GEORGIA = "Georgia, serif";
     const VERDANA = "Verdana, sans-serif";
+    const TIMES = "'Times New Roman', serif";
 
     const NUEVAS = [
       { id: "babyshower-nina", name: "Baby shower niña", category: "babyshower",
@@ -103,7 +105,30 @@
         colors: { fondo: "#fff8ee", texto: "#3d3a35", acento: "#e8574d", suave: "#d9f1ee" } },
       { id: "pase-corporativo", name: "Pase evento corporativo", category: "pase",
         font: VERDANA, sections: PASE_SEC,
-        colors: { fondo: "#f5f7fa", texto: "#1d2733", acento: "#2f6fb2", suave: "#e0e9f4" } }
+        colors: { fondo: "#f5f7fa", texto: "#1d2733", acento: "#2f6fb2", suave: "#e0e9f4" } },
+
+      /* Aniversarios */
+      { id: "aniversario-bordo", name: "Aniversario bordó y dorado", category: "aniversario",
+        font: PALATINO, fondo: "noche",
+        colors: { fondo: "#3a0f1c", texto: "#f6e7e0", acento: "#d9b26f", suave: "#541a2b" } },
+      { id: "aniversario-bordo-claro", name: "Aniversario bordó claro", category: "aniversario",
+        font: GEORGIA,
+        colors: { fondo: "#fdf6f4", texto: "#3b1f26", acento: "#7a1f35", suave: "#f3dfe0" } },
+      { id: "aniversario-bodas-plata", name: "Bodas de plata", category: "aniversario",
+        font: PALATINO, deco: "estrellas",
+        colors: { fondo: "#f5f6f8", texto: "#2b2f36", acento: "#6b7683", suave: "#e3e7ec" } },
+      { id: "aniversario-bodas-oro", name: "Bodas de oro", category: "aniversario",
+        font: GEORGIA, deco: "estrellas",
+        colors: { fondo: "#fffaf0", texto: "#3a2e12", acento: "#b8860b", suave: "#f6e9c8" } },
+      { id: "aniversario-romantico", name: "Aniversario romántico rosa", category: "aniversario",
+        font: GEORGIA, deco: "corazones",
+        colors: { fondo: "#fff5f6", texto: "#4a2b33", acento: "#c2506b", suave: "#fbdde3" } },
+      { id: "aniversario-esmeralda", name: "Aniversario esmeralda", category: "aniversario",
+        font: PALATINO,
+        colors: { fondo: "#f3f8f5", texto: "#1f3a2f", acento: "#2f7d5b", suave: "#dcece3" } },
+      { id: "aniversario-vintage", name: "Aniversario vintage", category: "aniversario",
+        font: TIMES,
+        colors: { fondo: "#f7efe2", texto: "#4a3a2a", acento: "#a0643a", suave: "#ecdcc4" } }
     ];
 
     const CATEGORIAS_BASE = [
@@ -111,6 +136,8 @@
       ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
       ["especial", "Eventos especiales"], ["pase", "Pase QR"]
     ];
+    const NOMBRE_CAT = {};
+    CATEGORIAS_BASE.forEach(([id, n]) => { NOMBRE_CAT[id] = n; });
 
     $("btn-login").addEventListener("click", async () => {
       try {
@@ -129,35 +156,45 @@
       NUEVAS.forEach((p) => {
         const c = document.createElement("div"); c.className = "caja";
         const n = document.createElement("b"); n.textContent = p.name;
+        const k = document.createElement("div"); k.className = "cat"; k.textContent = NOMBRE_CAT[p.category] || p.category;
         const m = document.createElement("div"); m.className = "muestra";
-        ["fondo", "suave", "acento", "texto"].forEach((k) => {
-          const s = document.createElement("span"); s.style.background = p.colors[k]; m.appendChild(s);
+        ["fondo", "suave", "acento", "texto"].forEach((x) => {
+          const s = document.createElement("span"); s.style.background = p.colors[x]; m.appendChild(s);
         });
-        c.append(n, m);
+        c.append(n, k, m);
         cont.appendChild(c);
       });
     }
 
-    // Se asegura de que exista la categoría "Pase QR" para que se vean las plantillas nuevas.
-    async function asegurarCategoriaPase() {
+    // Se asegura de que existan las categorías de las plantillas que se acaban de crear.
+    // Devuelve los nombres de las categorías que tuvo que agregar.
+    async function asegurarCategorias(ids) {
+      if (!ids.length) return [];
       const ref = doc(db, "settings", "categories");
       const s = await getDoc(ref);
       let items;
       if (s.exists() && Array.isArray(s.data().items)) {
-        items = s.data().items;
-        if (items.some((c) => c && c.id === "pase")) return false;
-        items = items.concat([{ id: "pase", name: "Pase QR" }]);
+        items = s.data().items.slice();
       } else {
         items = CATEGORIAS_BASE.map(([id, name]) => ({ id: id, name: name }));
+        await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+        return [];
       }
-      await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
-      return true;
+      const agregadas = [];
+      ids.forEach((id) => {
+        if (items.some((c) => c && c.id === id)) return;
+        items.push({ id: id, name: NOMBRE_CAT[id] || id });
+        agregadas.push(NOMBRE_CAT[id] || id);
+      });
+      if (agregadas.length) await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+      return agregadas;
     }
 
     $("btn-cargar").addEventListener("click", async () => {
       $("msg").textContent = "Cargando...";
       try {
         let creadas = 0;
+        const cats = [];
         for (const p of NUEVAS) {
           const ex = await getDoc(doc(db, "templates", p.id));
           if (ex.exists()) continue;
@@ -169,11 +206,13 @@
           if (p.fondo) datos.fondo = p.fondo;
           await setDoc(doc(db, "templates", p.id), datos);
           creadas++;
+          if (!cats.includes(p.category)) cats.push(p.category);
         }
-        const cat = await asegurarCategoriaPase();
+        const nuevas = await asegurarCategorias(cats);
         $("msg").textContent = (creadas
           ? "Se cargaron " + creadas + " plantilla(s)."
-          : "Esas plantillas ya estaban cargadas.") + (cat ? " Se creó la categoría Pase QR." : "");
+          : "Esas plantillas ya estaban cargadas.") +
+          (nuevas.length ? " Se agregó la categoría: " + nuevas.join(", ") + "." : "");
       } catch (e) {
         console.error(e);
         $("msg").textContent = "No se pudo cargar.";
@@ -181,4 +220,4 @@
     });
   </script>
 </body>
-  </html>
+</html>
