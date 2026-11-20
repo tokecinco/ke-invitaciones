@@ -85,9 +85,9 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium" };
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
 
-    let paquetes = { basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 } };
+    let paquetes = { basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 }, pase: { price: 0, deposit: 0 } };
     let invitaciones = {};
     let pagos = {};
 
@@ -110,7 +110,7 @@
         const s = await getDoc(doc(db, "settings", "packages"));
         if (s.exists()) {
           const g = s.data();
-          ["basico", "premium"].forEach((k) => {
+          ["basico", "premium", "pase"].forEach((k) => {
             if (g[k]) paquetes[k] = { price: g[k].price || 0, deposit: g[k].deposit || 0 };
           });
         } else {
@@ -124,7 +124,10 @@
       }
     }
 
-    const pk = (id) => (invitaciones[id] && invitaciones[id].package === "premium") ? "premium" : "basico";
+    const pk = (id) => {
+      const p = invitaciones[id] && invitaciones[id].package;
+      return (p === "premium" || p === "pase") ? p : "basico";
+    };
     const precioPaq = (id) => (paquetes[pk(id)] || {}).price || 0;
 
     async function cargarDatos() {
@@ -262,4 +265,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
