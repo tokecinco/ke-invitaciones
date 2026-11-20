@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Plantillas nuevas - KE Invitaciones</title>
+  <title>Plantillas prearmadas - KE Invitaciones</title>
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
@@ -20,7 +20,7 @@
   </style>
 </head>
 <body>
-  <h1>Plantillas nuevas</h1>
+  <h1>Plantillas prearmadas</h1>
   <p><a href="plantillas.html">Plantillas</a> - <a href="dashboard.html">Menú</a></p>
 
   <section id="login">
@@ -46,9 +46,12 @@
 
     const $ = (id) => document.getElementById(id);
     const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+    // Pase QR: sin galería (solo portada). "compartir" se mantiene porque ahí se arma el cierre "Nos vemos en".
+    const PASE_SEC = ["portada", "mensaje", "cuenta", "lugar", "info", "rsvp", "compartir"];
     const PALATINO = "'Palatino Linotype', Palatino, serif";
     const TREBUCHET = "'Trebuchet MS', sans-serif";
     const GEORGIA = "Georgia, serif";
+    const VERDANA = "Verdana, sans-serif";
 
     const NUEVAS = [
       { id: "babyshower-nina", name: "Baby shower niña", category: "babyshower",
@@ -80,7 +83,33 @@
         colors: { fondo: "#f7f2fc", texto: "#4b3a63", acento: "#8e63c8", suave: "#e9ddf6" } },
       { id: "quince-glam", name: "15 años glam rosé", category: "quince",
         font: TREBUCHET, fondo: "glam",
-        colors: { fondo: "#fcf3ef", texto: "#4a2f2c", acento: "#b76e79", suave: "#f4dcd8" } }
+        colors: { fondo: "#fcf3ef", texto: "#4a2f2c", acento: "#b76e79", suave: "#f4dcd8" } },
+
+      /* Pase QR */
+      { id: "pase-negro-dorado", name: "Pase negro y dorado", category: "pase",
+        font: PALATINO, fondo: "noche", sections: PASE_SEC,
+        colors: { fondo: "#121212", texto: "#f4ecd8", acento: "#c9a24b", suave: "#1f1f1f" } },
+      { id: "pase-fiesta-neon", name: "Pase fiesta neón", category: "pase",
+        font: TREBUCHET, deco: "estrellas", sections: PASE_SEC,
+        colors: { fondo: "#140a24", texto: "#f5eaff", acento: "#ff4fa3", suave: "#2a1545" } },
+      { id: "pase-minimal", name: "Pase minimal blanco", category: "pase",
+        font: GEORGIA, sections: PASE_SEC,
+        colors: { fondo: "#ffffff", texto: "#222222", acento: "#111111", suave: "#f1f1f1" } },
+      { id: "pase-graduacion", name: "Pase graduación azul y dorado", category: "pase",
+        font: PALATINO, sections: PASE_SEC,
+        colors: { fondo: "#f3f6fb", texto: "#1f2a44", acento: "#b8860b", suave: "#dfe7f5" } },
+      { id: "pase-verano", name: "Pase verano coral", category: "pase",
+        font: TREBUCHET, sections: PASE_SEC,
+        colors: { fondo: "#fff8ee", texto: "#3d3a35", acento: "#e8574d", suave: "#d9f1ee" } },
+      { id: "pase-corporativo", name: "Pase evento corporativo", category: "pase",
+        font: VERDANA, sections: PASE_SEC,
+        colors: { fondo: "#f5f7fa", texto: "#1d2733", acento: "#2f6fb2", suave: "#e0e9f4" } }
+    ];
+
+    const CATEGORIAS_BASE = [
+      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
+      ["especial", "Eventos especiales"], ["pase", "Pase QR"]
     ];
 
     $("btn-login").addEventListener("click", async () => {
@@ -109,6 +138,22 @@
       });
     }
 
+    // Se asegura de que exista la categoría "Pase QR" para que se vean las plantillas nuevas.
+    async function asegurarCategoriaPase() {
+      const ref = doc(db, "settings", "categories");
+      const s = await getDoc(ref);
+      let items;
+      if (s.exists() && Array.isArray(s.data().items)) {
+        items = s.data().items;
+        if (items.some((c) => c && c.id === "pase")) return false;
+        items = items.concat([{ id: "pase", name: "Pase QR" }]);
+      } else {
+        items = CATEGORIAS_BASE.map(([id, name]) => ({ id: id, name: name }));
+      }
+      await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+      return true;
+    }
+
     $("btn-cargar").addEventListener("click", async () => {
       $("msg").textContent = "Cargando...";
       try {
@@ -118,16 +163,17 @@
           if (ex.exists()) continue;
           const datos = {
             name: p.name, category: p.category, font: p.font, colors: p.colors,
-            sections: TODAS, sampleImage: "", active: true, createdAt: serverTimestamp()
+            sections: p.sections || TODAS, sampleImage: "", active: true, createdAt: serverTimestamp()
           };
           if (p.deco) datos.deco = p.deco;
           if (p.fondo) datos.fondo = p.fondo;
           await setDoc(doc(db, "templates", p.id), datos);
           creadas++;
         }
-        $("msg").textContent = creadas
+        const cat = await asegurarCategoriaPase();
+        $("msg").textContent = (creadas
           ? "Se cargaron " + creadas + " plantilla(s)."
-          : "Esas plantillas ya estaban cargadas.";
+          : "Esas plantillas ya estaban cargadas.") + (cat ? " Se creó la categoría Pase QR." : "");
       } catch (e) {
         console.error(e);
         $("msg").textContent = "No se pudo cargar.";
@@ -135,4 +181,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
