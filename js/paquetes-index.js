@@ -3,7 +3,7 @@ import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-const TITULOS = { basico: "Básico", premium: "Premium" };
+const TITULOS = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
 
 function h(tag, texto, clase) {
   const e = document.createElement(tag);
@@ -28,7 +28,7 @@ async function iniciar() {
 
     const estilo = document.createElement("style");
     estilo.textContent =
-      ".paquetes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;max-width:720px;margin:0 auto}" +
+      ".paquetes{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;max-width:900px;margin:0 auto}" +
       ".paq{background:#fff;border:1px solid #eadfc8;border-radius:16px;padding:22px;text-align:center}" +
       ".paq.premium{border:2px solid #c9a24b}" +
       ".paq .monto{font-size:2rem;color:#c9a24b;margin:6px 0}" +
@@ -39,7 +39,7 @@ async function iniciar() {
     document.head.appendChild(estilo);
 
     const cont = h("div", "", "paquetes");
-    ["basico", "premium"].forEach((k) => {
+    ["basico", "premium", "pase"].forEach((k) => {
       const p = g[k];
       if (!p) return;
       const c = h("div", "", "paq" + (k === "premium" ? " premium" : ""));
@@ -82,7 +82,7 @@ async function iniciar() {
 
     if (s.promo) {
       const promo = h("div", s.promo, "promo");
-      promo.style.cssText = "max-width:720px;margin:14px auto 0;text-align:center";
+      promo.style.cssText = "max-width:900px;margin:14px auto 0;text-align:center";
       cont.insertAdjacentElement("afterend", promo);
     }
   } catch (e) {
