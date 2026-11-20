@@ -67,6 +67,7 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
+    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
     const params = new URLSearchParams(location.search);
     const idCod = params.get("i");
     const codigo = params.get("c");
@@ -198,9 +199,11 @@
 
     /* Tarjeta de la invitación */
     function tarjeta(id, x, p) {
+      const esPase = x.package === "pase";
       const t = h("div", "", "caja");
       t.appendChild(h("b", x.honoree || id));
-      t.appendChild(h("div", (x.active ? "Publicada" : "No publicada") + " - " + (x.date || "")));
+      t.appendChild(h("div", (x.active ? "Publicada" : "No publicada") + " - " + (x.date || "") +
+        " - Paquete " + (ETIQ_PAQ[x.package] || "Básico")));
       const a = h("a", linkDe(id));
       a.href = linkDe(id); a.target = "_blank"; a.style.wordBreak = "break-all";
       t.appendChild(a);
@@ -215,18 +218,22 @@
       const bConf = h("button", "Confirmaciones", "sec");
       const bHash = h("button", "Hashtag de las fotos", "sec");
       const bLibro = h("button", "Libro de mensajes", "sec");
-      t.append(bCopiar, bInv, bConf, bHash, bLibro);
+      t.append(bCopiar, bInv, bConf);
+      if (!esPase) t.append(bHash, bLibro);
 
       const pInv = h("div", "", "panelx"); pInv.hidden = true;
       const pConf = h("div", "", "panelx"); pConf.hidden = true;
       const pHash = h("div", "", "panelx"); pHash.hidden = true;
       const pLibro = h("div", "", "panelx"); pLibro.hidden = true;
-      t.append(pInv, pConf, pHash, pLibro);
+      t.append(pInv, pConf);
+      if (!esPase) t.append(pHash, pLibro);
 
       invitados(id, x, bInv, pInv);
       confirmaciones(id, bConf, pConf);
-      hashtag(id, x, bHash, pHash);
-      libro(id, x, bLibro, pLibro);
+      if (!esPase) {
+        hashtag(id, x, bHash, pHash);
+        libro(id, x, bLibro, pLibro);
+      }
       return t;
     }
 
@@ -244,8 +251,8 @@
     }
 
     function invitados(id, x, boton, panel) {
-      if (x.package !== "premium") {
-        panel.appendChild(h("p", "La lista de invitados con invitaciones personales y pases está disponible en el paquete Premium."));
+      if (x.package !== "premium" && x.package !== "pase") {
+        panel.appendChild(h("p", "La lista de invitados con invitaciones personales y pases está disponible en los paquetes Premium y Pase QR."));
         boton.onclick = () => { panel.hidden = !panel.hidden; };
         return;
       }
