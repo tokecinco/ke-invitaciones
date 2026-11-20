@@ -28,6 +28,7 @@
     .vista{border-radius:12px;padding:20px;text-align:center;border:1px solid #d8cbb0;margin:10px 0}
     .vista .tarj{display:inline-block;border-radius:10px;padding:8px 14px;margin:8px 4px 0}
     .miniatura{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:6px}
+    .nota{font-size:.85rem;color:#777;margin:4px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -64,10 +65,16 @@
       <input id="f-nombre" placeholder="Nombre de la plantilla" maxlength="60">
       <label>Categoría</label>
       <select id="f-cat"></select>
-      <label>Tipo de letra</label>
-      <select id="f-fuente"></select>
 
-      <label>Colores</label>
+      <h2>Tipografías</h2>
+      <label>Títulos (nombre grande, títulos de cada sección y números de la cuenta regresiva)</label>
+      <select id="f-f-titulo"></select>
+      <label>Subtítulos e información (textos, mensaje y formularios)</label>
+      <select id="f-f-texto"></select>
+      <label>Botones</label>
+      <select id="f-f-boton"></select>
+
+      <h2>Colores</h2>
       <div class="colores">
         <div>Fondo<input id="c-fondo" type="color" value="#fffaf3"></div>
         <div>Texto<input id="c-texto" type="color" value="#1a1a1a"></div>
@@ -77,11 +84,27 @@
 
       <div id="vista" class="vista">
         <h3 id="v-titulo" style="margin:0">Sofía</h3>
-        <p id="v-texto" style="margin:6px 0">Así se ve tu plantilla</p>
+        <p id="v-sub" style="margin:6px 0 0">Subtítulo de ejemplo</p>
+        <p id="v-texto" style="margin:4px 0">Así se ven los textos de tu plantilla</p>
         <span id="v-boton" class="tarj">Botón</span>
         <span id="v-caja" class="tarj">Caja</span>
       </div>
 
+      <h2>Fondos y efectos</h2>
+      <label>Estilo de fondo completo</label>
+      <select id="f-fondo"></select>
+      <p class="nota">Cambia la forma de la portada y de las secciones. Si elegís uno, no hace falta marco ni detalle de fondo.</p>
+      <label>Detalle de fondo</label>
+      <select id="f-patron"></select>
+      <label>Marco</label>
+      <select id="f-marco"></select>
+      <label>Decoración flotante (aparece en la portada)</label>
+      <select id="f-deco"></select>
+      <label>Efectos</label>
+      <div id="efectos"></div>
+      <p class="nota">Los fondos, marcos y efectos se ven en la invitación, no en la muestra de arriba. Guardá y abrí una invitación con esta plantilla para verlos.</p>
+
+      <h2>Secciones</h2>
       <label>Secciones que muestra</label>
       <div id="secciones"></div>
 
@@ -104,6 +127,7 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { FUENTES, buscarFuente, cargarFuente } from "./js/fuentes.js";
 
     const $ = (id) => document.getElementById(id);
 
@@ -113,17 +137,37 @@
       ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
       ["especial", "Eventos especiales"], ["pase", "Pase QR"]
     ];
-    const FUENTES = [
-      ["Georgia, serif", "Georgia (clásica)"],
-      ["'Palatino Linotype', Palatino, serif", "Palatino (elegante)"],
-      ["'Times New Roman', serif", "Times (tradicional)"],
-      ["'Trebuchet MS', sans-serif", "Trebuchet (alegre)"],
-      ["Verdana, sans-serif", "Verdana (simple)"]
-    ];
     const SECCIONES = [
       ["portada", "Portada"], ["mensaje", "Mensaje personalizado"], ["cuenta", "Cuenta regresiva"],
       ["lugar", "Fecha y lugar"], ["info", "Información adicional"], ["galeria", "Galería de fotos"],
       ["rsvp", "Confirmación de asistencia"], ["compartir", "Botón compartir"]
+    ];
+    const ESTILOS_FONDO = [
+      ["", "Ninguno (diseño estándar)"],
+      ["boda-salvia", "Arco y ramas (casamiento moderno)"],
+      ["boda-terracota", "Arco y ramas, variante terracota"],
+      ["noche", "Noche con estrellas y marco dorado"],
+      ["boho", "Boho (arco de colores y pampas)"],
+      ["princesa", "Princesa (corona dorada)"],
+      ["lila", "Lila con mariposas"],
+      ["glam", "Glam (un 15 gigante y confeti, para 15 años)"]
+    ];
+    const PATRONES = [
+      ["", "Ninguno"], ["puntos", "Puntitos"], ["rayas", "Rayas diagonales"],
+      ["cuadricula", "Cuadrícula suave"], ["degrade", "Degradé suave"]
+    ];
+    const MARCOS = [
+      ["", "Sin marco"], ["fino", "Marco fino"], ["doble", "Marco doble"], ["esquinas", "Esquinas decoradas"]
+    ];
+    const DECOS = [
+      ["", "Ninguna"], ["corazones", "Corazones"], ["estrellas", "Estrellas"], ["nubes", "Nubes"],
+      ["burbujas", "Burbujas"], ["flores", "Flores"], ["nieve", "Copos de nieve"],
+      ["destellos", "Destellos"], ["notas", "Notas musicales"]
+    ];
+    const EFECTOS = [
+      ["titulos", "Brillo que recorre los títulos"],
+      ["botones", "Destello en los botones"],
+      ["cuenta", "Cuenta regresiva que late"]
     ];
     const BASE = [
       { id: "cumple", name: "Cumpleaños infantil", category: "cumpleanos",
@@ -149,7 +193,22 @@
         const o = document.createElement("option"); o.value = v; o.textContent = t; sel.appendChild(o);
       });
     }
-    llenarSelect($("f-fuente"), FUENTES);
+    FUENTES.forEach((f) => {
+      ["f-f-titulo", "f-f-texto", "f-f-boton"].forEach((id) => {
+        const o = document.createElement("option"); o.value = f.css; o.textContent = f.nombre;
+        $(id).appendChild(o);
+      });
+    });
+    llenarSelect($("f-fondo"), ESTILOS_FONDO);
+    llenarSelect($("f-patron"), PATRONES);
+    llenarSelect($("f-marco"), MARCOS);
+    llenarSelect($("f-deco"), DECOS);
+    EFECTOS.forEach(([k, t]) => {
+      const f = document.createElement("label"); f.className = "check";
+      const c = document.createElement("input"); c.type = "checkbox"; c.id = "e-" + k;
+      f.append(c, t);
+      $("efectos").appendChild(f);
+    });
     SECCIONES.forEach(([k, t]) => {
       const f = document.createElement("label"); f.className = "check";
       const c = document.createElement("input"); c.type = "checkbox"; c.id = "s-" + k; c.checked = true;
@@ -162,13 +221,19 @@
       const v = $("vista");
       v.style.background = $("c-fondo").value;
       v.style.color = $("c-texto").value;
-      v.style.fontFamily = $("f-fuente").value;
+      ["titulo", "texto", "boton"].forEach((k) => cargarFuente(buscarFuente($("f-f-" + k).value)));
+      v.style.fontFamily = $("f-f-texto").value;
+      $("v-titulo").style.fontFamily = $("f-f-titulo").value;
       $("v-titulo").style.color = $("c-acento").value;
+      $("v-sub").style.fontFamily = $("f-f-texto").value;
+      $("v-texto").style.fontFamily = $("f-f-texto").value;
+      $("v-boton").style.fontFamily = $("f-f-boton").value;
       $("v-boton").style.background = $("c-acento").value;
       $("v-boton").style.color = "#ffffff";
+      $("v-caja").style.fontFamily = $("f-f-texto").value;
       $("v-caja").style.background = $("c-suave").value;
     }
-    ["c-fondo", "c-texto", "c-acento", "c-suave", "f-fuente"].forEach((id) => {
+    ["c-fondo", "c-texto", "c-acento", "c-suave", "f-f-titulo", "f-f-texto", "f-f-boton"].forEach((id) => {
       $(id).addEventListener("input", previsualizar);
       $(id).addEventListener("change", previsualizar);
     });
@@ -307,10 +372,21 @@
       } catch (err) { $("f-msg").textContent = "No se pudo leer la imagen."; }
     });
 
+    function fijarSelect(id, valor) {
+      const sel = $(id);
+      const v = valor || "";
+      if (!Array.from(sel.options).some((o) => o.value === v)) {
+        const o = document.createElement("option"); o.value = v; o.textContent = v + " (valor actual)";
+        sel.appendChild(o);
+      }
+      sel.value = v;
+    }
+
     function salirDeEdicion() {
       editId = null; muestra = ""; muestraActual = ""; ultimaCat = null;
       $("form").reset();
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = true; });
+      EFECTOS.forEach(([k]) => { $("e-" + k).checked = false; });
       $("c-fondo").value = "#fffaf3"; $("c-texto").value = "#1a1a1a";
       $("c-acento").value = "#c9a24b"; $("c-suave").value = "#f6dde2";
       $("v-muestra").hidden = true;
@@ -327,10 +403,24 @@
       const cat = x.category || "";
       $("f-cat").value = Array.from($("f-cat").options).some((o) => o.value === cat) ? cat : "";
       ultimaCat = $("f-cat").value;
-      $("f-fuente").value = x.font || FUENTES[0][0];
+
+      const f = x.fonts || {};
+      const general = buscarFuente(x.font) ? x.font : FUENTES[0].css;
+      fijarSelect("f-f-titulo", buscarFuente(f.titulo) ? f.titulo : general);
+      fijarSelect("f-f-texto", buscarFuente(f.texto) ? f.texto : general);
+      fijarSelect("f-f-boton", buscarFuente(f.boton) ? f.boton : general);
+
       const c = x.colors || {};
       $("c-fondo").value = c.fondo || "#fffaf3"; $("c-texto").value = c.texto || "#1a1a1a";
       $("c-acento").value = c.acento || "#c9a24b"; $("c-suave").value = c.suave || "#f6dde2";
+
+      fijarSelect("f-fondo", x.fondo);
+      fijarSelect("f-patron", x.patron);
+      fijarSelect("f-marco", x.marco);
+      fijarSelect("f-deco", x.deco);
+      const ef = Array.isArray(x.efectos) ? x.efectos : [];
+      EFECTOS.forEach(([k]) => { $("e-" + k).checked = ef.includes(k); });
+
       const s = Array.isArray(x.sections) ? x.sections : SECCIONES.map(([k]) => k);
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = k === "portada" || s.includes(k); });
       muestraActual = x.sampleImage || "";
@@ -349,11 +439,21 @@
       const datos = {
         name: nombre,
         category: $("f-cat").value,
-        font: $("f-fuente").value,
+        font: $("f-f-texto").value,
+        fonts: {
+          titulo: $("f-f-titulo").value,
+          texto: $("f-f-texto").value,
+          boton: $("f-f-boton").value
+        },
         colors: {
           fondo: $("c-fondo").value, texto: $("c-texto").value,
           acento: $("c-acento").value, suave: $("c-suave").value
         },
+        fondo: $("f-fondo").value,
+        patron: $("f-patron").value,
+        marco: $("f-marco").value,
+        deco: $("f-deco").value,
+        efectos: EFECTOS.map(([k]) => k).filter((k) => $("e-" + k).checked),
         sections: SECCIONES.map(([k]) => k).filter((k) => $("s-" + k).checked),
         sampleImage: muestra || muestraActual || ""
       };
@@ -453,4 +553,4 @@
     }
   </script>
 </body>
-          </html>
+  </html>
