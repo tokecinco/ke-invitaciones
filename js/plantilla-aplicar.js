@@ -28,11 +28,16 @@ const EFECTOS = { titulos: "ef-titulos", botones: "ef-botones", cuenta: "ef-cuen
 const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
 const idInvitacion = new URLSearchParams(location.search).get("i");
 
-function fuente(estilo, variable, valor) {
+// Aplica una tipografía. Si la fuente tiene "peso" (por ejemplo negrita), también lo aplica.
+function fuente(estilo, variable, valor, rol) {
   const f = buscarFuente(valor);
   if (!f) return;
   estilo.setProperty(variable, f.css);
   cargarFuente(f);
+  if (rol && f.peso) {
+    estilo.setProperty("--p-" + rol, String(f.peso));
+    document.body.classList.add("peso-" + rol);
+  }
 }
 
 async function aplicar() {
@@ -56,10 +61,10 @@ async function aplicar() {
 
     // Tipografías: general, y una para títulos, textos y botones (si la plantilla no las define, usa la general)
     const f = x.fonts || {};
-    fuente(estilo, "--fuente", x.font);
-    fuente(estilo, "--f-titulo", f.titulo || x.font);
-    fuente(estilo, "--f-texto", f.texto || x.font);
-    fuente(estilo, "--f-boton", f.boton || x.font);
+    fuente(estilo, "--fuente", x.font, null);
+    fuente(estilo, "--f-titulo", f.titulo || x.font, "titulo");
+    fuente(estilo, "--f-texto", f.texto || x.font, "texto");
+    fuente(estilo, "--f-boton", f.boton || x.font, "boton");
 
     // Detalle de fondo, marco, decoración y efectos
     if (PATRONES.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
