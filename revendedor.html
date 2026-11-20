@@ -103,7 +103,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium" };
+    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
 
@@ -175,7 +175,7 @@
       precios = {};
       const pq = await getDoc(doc(db, "settings", "packages"));
       if (pq.exists()) {
-        ["basico", "premium"].forEach((k) => {
+        ["basico", "premium", "pase"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
       }
@@ -284,4 +284,4 @@
     }
   </script>
 </body>
-  </html>
+</html>
