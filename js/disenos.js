@@ -52,7 +52,9 @@ async function iniciar() {
       getDoc(doc(db, "settings", "packages")),
       getDoc(doc(db, "settings", "categories"))
     ]);
-    tpl = tp.docs.map((d) => ({ id: d.id, ...d.data() })).filter((m) => m.active !== false);
+    // Solo se muestran las plantillas activas que no estén ocultas de la página principal
+    tpl = tp.docs.map((d) => ({ id: d.id, ...d.data() }))
+      .filter((m) => m.active !== false && m.showHome !== false);
     if (site.exists()) {
       demos = site.data().demos || {};
       wa = String(site.data().whatsapp || "").replace(/\D/g, "");
