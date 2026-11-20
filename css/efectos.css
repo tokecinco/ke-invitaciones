@@ -1,0 +1,78 @@
+/* ===== Tipografías de la plantilla (si no define las suyas, se usa --fuente) ===== */
+body { font-family:var(--f-texto, var(--fuente)); }
+body h1, body h2, body h3, body #nombre, body .cuenta b { font-family:var(--f-titulo, var(--fuente)); }
+body .boton, body button { font-family:var(--f-boton, var(--fuente)); }
+
+/* ===== Detalle de fondo ===== */
+body.patron-puntos {
+  background-image:radial-gradient(color-mix(in srgb, var(--acento) 24%, transparent) 1.4px, transparent 1.8px);
+  background-size:22px 22px;
+}
+body.patron-rayas {
+  background-image:repeating-linear-gradient(45deg, color-mix(in srgb, var(--acento) 15%, transparent) 0 1px, transparent 1px 16px);
+}
+body.patron-cuadricula {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--acento) 13%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--acento) 13%, transparent) 1px, transparent 1px);
+  background-size:26px 26px;
+}
+body.patron-degrade {
+  background-image:linear-gradient(180deg, var(--fondo), var(--suave));
+  background-attachment:fixed;
+}
+
+/* ===== Marco ===== */
+body.marco-fino::before {
+  content:""; position:fixed; inset:10px; pointer-events:none; z-index:5;
+  border:1px solid var(--acento);
+  border:1px solid color-mix(in srgb, var(--acento) 65%, transparent);
+}
+body.marco-doble::before {
+  content:""; position:fixed; inset:10px; pointer-events:none; z-index:5;
+  border:4px double var(--acento);
+  border:4px double color-mix(in srgb, var(--acento) 70%, transparent);
+}
+body.marco-esquinas::before {
+  content:""; position:fixed; inset:12px; pointer-events:none; z-index:5;
+  background:
+    linear-gradient(var(--acento), var(--acento)) top left / 36px 2px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top left / 2px 36px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top right / 36px 2px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) top right / 2px 36px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom left / 36px 2px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom left / 2px 36px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom right / 36px 2px no-repeat,
+    linear-gradient(var(--acento), var(--acento)) bottom right / 2px 36px no-repeat;
+}
+
+/* ===== Decoraciones flotantes nuevas (el estilo general está en extras.css) ===== */
+body.deco-flores .brillo::before { content:"\273F\FE0E"; }
+body.deco-nieve .brillo::before { content:"\2744\FE0E"; }
+body.deco-destellos .brillo::before { content:"\2726\FE0E"; }
+body.deco-notas .brillo::before { content:"\266A\FE0E"; }
+
+/* ===== Efectos ===== */
+body.ef-titulos h2,
+body.ef-titulos .cuenta b {
+  background:linear-gradient(100deg, var(--acento) 30%, color-mix(in srgb, var(--acento) 35%, #ffffff) 50%, var(--acento) 70%);
+  background-size:250% 100%;
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+  animation:efBrilloTexto 4.5s linear infinite;
+}
+@keyframes efBrilloTexto { from { background-position:150% 0; } to { background-position:-50% 0; } }
+
+body.ef-botones .boton {
+  background-color:var(--acento);
+  background-image:linear-gradient(110deg, transparent 35%, rgba(255,255,255,.5) 50%, transparent 65%);
+  background-size:250% 100%;
+  animation:efDestello 3.2s ease-in-out infinite;
+}
+@keyframes efDestello { 0% { background-position:150% 0; } 60%, 100% { background-position:-50% 0; } }
+
+body.ef-cuenta .cuenta div { animation:efLatido 2.6s ease-in-out infinite; }
+body.ef-cuenta .cuenta div:nth-child(2) { animation-delay:.2s; }
+body.ef-cuenta .cuenta div:nth-child(3) { animation-delay:.4s; }
+body.ef-cuenta .cuenta div:nth-child(4) { animation-delay:.6s; }
+@keyframes efLatido { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.06); } }
