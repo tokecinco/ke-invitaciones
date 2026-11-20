@@ -76,3 +76,8 @@ body.ef-cuenta .cuenta div:nth-child(2) { animation-delay:.2s; }
 body.ef-cuenta .cuenta div:nth-child(3) { animation-delay:.4s; }
 body.ef-cuenta .cuenta div:nth-child(4) { animation-delay:.6s; }
 @keyframes efLatido { 0%, 100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+/* ===== Grosor de letra (para fuentes que lo definen, como Oswald Bold) ===== */
+body.peso-titulo h1, body.peso-titulo h2, body.peso-titulo h3,
+body.peso-titulo #nombre, body.peso-titulo .cuenta b { font-weight:var(--p-titulo); }
+body.peso-texto { font-weight:var(--p-texto); }
+body.peso-boton .boton, body.peso-boton button { font-weight:var(--p-boton); }
