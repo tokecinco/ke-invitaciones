@@ -1,14 +1,12 @@
 import { db } from "./firebase.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { buscarFuente, cargarFuente } from "./fuentes.js";
 
-const FUENTES = [
-  "Georgia, serif",
-  "'Palatino Linotype', Palatino, serif",
-  "'Times New Roman', serif",
-  "'Trebuchet MS', sans-serif",
-  "Verdana, sans-serif"
-];
+const css = document.createElement("link");
+css.rel = "stylesheet";
+css.href = "css/efectos.css";
+document.head.appendChild(css);
 
 const SECCIONES = {
   portada: "portada",
@@ -21,8 +19,21 @@ const SECCIONES = {
   compartir: "btn-compartir"
 };
 
+const PATRONES = ["puntos", "rayas", "cuadricula", "degrade"];
+const MARCOS = ["fino", "doble", "esquinas"];
+// Las decoraciones corazones, estrellas, nubes y burbujas las agrega extras.js
+const DECOS_NUEVAS = ["flores", "nieve", "destellos", "notas"];
+const EFECTOS = { titulos: "ef-titulos", botones: "ef-botones", cuenta: "ef-cuenta" };
+
 const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
 const idInvitacion = new URLSearchParams(location.search).get("i");
+
+function fuente(estilo, variable, valor) {
+  const f = buscarFuente(valor);
+  if (!f) return;
+  estilo.setProperty(variable, f.css);
+  cargarFuente(f);
+}
 
 async function aplicar() {
   if (!idInvitacion) return;
@@ -42,7 +53,23 @@ async function aplicar() {
     if (esColor(c.texto)) estilo.setProperty("--texto", c.texto);
     if (esColor(c.acento)) estilo.setProperty("--acento", c.acento);
     if (esColor(c.suave)) estilo.setProperty("--suave", c.suave);
-    if (FUENTES.includes(x.font)) estilo.setProperty("--fuente", x.font);
+
+    // Tipografías: general, y una para títulos, textos y botones (si la plantilla no las define, usa la general)
+    const f = x.fonts || {};
+    fuente(estilo, "--fuente", x.font);
+    fuente(estilo, "--f-titulo", f.titulo || x.font);
+    fuente(estilo, "--f-texto", f.texto || x.font);
+    fuente(estilo, "--f-boton", f.boton || x.font);
+
+    // Detalle de fondo, marco, decoración y efectos
+    if (PATRONES.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
+    if (MARCOS.includes(x.marco)) document.body.classList.add("marco-" + x.marco);
+    if (DECOS_NUEVAS.includes(x.deco)) document.body.classList.add("deco-" + x.deco);
+    if (Array.isArray(x.efectos)) {
+      x.efectos.forEach((e) => {
+        if (EFECTOS[e]) document.body.classList.add(EFECTOS[e]);
+      });
+    }
 
     if (Array.isArray(x.sections)) {
       Object.keys(SECCIONES).forEach((clave) => {
