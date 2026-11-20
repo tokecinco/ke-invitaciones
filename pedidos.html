@@ -101,7 +101,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const PROD = { basico: "Invitación Básica", premium: "Invitación Premium" };
+    const PROD = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -132,7 +132,7 @@
         revs = {}; rs.forEach((d) => { revs[d.id] = d.data(); });
         invs = {}; is.forEach((d) => { invs[d.id] = d.data(); });
         precios = {};
-        if (pq.exists()) ["basico", "premium"].forEach((k) => {
+        if (pq.exists()) ["basico", "premium", "pase"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
         armarSelectores();
@@ -341,7 +341,8 @@
           const i = invs[inv.value];
           await setDoc(doc(db, "payments", inv.value), {
             invitationId: inv.value, ownerId: i.ownerId || auth.currentUser.uid,
-            honoree: i.honoree || "", package: i.package === "premium" ? "premium" : "basico",
+            honoree: i.honoree || "",
+            package: (i.package === "premium" || i.package === "pase") ? i.package : "basico",
             price: ap, received: co,
             status: ap > 0 && co >= ap ? "pagado" : (co > 0 ? "senado" : "pendiente"),
             note: "Pedido de " + p.clientName + (r ? " (revendedor " + r.name + ")" : ""),
