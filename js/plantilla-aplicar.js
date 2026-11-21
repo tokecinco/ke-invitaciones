@@ -2,11 +2,14 @@ import { db } from "./firebase.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { buscarFuente, cargarFuente } from "./fuentes.js";
+import { PATRONES, MARCOS, DECOS } from "./opciones-plantillas.js";
 
-const css = document.createElement("link");
-css.rel = "stylesheet";
-css.href = "css/efectos.css";
-document.head.appendChild(css);
+["css/efectos.css", "css/efectos-2.css"].forEach((href) => {
+  const l = document.createElement("link");
+  l.rel = "stylesheet";
+  l.href = href;
+  document.head.appendChild(l);
+});
 
 const SECCIONES = {
   portada: "portada",
@@ -19,10 +22,11 @@ const SECCIONES = {
   compartir: "btn-compartir"
 };
 
-const PATRONES = ["puntos", "rayas", "cuadricula", "degrade"];
-const MARCOS = ["fino", "doble", "esquinas"];
-// Las decoraciones corazones, estrellas, nubes y burbujas las agrega extras.js
-const DECOS_NUEVAS = ["flores", "nieve", "destellos", "notas"];
+// Identificadores válidos (sin la opción vacía "Ninguno")
+const VALIDOS = (lista) => lista.map((o) => o[0]).filter(Boolean);
+const PATRONES_OK = VALIDOS(PATRONES);
+const MARCOS_OK = VALIDOS(MARCOS);
+const DECOS_OK = VALIDOS(DECOS);
 const EFECTOS = { titulos: "ef-titulos", botones: "ef-botones", cuenta: "ef-cuenta" };
 
 const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
@@ -67,9 +71,9 @@ async function aplicar() {
     fuente(estilo, "--f-boton", f.boton || x.font, "boton");
 
     // Detalle de fondo, marco, decoración y efectos
-    if (PATRONES.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
-    if (MARCOS.includes(x.marco)) document.body.classList.add("marco-" + x.marco);
-    if (DECOS_NUEVAS.includes(x.deco)) document.body.classList.add("deco-" + x.deco);
+    if (PATRONES_OK.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
+    if (MARCOS_OK.includes(x.marco)) document.body.classList.add("marco-" + x.marco);
+    if (DECOS_OK.includes(x.deco)) document.body.classList.add("deco-" + x.deco);
     if (Array.isArray(x.efectos)) {
       x.efectos.forEach((e) => {
         if (EFECTOS[e]) document.body.classList.add(EFECTOS[e]);
