@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Baby shower - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:8px 0}
+    .desc{font-size:.9rem;color:#666;margin:4px 0}
+    .nuevo{display:inline-block;background:#f6dde2;border-radius:10px;padding:1px 8px;font-size:.75rem;margin-left:6px}
+    .muestra{display:flex;gap:6px;margin-top:6px}
+    .muestra span{flex:1;height:26px;border-radius:6px;border:1px solid #ddd}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Baby shower</h1>
+  <p><a href="plantillas.html">Plantillas</a> - <a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Actualiza las 3 plantillas de baby shower que ya tenés con el diseño nuevo (letras, fondos y decoraciones) y carga las 5 nuevas. Si le cambiaste algo a mano a las 3 existentes, se reemplaza.</p>
+    <button id="btn-cargar" type="button">Actualizar y cargar las 8 de baby shower</button>
+    <p id="msg" class="msg"></p>
+    <div id="lista"></div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+    const $ = (id) => document.getElementById(id);
+    const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+    const NUNITO = "'Nunito Sans', sans-serif";
+    const FREDOKA = "'Fredoka', sans-serif";
+
+    const PLANTILLAS = [
+      { id: "babyshower-nina", name: "Baby shower niña", existente: true,
+        desc: "Rosa con acuarela suave, corazones flotando y marco redondeado.",
+        fonts: { titulo: "'Parisienne', cursive", texto: NUNITO, boton: FREDOKA },
+        colors: { fondo: "#fff7fa", texto: "#5a4048", acento: "#e58fae", suave: "#fde4ee" },
+        fondo: "acuarela", patron: "", marco: "redondeado", deco: "corazones", efectos: ["botones"] },
+      { id: "babyshower-nino", name: "Baby shower niño", existente: true,
+        desc: "Cielo celeste con nubes y estrellitas flotando.",
+        fonts: { titulo: "'Dancing Script', cursive", texto: NUNITO, boton: FREDOKA },
+        colors: { fondo: "#f6faff", texto: "#35495e", acento: "#5b9bd5", suave: "#dcebfa" },
+        fondo: "cielo", patron: "", marco: "", deco: "estrellas", efectos: ["botones"] },
+      { id: "babyshower-neutro", name: "Baby shower neutro", existente: true,
+        desc: "Acuarela verde salvia con hojitas flotando.",
+        fonts: { titulo: "'Cormorant Garamond', serif", texto: "'Lora', serif", boton: "'Poppins', sans-serif" },
+        colors: { fondo: "#fbfaf3", texto: "#3f4a3f", acento: "#7fae8a", suave: "#e3f1e4" },
+        fondo: "acuarela", patron: "", marco: "", deco: "hojas", efectos: [] },
+      { id: "babyshower-osito", name: "Baby shower osito",
+        desc: "Crema y marrón suave con lunares, estrellitas y marco redondeado.",
+        fonts: { titulo: FREDOKA, texto: NUNITO, boton: FREDOKA },
+        colors: { fondo: "#fdf6ec", texto: "#5a4636", acento: "#c08a5b", suave: "#f3e1cc" },
+        fondo: "", patron: "lunares", marco: "redondeado", deco: "estrellas", efectos: ["botones"] },
+      { id: "babyshower-luna", name: "Baby shower luna y estrellas",
+        desc: "Azul noche con cielo estrellado, lunas flotando y letras doradas con brillo.",
+        fonts: { titulo: "'Cormorant Garamond', serif", texto: NUNITO, boton: "'Montserrat', sans-serif" },
+        colors: { fondo: "#1d2b4f", texto: "#f3efe4", acento: "#f2c96b", suave: "#2b3b66" },
+        fondo: "estrellado", patron: "", marco: "", deco: "lunas", efectos: ["titulos"] },
+      { id: "babyshower-globos", name: "Baby shower globos",
+        desc: "Globos rosas y celestes sobre fondo crema con lunares.",
+        fonts: { titulo: "'Pacifico', cursive", texto: NUNITO, boton: FREDOKA },
+        colors: { fondo: "#fffbf3", texto: "#4a3f45", acento: "#f29ab2", suave: "#cfe8f7" },
+        fondo: "globos", patron: "lunares", marco: "", deco: "", efectos: ["botones"] },
+      { id: "babyshower-flores", name: "Baby shower flores",
+        desc: "Flores rosa pastel en las esquinas y capullos flotando.",
+        fonts: { titulo: "'Allura', cursive", texto: "'Lora', serif", boton: "'Raleway', sans-serif" },
+        colors: { fondo: "#fff7f5", texto: "#4f3a40", acento: "#d98fa3", suave: "#fbe3e8" },
+        fondo: "flores", patron: "", marco: "", deco: "capullos", efectos: [] },
+      { id: "babyshower-mariposas", name: "Baby shower mariposas lila",
+        desc: "Lila con mariposas y un óvalo para la foto (ideal para la ecografía).",
+        fonts: { titulo: "'Great Vibes', cursive", texto: NUNITO, boton: "'Montserrat', sans-serif" },
+        colors: { fondo: "#f8f4ff", texto: "#4b3a63", acento: "#9a7fd1", suave: "#e9e0fa" },
+        fondo: "lila", patron: "", marco: "", deco: "", efectos: [] }
+    ];
+
+    $("btn-login").addEventListener("click", async () => {
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    onAuthStateChanged(auth, (u) => {
+      $("login").hidden = !!u;
+      $("panel").hidden = !u;
+      if (u) dibujar();
+    });
+
+    function dibujar() {
+      const cont = $("lista");
+      cont.textContent = "";
+      PLANTILLAS.forEach((p) => {
+        const c = document.createElement("div"); c.className = "caja";
+        const n = document.createElement("b"); n.textContent = p.name;
+        if (!p.existente) {
+          const t = document.createElement("span"); t.className = "nuevo"; t.textContent = "nueva";
+          n.appendChild(t);
+        }
+        const d = document.createElement("div"); d.className = "desc"; d.textContent = p.desc;
+        const m = document.createElement("div"); m.className = "muestra";
+        ["fondo", "suave", "acento", "texto"].forEach((x) => {
+          const s = document.createElement("span"); s.style.background = p.colors[x]; m.appendChild(s);
+        });
+        c.append(n, d, m);
+        cont.appendChild(c);
+      });
+    }
+
+    // Se asegura de que exista la categoría Baby shower
+    async function asegurarCategoria() {
+      const ref = doc(db, "settings", "categories");
+      const s = await getDoc(ref);
+      if (!s.exists() || !Array.isArray(s.data().items)) return false;
+      const items = s.data().items.slice();
+      if (items.some((c) => c && c.id === "babyshower")) return false;
+      items.push({ id: "babyshower", name: "Baby shower" });
+      await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+      return true;
+    }
+
+    $("btn-cargar").addEventListener("click", async () => {
+      $("msg").textContent = "Cargando...";
+      try {
+        let nuevas = 0, actualizadas = 0;
+        for (const p of PLANTILLAS) {
+          const diseno = {
+            name: p.name, category: "babyshower",
+            font: p.fonts.texto, fonts: p.fonts, colors: p.colors,
+            fondo: p.fondo, patron: p.patron, marco: p.marco, deco: p.deco, efectos: p.efectos,
+            sections: TODAS
+          };
+          const ref = doc(db, "templates", p.id);
+          const ex = await getDoc(ref);
+          if (ex.exists()) {
+            diseno.updatedAt = serverTimestamp();
+            await updateDoc(ref, diseno);
+            actualizadas++;
+          } else {
+            diseno.sampleImage = "";
+            diseno.active = true;
+            diseno.showHome = true;
+            diseno.createdAt = serverTimestamp();
+            await setDoc(ref, diseno);
+            nuevas++;
+          }
+        }
+        const cat = await asegurarCategoria();
+        $("msg").textContent = "Listo: " + actualizadas + " actualizada(s) y " + nuevas + " nueva(s)." +
+          (cat ? " Se agregó la categoría Baby shower." : "");
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo cargar.";
+      }
+    });
+  </script>
+</body>
+</html>
