@@ -1,0 +1,22 @@
+/* Tamaños de letra por grupo (la plantilla define --z-titulo, --z-subtitulo, --z-info y --z-boton) */
+body.z-titulo #nombre,
+body.z-titulo #sobre-nombre { zoom:var(--z-titulo); }
+
+body.z-subtitulo h2,
+body.z-subtitulo .tipo,
+body.z-subtitulo #bienvenida,
+body.z-subtitulo .nos-vemos,
+body.z-subtitulo .cuenta b { zoom:var(--z-subtitulo); }
+
+body.z-info .mensaje,
+body.z-info #info,
+body.z-info #fecha-hora,
+body.z-info #lugar,
+body.z-info .tarjeta-esp,
+body.z-info .nos-fecha,
+body.z-info .nos-lugar,
+body.z-info .cuenta span,
+body.z-info .estado { zoom:var(--z-info); }
+
+body.z-boton .boton,
+body.z-boton #form-rsvp button { zoom:var(--z-boton); }
