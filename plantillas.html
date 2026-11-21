@@ -13,6 +13,7 @@
     input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     input[type=color]{height:48px;padding:4px}
     input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    input[type=range]{padding:0;height:34px;border:0;background:transparent;accent-color:#c9a24b}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
     button.rojo{background:#c0392b}
@@ -76,6 +77,11 @@
       <select id="f-f-texto"></select>
       <label>Botones</label>
       <select id="f-f-boton"></select>
+
+      <h2>Tamaños de letra</h2>
+      <p class="nota">100% es el tamaño normal. La muestra de más abajo refleja los cambios.</p>
+      <div id="tamanos"></div>
+      <button id="btn-reset-tam" class="sec ancho" type="button">Restablecer tamaños</button>
 
       <h2>Colores</h2>
       <div class="colores">
@@ -146,6 +152,12 @@
       ["lugar", "Fecha y lugar"], ["info", "Información adicional"], ["galeria", "Galería de fotos"],
       ["rsvp", "Confirmación de asistencia"], ["compartir", "Botón compartir"]
     ];
+    const TAMANOS = [
+      ["titulo", "Título (nombre grande)"],
+      ["subtitulo", "Subtítulos (títulos de sección, tipo de evento, bienvenida y números)"],
+      ["info", "Información (mensaje, fecha, lugar y textos)"],
+      ["boton", "Botones"]
+    ];
     const BASE = [
       { id: "cumple", name: "Cumpleaños infantil", category: "cumpleanos",
         font: "'Trebuchet MS', sans-serif",
@@ -197,6 +209,25 @@
       $("secciones").appendChild(f);
     });
 
+    // Controles de tamaño de letra
+    TAMANOS.forEach(([k, t]) => {
+      const l = document.createElement("label"); l.id = "tl-" + k;
+      const r = document.createElement("input");
+      r.type = "range"; r.id = "t-" + k; r.min = "60"; r.max = "160"; r.step = "5"; r.value = "100";
+      r.addEventListener("input", () => { pintarTamanos(); previsualizar(); });
+      $("tamanos").append(l, r);
+    });
+    function pintarTamanos() {
+      TAMANOS.forEach(([k, t]) => { $("tl-" + k).textContent = t + ": " + $("t-" + k).value + "%"; });
+    }
+    function restablecerTamanos() {
+      TAMANOS.forEach(([k]) => { $("t-" + k).value = "100"; });
+      pintarTamanos();
+      previsualizar();
+    }
+    $("btn-reset-tam").addEventListener("click", restablecerTamanos);
+    pintarTamanos();
+
     function previsualizar() {
       const v = $("vista");
       v.style.background = $("c-fondo").value;
@@ -212,6 +243,12 @@
       $("v-boton").style.color = "#ffffff";
       $("v-caja").style.fontFamily = $("f-f-texto").value;
       $("v-caja").style.background = $("c-suave").value;
+      // Tamaños
+      $("v-titulo").style.zoom = $("t-titulo").value / 100;
+      $("v-sub").style.zoom = $("t-subtitulo").value / 100;
+      $("v-texto").style.zoom = $("t-info").value / 100;
+      $("v-boton").style.zoom = $("t-boton").value / 100;
+      $("v-caja").style.zoom = $("t-info").value / 100;
     }
     ["c-fondo", "c-texto", "c-acento", "c-suave", "f-f-titulo", "f-f-texto", "f-f-boton"].forEach((id) => {
       $(id).addEventListener("input", previsualizar);
@@ -373,7 +410,7 @@
       $("v-muestra").hidden = true;
       $("titulo-form").textContent = "Nueva plantilla";
       $("btn-cancelar").hidden = true;
-      previsualizar();
+      restablecerTamanos();
     }
     $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
 
@@ -391,6 +428,13 @@
       fijarSelect("f-f-titulo", buscarFuente(f.titulo) ? f.titulo : general);
       fijarSelect("f-f-texto", buscarFuente(f.texto) ? f.texto : general);
       fijarSelect("f-f-boton", buscarFuente(f.boton) ? f.boton : general);
+
+      const tam = x.tamanos || {};
+      TAMANOS.forEach(([k]) => {
+        const n = Number(tam[k]);
+        $("t-" + k).value = (Number.isFinite(n) && n >= 60 && n <= 160) ? String(n) : "100";
+      });
+      pintarTamanos();
 
       const c = x.colors || {};
       $("c-fondo").value = c.fondo || "#fffaf3"; $("c-texto").value = c.texto || "#1a1a1a";
@@ -418,6 +462,8 @@
       const msg = $("f-msg");
       const nombre = $("f-nombre").value.trim();
       if (!nombre) { msg.textContent = "Falta el nombre de la plantilla."; return; }
+      const tamanos = {};
+      TAMANOS.forEach(([k]) => { tamanos[k] = parseInt($("t-" + k).value, 10) || 100; });
       const datos = {
         name: nombre,
         category: $("f-cat").value,
@@ -428,6 +474,7 @@
           texto: $("f-f-texto").value,
           boton: $("f-f-boton").value
         },
+        tamanos: tamanos,
         colors: {
           fondo: $("c-fondo").value, texto: $("c-texto").value,
           acento: $("c-acento").value, suave: $("c-suave").value
@@ -549,4 +596,4 @@
     }
   </script>
 </body>
-        </html>
+                        </html>
