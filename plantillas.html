@@ -131,6 +131,7 @@
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import { FUENTES, buscarFuente, cargarFuente } from "./js/fuentes.js";
+    import { ESTILOS_FONDO, PATRONES, MARCOS, DECOS, EFECTOS } from "./js/opciones-plantillas.js";
 
     const $ = (id) => document.getElementById(id);
 
@@ -144,33 +145,6 @@
       ["portada", "Portada"], ["mensaje", "Mensaje personalizado"], ["cuenta", "Cuenta regresiva"],
       ["lugar", "Fecha y lugar"], ["info", "Información adicional"], ["galeria", "Galería de fotos"],
       ["rsvp", "Confirmación de asistencia"], ["compartir", "Botón compartir"]
-    ];
-    const ESTILOS_FONDO = [
-      ["", "Ninguno (diseño estándar)"],
-      ["boda-salvia", "Arco y ramas (casamiento moderno)"],
-      ["boda-terracota", "Arco y ramas, variante terracota"],
-      ["noche", "Noche con estrellas y marco dorado"],
-      ["boho", "Boho (arco de colores y pampas)"],
-      ["princesa", "Princesa (corona dorada)"],
-      ["lila", "Lila con mariposas"],
-      ["glam", "Glam (un 15 gigante y confeti, para 15 años)"]
-    ];
-    const PATRONES = [
-      ["", "Ninguno"], ["puntos", "Puntitos"], ["rayas", "Rayas diagonales"],
-      ["cuadricula", "Cuadrícula suave"], ["degrade", "Degradé suave"]
-    ];
-    const MARCOS = [
-      ["", "Sin marco"], ["fino", "Marco fino"], ["doble", "Marco doble"], ["esquinas", "Esquinas decoradas"]
-    ];
-    const DECOS = [
-      ["", "Ninguna"], ["corazones", "Corazones"], ["estrellas", "Estrellas"], ["nubes", "Nubes"],
-      ["burbujas", "Burbujas"], ["flores", "Flores"], ["nieve", "Copos de nieve"],
-      ["destellos", "Destellos"], ["notas", "Notas musicales"]
-    ];
-    const EFECTOS = [
-      ["titulos", "Brillo que recorre los títulos"],
-      ["botones", "Destello en los botones"],
-      ["cuenta", "Cuenta regresiva que late"]
     ];
     const BASE = [
       { id: "cumple", name: "Cumpleaños infantil", category: "cumpleanos",
@@ -575,4 +549,4 @@
     }
   </script>
 </body>
-</html>
+        </html>
