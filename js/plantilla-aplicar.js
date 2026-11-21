@@ -4,7 +4,7 @@ import { doc, getDoc }
 import { buscarFuente, cargarFuente } from "./fuentes.js";
 import { PATRONES, MARCOS, DECOS } from "./opciones-plantillas.js";
 
-["css/efectos.css", "css/efectos-2.css"].forEach((href) => {
+["css/efectos.css", "css/efectos-2.css", "css/tamanos.css"].forEach((href) => {
   const l = document.createElement("link");
   l.rel = "stylesheet";
   l.href = href;
@@ -28,6 +28,7 @@ const PATRONES_OK = VALIDOS(PATRONES);
 const MARCOS_OK = VALIDOS(MARCOS);
 const DECOS_OK = VALIDOS(DECOS);
 const EFECTOS = { titulos: "ef-titulos", botones: "ef-botones", cuenta: "ef-cuenta" };
+const TAMANOS = ["titulo", "subtitulo", "info", "boton"];
 
 const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
 const idInvitacion = new URLSearchParams(location.search).get("i");
@@ -69,6 +70,16 @@ async function aplicar() {
     fuente(estilo, "--f-titulo", f.titulo || x.font, "titulo");
     fuente(estilo, "--f-texto", f.texto || x.font, "texto");
     fuente(estilo, "--f-boton", f.boton || x.font, "boton");
+
+    // Tamaños de letra (en porcentaje; 100 es el tamaño normal)
+    const tam = x.tamanos || {};
+    TAMANOS.forEach((k) => {
+      const n = Number(tam[k]);
+      if (Number.isFinite(n) && n >= 50 && n <= 200 && n !== 100) {
+        estilo.setProperty("--z-" + k, String(n / 100));
+        document.body.classList.add("z-" + k);
+      }
+    });
 
     // Detalle de fondo, marco, decoración y efectos
     if (PATRONES_OK.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
