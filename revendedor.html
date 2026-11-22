@@ -11,13 +11,14 @@
     body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:620px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
-    textarea{min-height:70px}
+    textarea{min-height:74px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
     label{font-size:.9rem;display:block;margin-top:8px}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
     .caja button{width:auto;padding:8px 12px;margin:6px 6px 0 0;font-size:.9rem}
+    .fila-dos{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
@@ -39,6 +40,9 @@
     .venta-datos div b{display:block;color:#8a6a1f;font-size:.95rem}
     .venta-nota{font-size:.86rem;color:#444;background:#f9f6ef;border-radius:8px;padding:7px 10px;margin:6px 0}
     .venta-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:.9rem}
+    details.inv-det{margin:6px 0;font-size:.86rem;background:#fffaf3;border:1px solid #f0e6d2;border-radius:8px;padding:6px 10px}
+    details.inv-det summary{cursor:pointer;color:#8a6a1f;font-weight:bold}
+    details.inv-det div{margin-top:4px;white-space:pre-wrap}
     #enlace{word-break:break-all;font-size:.9rem;margin:6px 0}
     .msg{min-height:1.4em}
   </style>
@@ -85,29 +89,48 @@
       <h2>Productos y precios</h2>
       <div id="productos"></div>
 
-      <h2>Registrar nueva venta</h2>
+      <h2>Enviar datos de la invitación</h2>
       <div class="caja">
-        <p>Cargá los datos de tu cliente. El administrador prepara la invitación y actualiza los cobros y el estado.</p>
+        <p>Completá los datos que te pasó tu cliente para armar la invitación. El administrador la crea y registra la venta.</p>
         <form id="form" novalidate>
-          <input id="f-cliente" placeholder="Nombre del cliente" maxlength="80">
+          <input id="f-cliente" placeholder="Nombre del cliente (quien encarga)" maxlength="80">
           <input id="f-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
-          <label>Producto</label>
+          <label>Paquete</label>
           <select id="f-producto"></select>
-          <input id="f-evento" placeholder="Tipo de evento (ej: 15 años)" maxlength="60">
-          <label>Fecha del evento (si ya la sabe)</label>
-          <input id="f-fecha" type="date">
-          <textarea id="f-notas" placeholder="Notas (opcional)" maxlength="300"></textarea>
-          <button id="btn-pedido" type="submit">Registrar venta</button>
+          <label>Modelo / plantilla elegida</label>
+          <select id="f-plantilla"></select>
+          <input id="f-homenajeado" placeholder="Nombre del homenajeado (ej: Sofía / Ana y Lucas)" maxlength="80">
+          <input id="f-evento" placeholder="Tipo de evento (ej: Mis 15 años)" maxlength="60">
+          <div class="fila-dos">
+            <div>
+              <label>Fecha del evento</label>
+              <input id="f-fecha" type="date">
+            </div>
+            <div>
+              <label>Hora</label>
+              <input id="f-hora" type="time">
+            </div>
+          </div>
+          <input id="f-salon" placeholder="Nombre del salón / lugar" maxlength="80">
+          <input id="f-direccion" placeholder="Dirección" maxlength="120">
+          <input id="f-maps" placeholder="Enlace de Google Maps (https://...) opcional">
+          <input id="f-bienvenida" placeholder="Texto de bienvenida (opcional)" maxlength="120">
+          <textarea id="f-mensaje" placeholder="Mensaje personalizado (opcional)" maxlength="350"></textarea>
+          <input id="f-dress" placeholder="Dress code (ej: Elegante sport) opcional" maxlength="120">
+          <textarea id="f-regalo" placeholder="Regalo / Alias (opcional)" maxlength="250"></textarea>
+          <textarea id="f-notas" placeholder="Notas adicionales para el admin (ej: canción elegida, detalles, etc.)" maxlength="900"></textarea>
+          <button id="btn-pedido" type="submit">Enviar datos al administrador</button>
           <p id="f-msg" class="msg"></p>
         </form>
+        <p class="venta-meta">Las fotos para la invitación envíaselas por WhatsApp al administrador indicando el nombre del homenajeado.</p>
       </div>
 
       <h2>Mis ventas</h2>
-      <input id="b-texto" type="search" placeholder="Buscar por cliente, evento o nota">
+      <input id="b-texto" type="search" placeholder="Buscar por cliente, homenajeado, evento o nota">
       <div class="filtros">
         <select id="b-estado">
           <option value="">Todos los estados</option>
-          <option value="nuevo">Nuevo</option>
+          <option value="nuevo">Nuevo (enviado)</option>
           <option value="en_proceso">En proceso</option>
           <option value="entregado">Entregado</option>
           <option value="cancelado">Cancelado</option>
@@ -139,6 +162,7 @@
 
     let rev = null;
     let precios = {};
+    let plantillas = {};
     let ventas = [];
 
     function errorAuth(e) {
@@ -170,15 +194,20 @@
     $("btn-salir").addEventListener("click", () => signOut(auth));
 
     onAuthStateChanged(auth, (u) => {
-      $("acceso").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar(u);
+      if (!u || u.isAnonymous) {
+        $("acceso").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("acceso").hidden = true;
+      $("panel").hidden = false;
+      cargar(u);
     });
 
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
 
     async function cargar(u) {
-      $("quien").textContent = u.email;
+      $("quien").textContent = u.email || u.uid;
       $("pendiente").hidden = true;
       $("activo").hidden = true;
       try {
@@ -186,12 +215,12 @@
         if (!r.exists() || r.data().active !== true) {
           $("pendiente").textContent = r.exists()
             ? "Tu cuenta de revendedor está desactivada. Consultá con el administrador."
-            : "Tu cuenta todavía no está habilitada como revendedor. Pedile al administrador que te habilite con este email: " + u.email;
+            : "Tu cuenta todavía no está habilitada como revendedor. Pedile al administrador que te habilite con este email: " + (u.email || u.uid);
           $("pendiente").hidden = false;
           return;
         }
         rev = r.data();
-        await cargarPrecios();
+        await Promise.all([cargarPrecios(), cargarPlantillas()]);
         pintarCabecera();
         $("activo").hidden = false;
         cargarPedidos(u);
@@ -210,6 +239,28 @@
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
       }
+    }
+
+    async function cargarPlantillas() {
+      plantillas = {};
+      const sel = $("f-plantilla");
+      sel.innerHTML = "";
+      const o0 = document.createElement("option");
+      o0.value = ""; o0.textContent = "A definir / consultar modelo";
+      sel.appendChild(o0);
+      try {
+        const snap = await getDocs(collection(db, "templates"));
+        snap.docs
+          .filter((d) => d.data().active !== false)
+          .map((d) => ({ id: d.id, name: d.data().name || d.id }))
+          .sort((a, b) => a.name.localeCompare(b.name, "es"))
+          .forEach((t) => {
+            plantillas[t.id] = t.name;
+            const o = document.createElement("option");
+            o.value = t.id; o.textContent = t.name;
+            sel.appendChild(o);
+          });
+      } catch (e) { console.error(e); }
     }
 
     function pintarCabecera() {
@@ -256,11 +307,32 @@
       const cliente = $("f-cliente").value.trim();
       const tel = $("f-tel").value.trim();
       const producto = $("f-producto").value;
+      const homenajeado = $("f-homenajeado").value.trim();
+      const maps = $("f-maps").value.trim();
       if (!cliente) { msg.textContent = "Falta el nombre del cliente."; return; }
       if (tel.replace(/\D/g, "").length < 6) { msg.textContent = "Escribí el WhatsApp del cliente."; return; }
-      if (!producto || !(producto in precios)) { msg.textContent = "Elegí un producto."; return; }
-      $("btn-pedido").disabled = true;
-      msg.textContent = "Registrando...";
+      if (!producto || !(producto in precios)) { msg.textContent = "Elegí un paquete."; return; }
+      if (!homenajeado) { msg.textContent = "Falta el nombre del homenajeado."; return; }
+      if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Google Maps debe empezar con https://"; return; }
+
+      const tplId = $("f-plantilla").value;
+      const invitationData = {
+        honoree: homenajeado,
+        template: tplId,
+        templateName: tplId ? (plantillas[tplId] || tplId) : "",
+        eventTime: $("f-hora").value,
+        venue: $("f-salon").value.trim(),
+        address: $("f-direccion").value.trim(),
+        mapsUrl: maps,
+        welcome: $("f-bienvenida").value.trim(),
+        message: $("f-mensaje").value.trim(),
+        dressCode: $("f-dress").value.trim(),
+        gift: $("f-regalo").value.trim()
+      };
+
+      const btn = $("btn-pedido");
+      btn.disabled = true;
+      msg.textContent = "Enviando datos...";
       try {
         await addDoc(collection(db, "orders"), {
           resellerId: auth.currentUser.uid, resellerCode: rev.code,
@@ -269,16 +341,18 @@
           notes: $("f-notas").value.trim(), status: "nuevo",
           price: precios[producto], agreedPrice: precios[producto], collected: 0,
           commissionPct: rev.commissionPct, commissionPaid: false,
-          invitationId: "", adminNote: "", createdAt: serverTimestamp()
+          invitationId: "", adminNote: "",
+          invitationData: invitationData,
+          createdAt: serverTimestamp()
         });
         $("form").reset();
-        msg.textContent = "¡Venta registrada!";
+        msg.textContent = "¡Datos enviados! El administrador va a armar la invitación y registrar la venta.";
         cargarPedidos(auth.currentUser);
       } catch (err) {
         console.error(err);
-        msg.textContent = "No se pudo registrar la venta. Revisá los datos e intentá de nuevo.";
+        msg.textContent = "No se pudieron enviar los datos. Revisá que las reglas de Firestore estén actualizadas.";
       }
-      $("btn-pedido").disabled = false;
+      btn.disabled = false;
     });
 
     async function cargarPedidos(u) {
@@ -313,7 +387,7 @@
     function pintarVentas() {
       const cont = $("pedidos");
       cont.textContent = "";
-      if (!ventas.length) { cont.textContent = "Todavía no tenés ventas registradas."; return; }
+      if (!ventas.length) { cont.textContent = "Todavía no tenés envíos ni ventas registradas."; return; }
 
       const txt = $("b-texto").value.trim().toLowerCase();
       const est = $("b-estado").value;
@@ -324,14 +398,15 @@
         if (com === "pagada" && !p.commissionPaid) return false;
         if (com === "pendiente" && (p.commissionPaid || comision(p) <= 0)) return false;
         if (txt) {
-          const hay = [p.clientName, p.eventType, p.notes, p.adminNote, NOMBRES[p.product]]
+          const d = p.invitationData || {};
+          const hay = [p.clientName, p.eventType, p.notes, p.adminNote, NOMBRES[p.product], d.honoree, d.venue]
             .join(" ").toLowerCase();
           if (!hay.includes(txt)) return false;
         }
         return true;
       });
 
-      if (!vis.length) { cont.textContent = "No hay ventas con esos filtros."; return; }
+      if (!vis.length) { cont.textContent = "No hay resultados con esos filtros."; return; }
 
       const dato = (etq, val) => {
         const d = document.createElement("div");
@@ -346,12 +421,14 @@
         const saldo = Math.max(precio - cobrado, 0);
         const comCobrada = comision(p);
         const comEstimada = Math.round(precio * (p.commissionPct || 0) / 100);
+        const d = p.invitationData || {};
 
         const c = document.createElement("div");
         c.className = "venta " + (p.status || "");
 
         const cab = document.createElement("div"); cab.className = "venta-cab";
-        const n = document.createElement("b"); n.textContent = p.clientName;
+        const n = document.createElement("b");
+        n.textContent = d.honoree ? p.clientName + " (" + d.honoree + ")" : p.clientName;
         const e = document.createElement("span");
         e.className = "estado " + (p.status || "");
         e.textContent = ESTADOS[p.status] || p.status;
@@ -362,7 +439,7 @@
         const partes = [NOMBRES[p.product] || p.product];
         if (p.eventType) partes.push(p.eventType);
         if (p.eventDate) partes.push("Evento: " + p.eventDate);
-        if (p.createdAt) partes.push("Registrada: " + fechaTs(p.createdAt));
+        if (p.createdAt) partes.push("Enviado: " + fechaTs(p.createdAt));
         meta.textContent = partes.join(" · ");
         c.appendChild(meta);
 
@@ -378,13 +455,33 @@
 
         const estCom = document.createElement("div"); estCom.className = "venta-meta";
         if (comCobrada <= 0) {
-          estCom.textContent = "Comisión: pendiente de cobro al cliente.";
+          estCom.textContent = "Comisión: esperando registro de cobro por el administrador.";
         } else if (p.commissionPaid) {
           estCom.textContent = "Comisión cobrada ✓" + (p.commissionPaidAt ? " (" + fechaTs(p.commissionPaidAt) + ")" : "");
         } else {
           estCom.textContent = "Comisión pendiente de pago (" + $$(comCobrada) + ").";
         }
         c.appendChild(estCom);
+
+        const detalles = [
+          d.templateName ? "Modelo: " + d.templateName : "",
+          d.honoree ? "Homenajeado: " + d.honoree : "",
+          d.eventTime ? "Hora: " + d.eventTime : "",
+          d.venue ? "Salón: " + d.venue : "",
+          d.address ? "Dirección: " + d.address : "",
+          d.mapsUrl ? "Maps: " + d.mapsUrl : "",
+          d.welcome ? "Bienvenida: " + d.welcome : "",
+          d.message ? "Mensaje: " + d.message : "",
+          d.dressCode ? "Dress code: " + d.dressCode : "",
+          d.gift ? "Regalo: " + d.gift : ""
+        ].filter(Boolean);
+        if (detalles.length) {
+          const det = document.createElement("details"); det.className = "inv-det";
+          const sum = document.createElement("summary"); sum.textContent = "Datos enviados de la invitación";
+          const body = document.createElement("div"); body.textContent = detalles.join("\n");
+          det.append(sum, body);
+          c.appendChild(det);
+        }
 
         if (p.notes) {
           const nt = document.createElement("div"); nt.className = "venta-nota";
@@ -424,4 +521,4 @@
     });
   </script>
 </body>
-</html>
+  </html>
