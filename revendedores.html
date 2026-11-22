@@ -19,7 +19,8 @@
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
     .caja.off{opacity:.6}
     .caja button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
-    .aviso{background:#f6dde2;border-radius:8px;padding:6px 10px;margin:6px 0;font-size:.9rem}
+    .caja .ancho{width:100%;margin:5px 0;padding:12px;font-size:1rem}
+    .aviso{background:#f6dde2;border-radius:8px;padding:8px 12px;margin:8px 0;font-size:.9rem}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
     .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
     .stat b{display:block;font-size:1.05rem;color:#8a6a1f}
@@ -31,61 +32,102 @@
   <p><a href="dashboard.html">Menú</a> - <a href="pedidos.html">Pedidos</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <div class="caja">
-      <h2>Habilitar un revendedor</h2>
-      <p>La persona primero tiene que crear su cuenta en <b>revendedor.html</b>. Después aparece acá para habilitarla.</p>
-      <label>Cuenta registrada</label>
-      <select id="a-user"></select>
-      <input id="a-nombre" placeholder="Nombre del revendedor" maxlength="60">
-      <input id="a-codigo" placeholder="Código para su enlace (ej: maria, 3 a 20 letras o números)" maxlength="20">
-      <input id="a-wa" inputmode="numeric" placeholder="WhatsApp del revendedor (con código de país, ej: 5491112345678)" maxlength="15">
-      <input id="a-pct" type="number" min="0" max="100" step="0.5" inputmode="decimal" placeholder="Comisión (%)">
-      <button id="btn-alta" type="button">Habilitar revendedor</button>
-      <p id="msg-alta" class="msg"></p>
-    </div>
-
-    <h2>Mis revendedores</h2>
-    <div id="lista">Cargando...</div>
+    <p>Sesión: <b id="sesion-email"></b></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <div class="caja">
+        <h2>Link del panel para revendedores</h2>
+        <p>Enviale este enlace al revendedor para que cree su cuenta, entre a su panel y te mande los datos de las invitaciones.</p>
+        <input id="link-panel" readonly>
+        <button id="btn-copiar-panel" type="button">Copiar link del panel</button>
+        <button id="btn-wa-panel" class="sec" type="button">Enviar por WhatsApp</button>
+      </div>
+
+      <div class="caja">
+        <h2>Habilitar un revendedor</h2>
+        <p>Primero tiene que crear su cuenta desde el enlace de arriba. Después aparece acá para habilitarlo.</p>
+        <label>Cuenta registrada</label>
+        <select id="a-user"></select>
+        <input id="a-nombre" placeholder="Nombre del revendedor" maxlength="60">
+        <input id="a-codigo" placeholder="Código para su enlace de venta (ej: maria, 3 a 20 letras o números)" maxlength="20">
+        <input id="a-wa" inputmode="numeric" placeholder="WhatsApp del revendedor (con código de país, ej: 5491112345678)" maxlength="15">
+        <input id="a-pct" type="number" min="0" max="100" step="0.5" inputmode="decimal" placeholder="Comisión (%)">
+        <button id="btn-alta" class="ancho" type="button">Habilitar revendedor</button>
+        <p id="msg-alta" class="msg"></p>
+      </div>
+
+      <h2>Mis revendedores</h2>
+      <div id="lista">Cargando...</div>
+    </div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
     import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, serverTimestamp }
+    import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, writeBatch, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     let usuarios = {};
     let revs = {};
     let pedidos = [];
 
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
+    const linkPanel = () => base() + "revendedor.html";
+    const limpiarWa = (t) => String(t || "").replace(/\D/g, "");
+    const slug = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+      .replace(/[^a-z0-9]+/g, "").slice(0, 20);
+    const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
+
+    $("link-panel").value = linkPanel();
+    $("btn-copiar-panel").addEventListener("click", function () {
+      navigator.clipboard.writeText(linkPanel()).then(() => { this.textContent = "Copiado ✓"; });
+    });
+    $("btn-wa-panel").addEventListener("click", () => {
+      const t = "Hola! Este es el enlace de tu panel de revendedor para crear tu cuenta y enviarnos los datos de las invitaciones: " + linkPanel();
+      window.open("https://wa.me/?text=" + encodeURIComponent(t), "_blank");
+    });
+
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
     $("btn-salir").addEventListener("click", () => signOut(auth));
-    onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
-    });
 
-    const slug = (t) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-      .replace(/[^a-z0-9]+/g, "").slice(0, 20);
-    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
-    const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
-    const limpiarWa = (t) => String(t || "").replace(/\D/g, "");
+    onAuthStateChanged(auth, (u) => {
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá con tu cuenta de administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
+    });
 
     async function sincronizarPublico() {
       const rs = await getDocs(collection(db, "resellers"));
@@ -104,21 +146,24 @@
     }
 
     async function cargar() {
+      $("lista").textContent = "Cargando...";
       try {
-        const [us, rs, os] = await Promise.all([
+        const [us, rs, os, pub] = await Promise.all([
           getDocs(collection(db, "users")),
           getDocs(collection(db, "resellers")),
-          getDocs(collection(db, "orders"))
+          getDocs(collection(db, "orders")),
+          getDoc(doc(db, "settings", "resellers"))
         ]);
         usuarios = {}; revs = {}; pedidos = [];
         us.forEach((d) => { usuarios[d.id] = d.data(); });
         rs.forEach((d) => { revs[d.id] = d.data(); });
         os.forEach((d) => { pedidos.push({ id: d.id, ...d.data() }); });
+        if (!pub.exists()) await sincronizarPublico();
         pintarAlta();
         pintarLista();
       } catch (e) {
         console.error(e);
-        $("lista").textContent = "No se pudieron cargar los datos.";
+        $("lista").textContent = "No se pudieron cargar los datos. Revisá la conexión o cerrá sesión y volvé a entrar.";
       }
     }
 
@@ -182,6 +227,7 @@
         const pagada = mios.filter((p) => p.commissionPaid).reduce((s, p) => s + comision(p), 0);
         const pendiente = ganada - pagada;
         const wa = limpiarWa(r.whatsapp);
+        const linkVenta = base() + "?r=" + encodeURIComponent(r.code);
 
         const c = document.createElement("div");
         c.className = "caja" + (r.active ? "" : " off");
@@ -193,7 +239,7 @@
 
         const wInfo = document.createElement("div");
         if (wa) {
-          wInfo.textContent = "WhatsApp en el enlace de venta: +" + wa;
+          wInfo.textContent = "WhatsApp en enlace de venta: +" + wa;
         } else {
           wInfo.className = "aviso";
           wInfo.textContent = "Sin WhatsApp cargado: su enlace usa el WhatsApp principal. Tocá \"Cambiar WhatsApp\" para asignarlo.";
@@ -214,6 +260,18 @@
           b.type = "button"; b.textContent = t; if (cl) b.className = cl; b.onclick = fn; return b;
         };
         c.append(
+          btn("Enviar panel por WhatsApp", "", () => {
+            const t = "Hola " + r.name + "! Tu cuenta de revendedor ya está habilitada.\n\n" +
+              "Tu panel para enviar los datos de las invitaciones y ver tus ventas: " + linkPanel() + "\n\n" +
+              "Tu enlace de venta para compartir con clientes: " + linkVenta;
+            window.open("https://wa.me/" + (wa ? wa : "") + "?text=" + encodeURIComponent(t), "_blank");
+          }),
+          btn("Copiar link del panel", "sec", function () {
+            navigator.clipboard.writeText(linkPanel()).then(() => { this.textContent = "Copiado ✓"; });
+          }),
+          btn("Copiar link de venta", "sec", function () {
+            navigator.clipboard.writeText(linkVenta).then(() => { this.textContent = "Copiado ✓"; });
+          }),
           btn(r.active ? "Desactivar" : "Activar", "sec", async () => {
             try {
               await updateDoc(doc(db, "resellers", uid), { active: !r.active });
@@ -233,14 +291,10 @@
             } catch (e) { console.error(e); alert("No se pudo guardar el WhatsApp."); }
           }),
           btn("Cambiar %", "sec", async () => {
-            const v = parseFloat(prompt("Nueva comisión (%) para pedidos nuevos:", String(r.commissionPct)));
+            const v = parseFloat(prompt("Nueva comisión (%) para ventas nuevas:", String(r.commissionPct)));
             if (!(v >= 0 && v <= 100)) return;
             try { await updateDoc(doc(db, "resellers", uid), { commissionPct: v }); cargar(); }
             catch (e) { console.error(e); }
-          }),
-          btn("Copiar enlace de venta", "", function () {
-            navigator.clipboard.writeText(base() + "?r=" + encodeURIComponent(r.code))
-              .then(() => { this.textContent = "Copiado ✓"; });
           }),
           btn("Liquidar comisiones", "", async () => {
             const pend = mios.filter((p) => !p.commissionPaid && comision(p) > 0);
@@ -271,4 +325,4 @@
     }
   </script>
 </body>
-</html>
+          </html>
