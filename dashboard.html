@@ -21,6 +21,7 @@
     .stat{background:#f6dde2;border-radius:12px;padding:12px;text-align:center;font-size:.85rem}
     .stat b{display:block;font-size:1.4rem;color:#8a6a1f}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:10px;margin:8px 0}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -28,24 +29,29 @@
   <h1>KE Invitaciones</h1>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <h2>Gestión</h2>
-    <div id="menu"></div>
-
-    <h2>Estadísticas</h2>
-    <div id="estado" class="msg">Cargando...</div>
-    <div class="stats" id="stats" hidden></div>
-
-    <h2>Próximos eventos</h2>
-    <div id="proximos"></div>
-    <button id="btn-actualizar" type="button">Actualizar</button>
+    <p>Sesión: <b id="sesion-email"></b></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <h2>Gestión</h2>
+      <div id="menu"></div>
+
+      <h2>Estadísticas</h2>
+      <div id="estado" class="msg">Cargando...</div>
+      <div class="stats" id="stats" hidden></div>
+
+      <h2>Próximos eventos</h2>
+      <div id="proximos"></div>
+      <button id="btn-actualizar" type="button">Actualizar</button>
+    </div>
   </section>
 
   <script type="module">
@@ -57,6 +63,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
 
     const MENU = [
       ["Invitaciones", [
@@ -87,17 +94,33 @@
     });
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
     $("btn-salir").addEventListener("click", () => signOut(auth));
     $("btn-actualizar").addEventListener("click", cargar);
 
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" arriba y entrá con tu cuenta de administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
     });
 
     function tarjeta(valor, texto) {
