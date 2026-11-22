@@ -63,34 +63,40 @@ function construir(d) {
   cierre(d, fecha);
 }
 
-/* Elige un ícono acorde al título de la actividad del itinerario */
+/* Elige un ícono lineal acorde al título de la actividad */
 function iconoActividad(titulo) {
   const t = String(titulo || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  if (/ceremonia|iglesia|misa|civil|altar|voto|anillo|bendicion/.test(t)) {
-    return '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M12 4l1.5 2.2L12 8.4l-1.5-2.2Z"/>';
+  if (/bautismo|comunion|misa|iglesia|parroquia|catedral/.test(t)) {
+    return '<path d="M12 2v4"/><path d="M10 4h4"/><path d="M7 10l5-4 5 4"/><path d="M5 21V11h14v10"/><path d="M3 21h18"/><path d="M10 21v-5a2 2 0 0 1 4 0v5"/>';
+  }
+  if (/ceremonia|civil|altar|voto|anillo|bendicion/.test(t)) {
+    return '<circle cx="9" cy="14" r="5"/><circle cx="15" cy="14" r="5"/><path d="M12 4l1.4 2.1L12 8.2l-1.4-2.1Z"/>';
   }
   if (/recepcion|bienvenida|brindis|coctel|trago|barra|aperitivo/.test(t)) {
-    return '<path d="M8 22h8"/><path d="M12 11v11"/><path d="m19 3-7 8-7-8Z"/>';
+    return '<path d="M8 22h8"/><path d="M12 12v10"/><path d="M7 3h10l-1 5a4 4 0 0 1-8 0Z"/><path d="M5 5l1.5.5"/><path d="M19 5l-1.5.5"/>';
+  }
+  if (/vals/.test(t)) {
+    return '<path d="M9.5 4 12 5.3 14.5 4l-1 4.5L19 19.2c-4.5 1.1-9.5 1.1-14 0l5.5-10.7Z"/><path d="M10.5 8.5h3"/><path d="M12 9v10.5"/>';
   }
   if (/foto|sesion|camara|cabina/.test(t)) {
     return '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>';
   }
   if (/cena|almuerzo|comida|banquete|catering|asado|pizza|lunch|plato/.test(t)) {
-    return '<path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/><path d="M7 2v20"/><path d="M21 15V2a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>';
+    return '<path d="M3 17h18"/><path d="M5 17a7 7 0 0 1 14 0"/><circle cx="12" cy="8.5" r="1.5"/><path d="M4 19.5h16"/>';
   }
   if (/torta|pastel|dulce|postre|candy|vela/.test(t)) {
-    return '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M7 8v3"/><path d="M12 8v3"/><path d="M17 8v3"/>';
+    return '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 7v4"/><path d="M12 4.5c.8.8.8 1.8 0 2.5-.8-.7-.8-1.7 0-2.5Z"/>';
   }
-  if (/baile|fiesta|vals|dj|banda|show|musica|carnaval|pista|loca/.test(t)) {
-    return '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>';
+  if (/baile|fiesta|dj|banda|show|musica|carnaval|pista|loca/.test(t)) {
+    return '<path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/><path d="M4 6l.8 1.5L6.3 8.3l-1.5.8L4 10.6l-.8-1.5L1.7 8.3l1.5-.8Z"/><path d="M20.5 18l.6 1.1 1.1.6-1.1.6-.6 1.1-.6-1.1-1.1-.6 1.1-.6Z"/>';
   }
   if (/cierre|fin\b|despedida|adios/.test(t)) {
-    return '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>';
+    return '<path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/><path d="M19 4v3"/><path d="M17.5 5.5h3"/>';
   }
-  return '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';
+  return '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>';
 }
 
-/* Itinerario: se muestra en el mismo orden en que se cargó */
+/* Itinerario: línea central con texto e íconos alternados */
 function itinerario(d) {
   const lista = (Array.isArray(d.itinerary) ? d.itinerary : [])
     .filter((x) => x && typeof x.title === "string" && x.title.trim())
@@ -109,15 +115,18 @@ function itinerario(d) {
   const cont = el("div", "timeline");
   lista.forEach((x) => {
     const f = el("div", "it-item");
+
+    const info = el("div", "it-info");
+    let hora = String(x.time || "").trim();
+    if (/^\d{1,2}:\d{2}$/.test(hora)) hora += " hs";
+    if (hora) info.appendChild(el("span", "it-hora", hora));
+    info.appendChild(el("p", "it-titulo", String(x.title).trim()));
+
     const punto = el("span", "it-punto");
-    punto.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + iconoActividad(x.title) + "</svg>";
+    const ic = el("div", "it-icono");
+    ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + iconoActividad(x.title) + "</svg>";
 
-    const card = el("div", "it-card");
-    const hora = String(x.time || "").trim();
-    if (hora) card.appendChild(el("span", "it-hora", hora));
-    card.appendChild(el("p", "it-titulo", String(x.title).trim()));
-
-    f.append(punto, card);
+    f.append(info, punto, ic);
     cont.appendChild(f);
   });
   s.appendChild(cont);
