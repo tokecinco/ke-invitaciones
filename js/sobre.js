@@ -81,7 +81,12 @@ function montar() {
 
   const carta = el("div", "carta");
   const tipo = el("p", "carta-tipo");
-  carta.append(el("div", "carta-adorno", "✦"), tipo, el("p", "carta-esp", "Te esperamos"));
+  carta.append(
+    el("div", "carta-adorno", "✦"),
+    tipo,
+    el("div", "carta-linea"),
+    el("p", "carta-esp", "Te esperamos")
+  );
 
   const texto = el("div", "sobre-texto");
   if (pre) { pre.className = "sobre-pre"; texto.appendChild(pre); }
@@ -89,10 +94,19 @@ function montar() {
   caja.querySelectorAll(".para").forEach((p) => texto.appendChild(p));
 
   btn.className = "sello";
-  btn.textContent = "KE";
+  btn.textContent = "";
   btn.setAttribute("aria-label", "Abrir invitación");
 
-  sobre3d.append(carta, el("div", "sobre-frente"), texto, el("div", "solapa"), btn);
+  sobre3d.append(
+    el("div", "sobre-sombra"),
+    el("div", "sobre-forro"),
+    carta,
+    el("div", "sobre-frente"),
+    texto,
+    el("div", "solapa-sombra"),
+    el("div", "solapa"),
+    btn
+  );
   caja.append(sobre3d, el("p", "toca", "Tocá el sello para abrir"));
 
   if (!REDUCIR) {
@@ -142,4 +156,4 @@ function montar() {
   sobre3d.addEventListener("click", (e) => {
     if (e.target !== btn && !REDUCIR) abrir();
   });
-      }
+}
