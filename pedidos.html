@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Pedidos - KE Invitaciones</title>
+  <title>Pedidos y ventas - KE Invitaciones</title>
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
@@ -28,6 +28,10 @@
     .caja.cancelado{border-left-color:#c0392b;opacity:.75}
     .caja .fila button{width:auto;padding:8px 12px;margin:6px 6px 0 0;font-size:.9rem}
     .nota{font-style:italic;color:#555}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0}
+    .inv-datos{background:#fffaf3;border:1px solid #eadfc8;border-radius:10px;padding:10px;margin:8px 0;font-size:.9rem;white-space:pre-wrap}
+    .inv-datos button,.inv-datos a{display:inline-block;width:auto;padding:7px 12px;margin:8px 6px 0 0;font-size:.85rem;border-radius:8px;text-decoration:none}
+    .inv-datos a{background:#c9a24b;color:#fff}
     .comision{background:#f6dde2;border-radius:10px;padding:8px 10px;margin:8px 0}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
@@ -37,59 +41,64 @@
   </style>
 </head>
 <body>
-  <h1>Pedidos</h1>
+  <h1>Pedidos y ventas</h1>
   <p><a href="dashboard.html">Menú</a> - <a href="revendedores.html">Revendedores</a> - <a href="pagos.html">Pagos</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <div class="stats">
-      <div class="stat"><b id="s-nuevos">0</b>Nuevos</div>
-      <div class="stat"><b id="s-proceso">0</b>En proceso</div>
-      <div class="stat"><b id="s-entregados">0</b>Entregados</div>
-      <div class="stat"><b id="s-cobrado">$0</b>Cobrado</div>
-      <div class="stat"><b id="s-comis">$0</b>Comisiones totales</div>
-      <div class="stat"><b id="s-pend">$0</b>Comisiones a pagar</div>
-    </div>
-
-    <details>
-      <summary>Nuevo pedido (por ejemplo, uno que llegó por WhatsApp)</summary>
-      <form id="form" novalidate>
-        <input id="n-cliente" placeholder="Nombre del cliente" maxlength="80">
-        <input id="n-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
-        <label>Producto</label>
-        <select id="n-producto"></select>
-        <label>Precio ($)</label>
-        <input id="n-precio" type="number" min="0" inputmode="numeric">
-        <label>Revendedor (si corresponde)</label>
-        <select id="n-rev"></select>
-        <input id="n-evento" placeholder="Tipo de evento" maxlength="60">
-        <input id="n-fecha" type="date">
-        <textarea id="n-notas" placeholder="Notas" maxlength="300"></textarea>
-        <button type="submit">Crear pedido</button>
-        <p id="n-msg" class="msg"></p>
-      </form>
-    </details>
-
-    <div class="filtros">
-      <select id="f-estado">
-        <option value="">Todos los estados</option>
-        <option value="nuevo">Nuevos</option>
-        <option value="en_proceso">En proceso</option>
-        <option value="entregado">Entregados</option>
-        <option value="cancelado">Cancelados</option>
-      </select>
-      <select id="f-rev"></select>
-    </div>
-
-    <p id="msg" class="msg"></p>
-    <div id="lista">Cargando...</div>
+    <p>Sesión: <b id="sesion-email"></b></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <div class="stats">
+        <div class="stat"><b id="s-nuevos">0</b>Nuevos</div>
+        <div class="stat"><b id="s-proceso">0</b>En proceso</div>
+        <div class="stat"><b id="s-entregados">0</b>Entregados</div>
+        <div class="stat"><b id="s-cobrado">$0</b>Cobrado</div>
+        <div class="stat"><b id="s-comis">$0</b>Comisiones totales</div>
+        <div class="stat"><b id="s-pend">$0</b>Comisiones a pagar</div>
+      </div>
+
+      <details>
+        <summary>Registrar venta nueva manualmente</summary>
+        <form id="form" novalidate>
+          <input id="n-cliente" placeholder="Nombre del cliente" maxlength="80">
+          <input id="n-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
+          <label>Producto</label>
+          <select id="n-producto"></select>
+          <label>Precio ($)</label>
+          <input id="n-precio" type="number" min="0" inputmode="numeric">
+          <label>Revendedor (si corresponde)</label>
+          <select id="n-rev"></select>
+          <input id="n-evento" placeholder="Tipo de evento" maxlength="60">
+          <input id="n-fecha" type="date">
+          <textarea id="n-notas" placeholder="Notas" maxlength="1000"></textarea>
+          <button type="submit">Registrar venta</button>
+          <p id="n-msg" class="msg"></p>
+        </form>
+      </details>
+
+      <div class="filtros">
+        <select id="f-estado">
+          <option value="">Todos los estados</option>
+          <option value="nuevo">Nuevos</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="entregado">Entregados</option>
+          <option value="cancelado">Cancelados</option>
+        </select>
+        <select id="f-rev"></select>
+      </div>
+
+      <p id="msg" class="msg"></p>
+      <div id="lista">Cargando...</div>
+    </div>
   </section>
 
   <script type="module">
@@ -101,6 +110,7 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     const PROD = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
@@ -109,18 +119,36 @@
     let pedidos = [], revs = {}, invs = {}, precios = {};
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
     $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
     });
 
     async function cargar() {
+      $("lista").textContent = "Cargando...";
       try {
         const [os, rs, is, pq] = await Promise.all([
           getDocs(collection(db, "orders")),
@@ -192,7 +220,7 @@
         });
         $("form").reset();
         precioDelProducto();
-        msg.textContent = "Pedido creado.";
+        msg.textContent = "Venta registrada.";
         cargar();
       } catch (err) { console.error(err); msg.textContent = "No se pudo crear el pedido."; }
     });
@@ -233,6 +261,7 @@
       const c = document.createElement("div");
       c.className = "caja " + p.status;
       const r = p.resellerId ? revs[p.resellerId] : null;
+      const dInv = p.invitationData || null;
 
       const t = document.createElement("b"); t.textContent = p.clientName;
       c.appendChild(t);
@@ -254,6 +283,34 @@
       if (p.notes) {
         const n = document.createElement("div"); n.className = "nota";
         n.textContent = "Notas: " + p.notes; c.appendChild(n);
+      }
+
+      if (dInv) {
+        const resumen = [
+          dInv.honoree ? "Homenajeado: " + dInv.honoree : "",
+          dInv.templateName ? "Modelo: " + dInv.templateName : "",
+          dInv.eventTime ? "Hora: " + dInv.eventTime : "",
+          dInv.venue ? "Salón: " + dInv.venue : "",
+          dInv.address ? "Dirección: " + dInv.address : "",
+          dInv.mapsUrl ? "Maps: " + dInv.mapsUrl : "",
+          dInv.welcome ? "Bienvenida: " + dInv.welcome : "",
+          dInv.message ? "Mensaje: " + dInv.message : "",
+          dInv.dressCode ? "Dress code: " + dInv.dressCode : "",
+          dInv.gift ? "Regalo: " + dInv.gift : ""
+        ].filter(Boolean).join("\n");
+        if (resumen) {
+          const box = document.createElement("div"); box.className = "inv-datos";
+          const tit = document.createElement("b"); tit.textContent = "Datos de invitación enviados:\n";
+          box.append(tit, resumen, document.createElement("br"));
+          const crear = document.createElement("a");
+          crear.href = "admin.html?pedido=" + encodeURIComponent(p.id);
+          crear.textContent = "Crear invitación con estos datos";
+          const copiar = document.createElement("button");
+          copiar.type = "button"; copiar.className = "sec"; copiar.textContent = "Copiar datos";
+          copiar.onclick = () => navigator.clipboard.writeText(resumen).then(() => { copiar.textContent = "Copiado ✓"; });
+          box.append(crear, copiar);
+          c.appendChild(box);
+        }
       }
 
       const grid = document.createElement("div");
@@ -325,7 +382,7 @@
         if (pagada.checked && !p.commissionPaid) datos.commissionPaidAt = serverTimestamp();
         try {
           await updateDoc(doc(db, "orders", p.id), datos);
-          $("msg").textContent = "Pedido de " + p.clientName + " guardado.";
+          $("msg").textContent = "Venta de " + p.clientName + " guardada.";
           cargar();
         } catch (e) { console.error(e); $("msg").textContent = "No se pudo guardar."; }
       }));
