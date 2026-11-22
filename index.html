@@ -9,23 +9,18 @@
   <meta property="og:description" content="Invitaciones digitales interactivas para tus momentos especiales.">
   <meta property="og:type" content="website">
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%231a1816'/%3E%3Crect x='4' y='4' width='56' height='56' rx='12' fill='none' stroke='%23c9a24b' stroke-width='1.5'/%3E%3Ctext x='32' y='41' text-anchor='middle' font-family='Georgia,serif' font-size='26' fill='%23c9a24b' letter-spacing='2'%3EKE%3C/text%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
   <style>
     :root{
       --fondo:#fffaf3;
       --crema:#ffffff;
-      --texto:#1d1a17;
-      --suave-txt:#6b6359;
+      --texto:#1a1a1a;
+      --suave-txt:#5f584f;
       --oro:#c9a24b;
       --oro-osc:#9a7624;
       --rosa:#f6dde2;
-      --negro:#1a1816;
+      --negro:#1a1a1a;
       --borde:rgba(201,162,75,.24);
       --sombra:0 10px 30px rgba(26,22,16,.05);
-      --serif:"Cormorant Garamond",Georgia,"Times New Roman",serif;
-      --sans:"Plus Jakarta Sans",system-ui,-apple-system,sans-serif;
     }
     *{box-sizing:border-box}
     [hidden]{display:none!important}
@@ -34,18 +29,17 @@
       margin:0;
       background:var(--fondo);
       color:var(--texto);
-      font-family:var(--sans);
-      line-height:1.6;
-      -webkit-font-smoothing:antialiased;
+      font-family:Georgia,"Times New Roman",serif;
+      line-height:1.55;
       overflow-x:clip;
     }
-    h1,h2,h3{font-family:var(--serif);font-weight:500;margin:0;letter-spacing:-.01em}
+    h1,h2,h3{font-weight:normal;margin:0}
     h2{
-      color:var(--negro);
-      font-size:clamp(1.9rem,5.2vw,2.55rem);
+      color:var(--oro-osc);
+      font-size:clamp(1.65rem,4.5vw,2.1rem);
       text-align:center;
-      line-height:1.15;
-      margin-bottom:30px;
+      line-height:1.2;
+      margin-bottom:28px;
     }
     h2::after{
       content:"✦";
@@ -53,7 +47,6 @@
       align-items:center;
       justify-content:center;
       gap:12px;
-      font-family:var(--sans);
       font-size:.75rem;
       color:var(--oro);
       margin:12px auto 0;
@@ -64,7 +57,7 @@
         linear-gradient(var(--borde),var(--borde)) right center / 42px 1px no-repeat;
     }
     section{
-      padding:60px 20px;
+      padding:58px 20px;
       max-width:1040px;
       margin:0 auto;
       scroll-margin-top:68px;
@@ -117,29 +110,25 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      font-family:var(--serif);
-      font-size:.95rem;
-      font-weight:600;
+      font-size:.85rem;
       letter-spacing:.08em;
       flex:0 0 auto;
       box-shadow:0 4px 12px rgba(26,22,16,.12);
     }
     .logo{
-      font-family:var(--serif);
-      font-size:clamp(1rem,3.8vw,1.28rem);
+      font-size:clamp(.98rem,3.6vw,1.25rem);
       letter-spacing:2.5px;
       color:var(--oro-osc);
       white-space:nowrap;
     }
-    .logo b{color:var(--negro);font-weight:600}
+    .logo b{color:var(--negro)}
     .cuenta-link{
       color:var(--negro);
       text-decoration:none;
-      font-size:.86rem;
-      font-weight:500;
+      font-size:.88rem;
       padding:8px 15px;
       border-radius:999px;
-      border:1px solid rgba(29,26,23,.18);
+      border:1px solid rgba(26,26,26,.2);
       background:rgba(255,255,255,.7);
       white-space:nowrap;
       transition:background-color .25s ease,border-color .25s ease,transform .25s ease;
@@ -149,7 +138,7 @@
     /* Hero */
     .hero{
       text-align:center;
-      padding:66px 20px 62px;
+      padding:64px 20px 60px;
       max-width:none;
       overflow:hidden;
       background:
@@ -178,7 +167,7 @@
       left:-80px;
     }
     .hero .in{
-      max-width:680px;
+      max-width:660px;
       margin:0 auto;
       position:relative;
       z-index:1;
@@ -194,18 +183,17 @@
       background:rgba(255,255,255,.72);
       color:var(--oro-osc);
       font-size:.74rem;
-      font-weight:600;
       letter-spacing:1.8px;
       text-transform:uppercase;
       margin-bottom:18px;
     }
     .hero h1{
-      font-size:clamp(2.2rem,7.2vw,3.55rem);
-      line-height:1.08;
+      font-size:clamp(1.95rem,6vw,2.75rem);
+      line-height:1.16;
       color:var(--negro);
     }
     .hero p{
-      font-size:clamp(1rem,2.6vw,1.12rem);
+      font-size:1.06rem;
       color:var(--suave-txt);
       margin:16px auto 28px;
       max-width:520px;
@@ -217,7 +205,7 @@
       gap:10px;
     }
     .hero-detalle{
-      margin-top:30px;
+      margin-top:28px;
       font-size:.78rem;
       letter-spacing:1.5px;
       text-transform:uppercase;
@@ -238,10 +226,8 @@
       border-radius:999px;
       padding:13px 26px;
       min-height:46px;
-      font-size:.95rem;
-      font-weight:600;
-      font-family:var(--sans);
-      letter-spacing:.02em;
+      font-size:.98rem;
+      font-family:inherit;
       text-decoration:none;
       cursor:pointer;
       margin:4px;
@@ -265,7 +251,7 @@
     .btn.borde{
       background:transparent;
       color:var(--negro);
-      border-color:rgba(29,26,23,.22);
+      border-color:rgba(26,26,26,.25);
       box-shadow:none;
     }
     .btn.borde:hover{
@@ -299,25 +285,23 @@
       display:inline-flex;
       align-items:center;
       justify-content:center;
-      width:40px;
-      height:40px;
+      width:38px;
+      height:38px;
       border-radius:50%;
       background:linear-gradient(135deg,#f8e8ec,#f3d4dc);
       border:1px solid rgba(201,162,75,.4);
       color:var(--oro-osc);
-      font-family:var(--serif);
-      font-size:1.25rem;
-      font-weight:600;
+      font-size:1.1rem;
       margin-bottom:14px;
     }
     .paso h3{
-      font-size:1.35rem;
+      font-size:1.15rem;
       color:var(--negro);
       margin-bottom:6px;
     }
     .paso p{
       margin:0;
-      font-size:.92rem;
+      font-size:.93rem;
       color:var(--suave-txt);
     }
 
@@ -343,7 +327,7 @@
       margin:0 auto;
       box-shadow:var(--sombra);
     }
-    .precio .monto{font-family:var(--serif);font-size:2.5rem;color:var(--oro-osc)}
+    .precio .monto{font-size:2.2rem;color:var(--oro-osc)}
     .promo{
       background:linear-gradient(135deg,#faeaee,#f5dce2);
       border:1px solid rgba(201,162,75,.32);
@@ -391,24 +375,21 @@
       background:var(--negro);
       color:var(--oro);
       font-size:.7rem;
-      font-weight:600;
       letter-spacing:1.5px;
       text-transform:uppercase;
       padding:4px 12px;
       border-radius:999px;
       border:1px solid rgba(201,162,75,.45);
     }
-    #precios .paq h3{font-size:1.55rem;color:var(--negro)}
+    #precios .paq h3{font-size:1.3rem;color:var(--negro)}
     #precios .paq .monto{
-      font-family:var(--serif);
-      font-size:2.45rem;
-      font-weight:600;
+      font-size:2.1rem;
       color:var(--oro-osc);
       margin:8px 0 4px;
-      line-height:1.1;
+      line-height:1.15;
     }
     #precios .paq > p{
-      font-size:.88rem;
+      font-size:.9rem;
       color:var(--suave-txt);
       margin:0 0 10px;
     }
@@ -418,7 +399,7 @@
       margin:10px 0 18px;
       border-top:1px solid rgba(201,162,75,.18);
       text-align:left;
-      font-size:.91rem;
+      font-size:.93rem;
       flex:1;
     }
     #precios .paq li{padding:5px 0 5px 24px;position:relative;color:var(--texto)}
@@ -430,7 +411,7 @@
       font-size:.78rem;
       color:var(--oro);
     }
-    #precios .paq .desc{font-size:.86rem;color:var(--suave-txt);margin:0 0 14px}
+    #precios .paq .desc{font-size:.88rem;color:var(--suave-txt);margin:0 0 14px}
     #precios .paq .btn{width:100%;margin:auto 0 0}
 
     /* Banner QR (inyectado por pase-venta.js) */
@@ -450,7 +431,7 @@
     #pase-qr .banner-qr svg{width:46px;height:46px;stroke:var(--oro)}
     #pase-qr .banner-qr h2{
       color:#fff;
-      font-size:clamp(1.55rem,4.5vw,2rem);
+      font-size:clamp(1.4rem,4vw,1.75rem);
       margin:12px 0 20px;
     }
     #pase-qr .banner-qr h2::after{display:none}
@@ -472,8 +453,8 @@
     }
     summary{
       cursor:pointer;
-      font-weight:600;
-      font-size:.96rem;
+      font-weight:bold;
+      font-size:.98rem;
       padding:14px 0;
       list-style:none;
       display:flex;
@@ -495,7 +476,7 @@
       align-items:center;
       justify-content:center;
       font-size:1.1rem;
-      font-weight:400;
+      font-weight:normal;
       transition:transform .28s ease,background-color .28s ease;
     }
     details[open] summary::after{
@@ -506,7 +487,7 @@
       margin:0 0 16px;
       padding-top:10px;
       border-top:1px solid rgba(201,162,75,.14);
-      font-size:.93rem;
+      font-size:.95rem;
       color:var(--suave-txt);
     }
 
@@ -528,9 +509,7 @@
       border-radius:12px;
       border:1px solid rgba(201,162,75,.45);
       color:var(--oro);
-      font-family:var(--serif);
-      font-size:1.25rem;
-      font-weight:600;
+      font-size:1.1rem;
       letter-spacing:2px;
       margin-bottom:14px;
     }
@@ -595,8 +574,8 @@
     .reveal.visible{opacity:1;transform:none}
 
     @media (min-width:720px){
-      section{padding:76px 24px}
-      .hero{padding:88px 24px 78px}
+      section{padding:74px 24px}
+      .hero{padding:86px 24px 76px}
       footer{padding:48px 24px 60px}
     }
     @media (prefers-reduced-motion:reduce){
@@ -842,4 +821,4 @@
   <script type="module" src="js/referido.js"></script>
   <script type="module" src="js/disenos.js"></script>
 </body>
-        </html>
+  </html>
