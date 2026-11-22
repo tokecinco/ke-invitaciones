@@ -29,7 +29,7 @@
   <h1>KE Invitaciones - Panel</h1>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
@@ -37,54 +37,58 @@
 
   <section id="panel" hidden>
     <p><a href="dashboard.html">Menú</a> - <a href="confirmaciones.html">Confirmaciones</a> - <a href="pagos.html">Pagos</a> - <a href="paquetes.html">Paquetes</a></p>
+    <p>Sesión: <b id="sesion-email"></b></p>
     <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
 
-    <h2 id="titulo-form">Nueva invitación</h2>
-    <p id="aviso-edicion" class="aviso" hidden></p>
-    <form id="form" novalidate>
-      <label>Paquete</label>
-      <select id="f-paquete">
-        <option value="basico">Básico</option>
-        <option value="premium">Premium</option>
-        <option value="pase">Pase QR</option>
-      </select>
-      <label>Plantilla</label>
-      <select id="f-template">
+    <div id="contenido">
+      <h2 id="titulo-form">Nueva invitación</h2>
+      <p id="aviso-edicion" class="aviso" hidden></p>
+      <form id="form" novalidate>
+        <label>Paquete</label>
+        <select id="f-paquete">
+          <option value="basico">Básico</option>
+          <option value="premium">Premium</option>
+          <option value="pase">Pase QR</option>
+        </select>
+        <label>Plantilla</label>
+        <select id="f-template">
+          <option value="cumple">Cumpleaños infantil</option>
+          <option value="quince">15 años</option>
+          <option value="boda">Casamiento</option>
+        </select>
+        <input id="f-honoree" placeholder="Nombre del homenajeado" maxlength="80">
+        <input id="f-tipo" placeholder="Tipo de evento (ej: Mis 15 años)" maxlength="60">
+        <label>Fecha</label><input id="f-fecha" type="date">
+        <label>Hora</label><input id="f-hora" type="time">
+        <input id="f-salon" placeholder="Nombre del salón" maxlength="80">
+        <input id="f-dir" placeholder="Dirección" maxlength="120">
+        <input id="f-maps" placeholder="Enlace de Google Maps (https://...)">
+        <input id="f-bienvenida" placeholder="Texto de bienvenida" maxlength="120">
+        <textarea id="f-mensaje" placeholder="Mensaje personalizado" maxlength="400"></textarea>
+        <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
+        <input id="f-dress" placeholder="Dress code (ej: Elegante sport)" maxlength="120">
+        <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
+        <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
+        <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
+        <label id="lbl-fotos">Fotos (la primera es la portada)</label>
+        <input id="f-fotos" type="file" accept="image/*" multiple>
+        <div id="vista-fotos" class="fotos"></div>
+        <button id="btn-crear" type="submit">Crear invitación</button>
+        <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
+        <p id="f-msg" class="msg"></p>
+      </form>
+
+      <h2>Mis invitaciones</h2>
+      <input id="buscar" type="search" placeholder="Buscar por nombre">
+      <select id="filtro">
+        <option value="">Todas las plantillas</option>
         <option value="cumple">Cumpleaños infantil</option>
         <option value="quince">15 años</option>
         <option value="boda">Casamiento</option>
       </select>
-      <input id="f-honoree" placeholder="Nombre del homenajeado" maxlength="80">
-      <input id="f-tipo" placeholder="Tipo de evento (ej: Mis 15 años)" maxlength="60">
-      <label>Fecha</label><input id="f-fecha" type="date">
-      <label>Hora</label><input id="f-hora" type="time">
-      <input id="f-salon" placeholder="Nombre del salón" maxlength="80">
-      <input id="f-dir" placeholder="Dirección" maxlength="120">
-      <input id="f-maps" placeholder="Enlace de Google Maps (https://...)">
-      <input id="f-bienvenida" placeholder="Texto de bienvenida" maxlength="120">
-      <textarea id="f-mensaje" placeholder="Mensaje personalizado" maxlength="400"></textarea>
-      <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
-      <input id="f-dress" placeholder="Dress code (ej: Elegante sport)" maxlength="120">
-      <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
-      <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
-      <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
-      <label id="lbl-fotos">Fotos (la primera es la portada)</label>
-      <input id="f-fotos" type="file" accept="image/*" multiple>
-      <div id="vista-fotos" class="fotos"></div>
-      <button id="btn-crear" type="submit">Crear invitación</button>
-      <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
-      <p id="f-msg" class="msg"></p>
-    </form>
-
-    <h2>Mis invitaciones</h2>
-    <input id="buscar" type="search" placeholder="Buscar por nombre">
-    <select id="filtro">
-      <option value="">Todas las plantillas</option>
-      <option value="cumple">Cumpleaños infantil</option>
-      <option value="quince">15 años</option>
-      <option value="boda">Casamiento</option>
-    </select>
-    <div id="lista"></div>
+      <div id="lista"></div>
+    </div>
   </section>
 
   <script type="module">
@@ -95,6 +99,7 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
     // maxPhotos cuenta la portada: Básico = portada + 6, Premium = portada + 8, Pase QR = solo portada
     let paquetes = {
@@ -105,6 +110,7 @@
     let fotos = [];
     let fotosExistentes = [];
     let editId = null;
+    let pedidoId = null;
     let todas = [];
 
     $("btn-login").addEventListener("click", async () => {
@@ -119,9 +125,24 @@
     $("btn-salir").addEventListener("click", () => signOut(auth));
 
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) { cargarPaquetes(); listar(); }
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargarPaquetes().then(() => cargarPedido());
+      listar();
     });
 
     async function cargarPaquetes() {
@@ -136,6 +157,50 @@
       } catch (e) { console.error(e); }
       paquetes.pase = { maxPhotos: 1, music: false };
       aplicarLimites();
+    }
+
+    async function cargarPedido() {
+      const pid = new URLSearchParams(location.search).get("pedido");
+      if (!pid || editId) return;
+      try {
+        const s = await getDoc(doc(db, "orders", pid));
+        if (!s.exists()) return;
+        const o = s.data();
+        const d = o.invitationData || {};
+        pedidoId = pid;
+        if (o.product && ["basico", "premium", "pase"].includes(o.product)) {
+          $("f-paquete").value = o.product;
+          aplicarLimites();
+        }
+        if (d.template) {
+          const sel = $("f-template");
+          if (!Array.from(sel.options).some((op) => op.value === d.template)) {
+            const op = document.createElement("option");
+            op.value = d.template;
+            op.textContent = d.templateName || d.template;
+            sel.appendChild(op);
+          }
+          sel.value = d.template;
+        }
+        $("f-honoree").value = d.honoree || "";
+        $("f-tipo").value = o.eventType || "";
+        $("f-fecha").value = o.eventDate || "";
+        $("f-hora").value = d.eventTime || "";
+        $("f-salon").value = d.venue || "";
+        $("f-dir").value = d.address || "";
+        $("f-maps").value = d.mapsUrl || "";
+        $("f-bienvenida").value = d.welcome || "";
+        $("f-mensaje").value = d.message || "";
+        $("f-dress").value = d.dressCode || "";
+        $("f-regalo").value = $("f-paquete").value === "pase" ? "" : (d.gift || "");
+        const tel = String(o.clientPhone || "").replace(/\D/g, "");
+        if (tel) $("f-whatsapp").value = tel;
+        if (o.notes) $("f-info").value = o.notes;
+        $("aviso-edicion").textContent = "Datos precargados del envío de " + (o.clientName || "cliente") +
+          (o.resellerCode ? " (revendedor: " + o.resellerCode + ")" : "") +
+          ". Agregá las fotos y tocá Crear invitación.";
+        $("aviso-edicion").hidden = false;
+      } catch (e) { console.error(e); }
     }
 
     function limites() { return paquetes[$("f-paquete").value] || paquetes.basico; }
@@ -230,7 +295,7 @@
     });
 
     function salirDeEdicion() {
-      editId = null; fotos = []; fotosExistentes = [];
+      editId = null; pedidoId = null; fotos = []; fotosExistentes = [];
       $("form").reset();
       $("vista-fotos").innerHTML = "";
       $("titulo-form").textContent = "Nueva invitación";
@@ -343,6 +408,14 @@
           datos.ownerId = auth.currentUser.uid;
           datos.createdAt = serverTimestamp();
           await setDoc(doc(db, "invitations", id), datos);
+          if (pedidoId) {
+            try {
+              await updateDoc(doc(db, "orders", pedidoId), {
+                invitationId: id,
+                updatedAt: serverTimestamp()
+              });
+            } catch (err) { console.error(err); }
+          }
           salirDeEdicion();
           msg.textContent = "Creada. Enlace: " + linkDe(id);
         }
