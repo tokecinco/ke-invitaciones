@@ -4,6 +4,7 @@ import { doc, getDoc }
 
 const idInvitacion = new URLSearchParams(location.search).get("i");
 const $ = (id) => document.getElementById(id);
+const REDUCIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 const css = document.createElement("link");
 css.rel = "stylesheet";
@@ -76,7 +77,7 @@ function iconoActividad(titulo) {
     return '<path d="M8 22h8"/><path d="M12 12v10"/><path d="M7 3h10l-1 5a4 4 0 0 1-8 0Z"/><path d="M5 5l1.5.5"/><path d="M19 5l-1.5.5"/>';
   }
   if (/vals/.test(t)) {
-    return '<path d="M9.5 4 12 5.3 14.5 4l-1 4.5L19 19.2c-4.5 1.1-9.5 1.1-14 0l5.5-10.7Z"/><path d="M10.5 8.5h3"/><path d="M12 9v10.5"/>';
+    return '<circle cx="7.4" cy="5.8" r="1.55"/><path d="M6.2 8.2h2.8l.4 5.6H6Z"/><path d="M6.8 13.8 5.2 21"/><path d="M8.6 13.8 10.2 21"/><path d="M9.2 9.8 14.2 11.2"/><path d="M8.8 8.4 11.7 3"/><circle cx="16" cy="6.2" r="1.5"/><path d="M14.2 8.6h2.6l-.4 3.2 4.3 7.8c-2.6 1.5-6.2 1.7-8.7.6l2.5-8.4Z"/><path d="M15.3 12 16.7 20"/><path d="M14.3 8.8 11.7 3"/>';
   }
   if (/foto|sesion|camara|cabina/.test(t)) {
     return '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>';
@@ -96,6 +97,35 @@ function iconoActividad(titulo) {
   return '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>';
 }
 
+/* Aplica el mismo efecto reveal al deslizar que las demás secciones */
+function revelarItinerario(sec, items) {
+  if (REDUCIR || !("IntersectionObserver" in window)) return;
+  const obs = new IntersectionObserver((entradas) => {
+    entradas.forEach((en) => {
+      if (en.isIntersecting) {
+        en.target.classList.add("visible");
+        obs.unobserve(en.target);
+      }
+    });
+  }, { threshold: 0.12 });
+
+  const inv = $("invitacion");
+  if (inv && !inv.hidden) {
+    Array.from(sec.children).forEach((ch, i) => {
+      if (!ch.classList.contains("timeline")) {
+        ch.classList.add("reveal");
+        ch.style.transitionDelay = Math.min(i, 4) * 0.12 + "s";
+        obs.observe(ch);
+      }
+    });
+  }
+
+  items.forEach((it) => {
+    it.classList.add("reveal");
+    obs.observe(it);
+  });
+}
+
 /* Itinerario: línea central con texto e íconos alternados */
 function itinerario(d) {
   const lista = (Array.isArray(d.itinerary) ? d.itinerary : [])
@@ -113,6 +143,7 @@ function itinerario(d) {
   s.appendChild(el("h2", null, "Itinerario"));
 
   const cont = el("div", "timeline");
+  const items = [];
   lista.forEach((x) => {
     const f = el("div", "it-item");
 
@@ -128,12 +159,15 @@ function itinerario(d) {
 
     f.append(info, punto, ic);
     cont.appendChild(f);
+    items.push(f);
   });
   s.appendChild(cont);
 
   const ref = $("fecha-hora");
   const sec = ref ? ref.closest("section") : null;
   if (sec) sec.insertAdjacentElement("afterend", s);
+
+  revelarItinerario(s, items);
 }
 
 /* Playlist de Spotify */
