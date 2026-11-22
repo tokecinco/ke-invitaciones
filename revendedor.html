@@ -8,7 +8,7 @@
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
-    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:620px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     textarea{min-height:70px}
@@ -18,16 +18,28 @@
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
     .caja button{width:auto;padding:8px 12px;margin:6px 6px 0 0;font-size:.9rem}
-    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:10px;padding:8px;text-align:center;font-size:.75rem}
     .stat b{display:block;font-size:1.05rem;color:#8a6a1f}
-    .estado{display:inline-block;border-radius:12px;padding:2px 10px;font-size:.8rem;background:#eee}
+    .filtros{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:6px 0}
+    .venta{background:#fff;border:1px solid #eadfc8;border-left:5px solid #ccc;border-radius:12px;padding:12px;margin:10px 0}
+    .venta.nuevo{border-left-color:#e0a800}
+    .venta.en_proceso{border-left-color:#4a90d9}
+    .venta.entregado{border-left-color:#2e9e57}
+    .venta.cancelado{border-left-color:#c0392b;opacity:.78}
+    .venta-cab{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+    .estado{display:inline-block;border-radius:12px;padding:2px 10px;font-size:.78rem;background:#eee}
     .estado.nuevo{background:#fde8b0}
     .estado.en_proceso{background:#cfe3ff}
     .estado.entregado{background:#c9efd2}
     .estado.cancelado{background:#f3c6c6}
-    #enlace{word-break:break-all;font-size:.9rem}
+    .venta-meta{font-size:.86rem;color:#555;margin:4px 0}
+    .venta-datos{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;background:#fffaf3;border:1px solid #f0e6d2;border-radius:10px;padding:10px;margin:8px 0;font-size:.86rem}
+    .venta-datos div b{display:block;color:#8a6a1f;font-size:.95rem}
+    .venta-nota{font-size:.86rem;color:#444;background:#f9f6ef;border-radius:8px;padding:7px 10px;margin:6px 0}
+    .venta-links{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px;font-size:.9rem}
+    #enlace{word-break:break-all;font-size:.9rem;margin:6px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -55,26 +67,27 @@
       <div class="caja">
         <b>Tu enlace de venta</b>
         <p id="enlace"></p>
+        <div id="wa-enlace" class="venta-meta"></div>
         <button id="btn-copiar" type="button">Copiar enlace</button>
         <button id="btn-compartir" type="button" class="sec">Compartir por WhatsApp</button>
-        <small>Cuando un cliente entra con tu enlace y pide por WhatsApp, el pedido queda a tu nombre.</small>
+        <div class="venta-meta">Cuando un cliente entra con tu enlace, todos los botones de WhatsApp de la página dirigen directamente a tu número.</div>
       </div>
 
       <div class="stats">
-        <div class="stat"><b id="s-pedidos">0</b>Pedidos</div>
-        <div class="stat"><b id="s-entregados">0</b>Entregados</div>
+        <div class="stat"><b id="s-pedidos">0</b>Ventas</div>
+        <div class="stat"><b id="s-entregados">0</b>Entregadas</div>
+        <div class="stat"><b id="s-vendido">$0</b>Total vendido</div>
         <div class="stat"><b id="s-cobrado">$0</b>Cobrado</div>
         <div class="stat"><b id="s-ganada">$0</b>Comisión ganada</div>
-        <div class="stat"><b id="s-pagada">$0</b>Ya cobraste</div>
         <div class="stat"><b id="s-pend">$0</b>A cobrar</div>
       </div>
 
       <h2>Productos y precios</h2>
       <div id="productos"></div>
 
-      <h2>Nuevo pedido</h2>
+      <h2>Registrar nueva venta</h2>
       <div class="caja">
-        <p>Cargá los datos de tu cliente. El administrador se contacta, cobra y prepara la invitación.</p>
+        <p>Cargá los datos de tu cliente. El administrador prepara la invitación y actualiza los cobros y el estado.</p>
         <form id="form" novalidate>
           <input id="f-cliente" placeholder="Nombre del cliente" maxlength="80">
           <input id="f-tel" placeholder="WhatsApp del cliente" inputmode="tel" maxlength="30">
@@ -84,12 +97,27 @@
           <label>Fecha del evento (si ya la sabe)</label>
           <input id="f-fecha" type="date">
           <textarea id="f-notas" placeholder="Notas (opcional)" maxlength="300"></textarea>
-          <button id="btn-pedido" type="submit">Enviar pedido</button>
+          <button id="btn-pedido" type="submit">Registrar venta</button>
           <p id="f-msg" class="msg"></p>
         </form>
       </div>
 
-      <h2>Mis pedidos</h2>
+      <h2>Mis ventas</h2>
+      <input id="b-texto" type="search" placeholder="Buscar por cliente, evento o nota">
+      <div class="filtros">
+        <select id="b-estado">
+          <option value="">Todos los estados</option>
+          <option value="nuevo">Nuevo</option>
+          <option value="en_proceso">En proceso</option>
+          <option value="entregado">Entregado</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <select id="b-comision">
+          <option value="">Todas las comisiones</option>
+          <option value="pendiente">Comisión pendiente</option>
+          <option value="pagada">Comisión cobrada</option>
+        </select>
+      </div>
       <div id="pedidos"></div>
     </div>
   </section>
@@ -106,9 +134,12 @@
     const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
+    const fechaTs = (ts) => ts && ts.toDate
+      ? ts.toDate().toLocaleDateString("es-AR", { day: "numeric", month: "short", year: "numeric" }) : "";
 
     let rev = null;
     let precios = {};
+    let ventas = [];
 
     function errorAuth(e) {
       const c = (e && e.code) || "";
@@ -161,7 +192,7 @@
         }
         rev = r.data();
         await cargarPrecios();
-        pintarCabecera(u);
+        pintarCabecera();
         $("activo").hidden = false;
         cargarPedidos(u);
       } catch (e) {
@@ -181,10 +212,18 @@
       }
     }
 
-    function pintarCabecera(u) {
+    function pintarCabecera() {
       $("saludo").textContent = "Hola, " + rev.name;
       const link = base() + "?r=" + encodeURIComponent(rev.code);
       $("enlace").textContent = link;
+      const wa = String(rev.whatsapp || "").replace(/\D/g, "");
+      if (wa) {
+        $("wa-enlace").className = "venta-meta";
+        $("wa-enlace").textContent = "WhatsApp vinculado al enlace: +" + wa;
+      } else {
+        $("wa-enlace").className = "aviso";
+        $("wa-enlace").textContent = "Todavía no tenés un WhatsApp vinculado. Pedile al administrador que lo cargue en Revendedores.";
+      }
       $("btn-copiar").onclick = () => navigator.clipboard.writeText(link).then(() => { $("btn-copiar").textContent = "Copiado ✓"; });
       $("btn-compartir").onclick = () => {
         const t = "Mirá estas invitaciones digitales interactivas: " + link;
@@ -221,7 +260,7 @@
       if (tel.replace(/\D/g, "").length < 6) { msg.textContent = "Escribí el WhatsApp del cliente."; return; }
       if (!producto || !(producto in precios)) { msg.textContent = "Elegí un producto."; return; }
       $("btn-pedido").disabled = true;
-      msg.textContent = "Enviando...";
+      msg.textContent = "Registrando...";
       try {
         await addDoc(collection(db, "orders"), {
           resellerId: auth.currentUser.uid, resellerCode: rev.code,
@@ -233,55 +272,156 @@
           invitationId: "", adminNote: "", createdAt: serverTimestamp()
         });
         $("form").reset();
-        msg.textContent = "¡Pedido enviado! El administrador se va a contactar con tu cliente.";
+        msg.textContent = "¡Venta registrada!";
         cargarPedidos(auth.currentUser);
       } catch (err) {
         console.error(err);
-        msg.textContent = "No se pudo enviar el pedido. Revisá los datos e intentá de nuevo.";
+        msg.textContent = "No se pudo registrar la venta. Revisá los datos e intentá de nuevo.";
       }
       $("btn-pedido").disabled = false;
     });
 
     async function cargarPedidos(u) {
-      const cont = $("pedidos");
-      cont.textContent = "Cargando...";
+      $("pedidos").textContent = "Cargando...";
       try {
         const s = await getDocs(query(collection(db, "orders"), where("resellerId", "==", u.uid)));
-        const lista = s.docs.map((d) => d.data())
+        ventas = s.docs.map((d) => ({ id: d.id, ...d.data() }))
           .sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
-        let cobrado = 0, ganada = 0, pagada = 0, entregados = 0;
-        cont.textContent = "";
-        lista.forEach((p) => {
+
+        let vendido = 0, cobrado = 0, ganada = 0, pagada = 0, entregados = 0;
+        ventas.forEach((p) => {
+          const precio = p.agreedPrice ?? p.price ?? 0;
+          if (p.status !== "cancelado") vendido += precio;
           cobrado += p.collected || 0;
           ganada += comision(p);
           if (p.commissionPaid) pagada += comision(p);
           if (p.status === "entregado") entregados++;
-
-          const c = document.createElement("div"); c.className = "caja";
-          const n = document.createElement("b"); n.textContent = p.clientName;
-          const e = document.createElement("span");
-          e.className = "estado " + p.status; e.textContent = " " + (ESTADOS[p.status] || p.status) + " ";
-          const l1 = document.createElement("div");
-          l1.textContent = (NOMBRES[p.product] || p.product) + (p.eventType ? " - " + p.eventType : "") +
-            (p.eventDate ? " - " + p.eventDate : "");
-          const l2 = document.createElement("div");
-          l2.textContent = "Cobrado: " + $$(p.collected) + " - Tu comisión: " + $$(comision(p)) +
-            (comision(p) > 0 ? (p.commissionPaid ? " (ya cobrada)" : " (pendiente)") : "");
-          c.append(n, document.createTextNode(" "), e, l1, l2);
-          cont.appendChild(c);
         });
-        if (!lista.length) cont.textContent = "Todavía no cargaste pedidos.";
-        $("s-pedidos").textContent = lista.length;
+        $("s-pedidos").textContent = ventas.length;
         $("s-entregados").textContent = entregados;
+        $("s-vendido").textContent = $$(vendido);
         $("s-cobrado").textContent = $$(cobrado);
         $("s-ganada").textContent = $$(ganada);
-        $("s-pagada").textContent = $$(pagada);
         $("s-pend").textContent = $$(ganada - pagada);
+        pintarVentas();
       } catch (e) {
         console.error(e);
-        cont.textContent = "No se pudieron cargar tus pedidos.";
+        $("pedidos").textContent = "No se pudieron cargar tus ventas.";
       }
     }
+
+    function pintarVentas() {
+      const cont = $("pedidos");
+      cont.textContent = "";
+      if (!ventas.length) { cont.textContent = "Todavía no tenés ventas registradas."; return; }
+
+      const txt = $("b-texto").value.trim().toLowerCase();
+      const est = $("b-estado").value;
+      const com = $("b-comision").value;
+
+      const vis = ventas.filter((p) => {
+        if (est && p.status !== est) return false;
+        if (com === "pagada" && !p.commissionPaid) return false;
+        if (com === "pendiente" && (p.commissionPaid || comision(p) <= 0)) return false;
+        if (txt) {
+          const hay = [p.clientName, p.eventType, p.notes, p.adminNote, NOMBRES[p.product]]
+            .join(" ").toLowerCase();
+          if (!hay.includes(txt)) return false;
+        }
+        return true;
+      });
+
+      if (!vis.length) { cont.textContent = "No hay ventas con esos filtros."; return; }
+
+      const dato = (etq, val) => {
+        const d = document.createElement("div");
+        const b = document.createElement("b"); b.textContent = val;
+        d.append(etq, b);
+        return d;
+      };
+
+      vis.forEach((p) => {
+        const precio = p.agreedPrice ?? p.price ?? 0;
+        const cobrado = p.collected || 0;
+        const saldo = Math.max(precio - cobrado, 0);
+        const comCobrada = comision(p);
+        const comEstimada = Math.round(precio * (p.commissionPct || 0) / 100);
+
+        const c = document.createElement("div");
+        c.className = "venta " + (p.status || "");
+
+        const cab = document.createElement("div"); cab.className = "venta-cab";
+        const n = document.createElement("b"); n.textContent = p.clientName;
+        const e = document.createElement("span");
+        e.className = "estado " + (p.status || "");
+        e.textContent = ESTADOS[p.status] || p.status;
+        cab.append(n, e);
+        c.appendChild(cab);
+
+        const meta = document.createElement("div"); meta.className = "venta-meta";
+        const partes = [NOMBRES[p.product] || p.product];
+        if (p.eventType) partes.push(p.eventType);
+        if (p.eventDate) partes.push("Evento: " + p.eventDate);
+        if (p.createdAt) partes.push("Registrada: " + fechaTs(p.createdAt));
+        meta.textContent = partes.join(" · ");
+        c.appendChild(meta);
+
+        const grid = document.createElement("div"); grid.className = "venta-datos";
+        grid.append(
+          dato("Precio acordado", $$(precio)),
+          dato("Cobrado al cliente", $$(cobrado)),
+          dato("Saldo pendiente", $$(saldo)),
+          dato("Tu comisión (" + (p.commissionPct || 0) + "%)",
+            $$(comCobrada) + (comEstimada !== comCobrada ? " / " + $$(comEstimada) + " est." : ""))
+        );
+        c.appendChild(grid);
+
+        const estCom = document.createElement("div"); estCom.className = "venta-meta";
+        if (comCobrada <= 0) {
+          estCom.textContent = "Comisión: pendiente de cobro al cliente.";
+        } else if (p.commissionPaid) {
+          estCom.textContent = "Comisión cobrada ✓" + (p.commissionPaidAt ? " (" + fechaTs(p.commissionPaidAt) + ")" : "");
+        } else {
+          estCom.textContent = "Comisión pendiente de pago (" + $$(comCobrada) + ").";
+        }
+        c.appendChild(estCom);
+
+        if (p.notes) {
+          const nt = document.createElement("div"); nt.className = "venta-nota";
+          nt.textContent = "Notas: " + p.notes;
+          c.appendChild(nt);
+        }
+        if (p.adminNote) {
+          const an = document.createElement("div"); an.className = "venta-nota";
+          an.textContent = "Observación del admin: " + p.adminNote;
+          c.appendChild(an);
+        }
+
+        const links = document.createElement("div"); links.className = "venta-links";
+        const tel = String(p.clientPhone || "").replace(/\D/g, "");
+        if (tel) {
+          const w = document.createElement("a");
+          w.href = "https://wa.me/" + tel; w.target = "_blank"; w.rel = "noopener";
+          w.textContent = "WhatsApp: " + p.clientPhone;
+          links.appendChild(w);
+        }
+        if (p.invitationId) {
+          const iv = document.createElement("a");
+          iv.href = base() + "i/" + encodeURIComponent(p.invitationId);
+          iv.target = "_blank"; iv.rel = "noopener";
+          iv.textContent = "Ver invitación";
+          links.appendChild(iv);
+        }
+        if (links.children.length) c.appendChild(links);
+
+        cont.appendChild(c);
+      });
+    }
+
+    ["b-texto", "b-estado", "b-comision"].forEach((id) => {
+      $(id).addEventListener("input", pintarVentas);
+      $(id).addEventListener("change", pintarVentas);
+    });
   </script>
 </body>
 </html>
