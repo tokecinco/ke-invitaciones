@@ -20,7 +20,7 @@ function el(tag, clase, texto) {
 
 function icono(trazos) {
   const d = el("div", "icono");
-  d.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + trazos + "</svg>";
+  d.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + trazos + "</svg>";
   return d;
 }
 
@@ -97,33 +97,48 @@ function iconoActividad(titulo) {
   return '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>';
 }
 
-/* Aplica el mismo efecto reveal al deslizar que las demás secciones */
+/* Aplica el mismo efecto reveal al deslizar, esperando a que #invitacion sea visible */
 function revelarItinerario(sec, items) {
   if (REDUCIR || !("IntersectionObserver" in window)) return;
-  const obs = new IntersectionObserver((entradas) => {
-    entradas.forEach((en) => {
-      if (en.isIntersecting) {
-        en.target.classList.add("visible");
-        obs.unobserve(en.target);
-      }
-    });
-  }, { threshold: 0.12 });
-
   const inv = $("invitacion");
-  if (inv && !inv.hidden) {
+  if (!inv) return;
+
+  const iniciarObs = () => {
+    const obs = new IntersectionObserver((entradas) => {
+      entradas.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.classList.add("visible");
+          obs.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.05 });
+
     Array.from(sec.children).forEach((ch, i) => {
-      if (!ch.classList.contains("timeline")) {
+      if (!ch.classList.contains("timeline") && !ch.classList.contains("reveal")) {
         ch.classList.add("reveal");
         ch.style.transitionDelay = Math.min(i, 4) * 0.12 + "s";
         obs.observe(ch);
       }
     });
-  }
 
-  items.forEach((it) => {
-    it.classList.add("reveal");
-    obs.observe(it);
-  });
+    items.forEach((it) => {
+      it.classList.add("reveal");
+      obs.observe(it);
+    });
+  };
+
+  if (!inv.hidden) {
+    iniciarObs();
+  } else {
+    items.forEach((it) => it.classList.add("reveal"));
+    const mo = new MutationObserver(() => {
+      if (!inv.hidden) {
+        mo.disconnect();
+        requestAnimationFrame(iniciarObs);
+      }
+    });
+    mo.observe(inv, { attributes: true, attributeFilter: ["hidden"] });
+  }
 }
 
 /* Itinerario: línea central con texto e íconos alternados */
@@ -155,7 +170,7 @@ function itinerario(d) {
 
     const punto = el("span", "it-punto");
     const ic = el("div", "it-icono");
-    ic.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">' + iconoActividad(x.title) + "</svg>";
+    ic.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + iconoActividad(x.title) + "</svg>";
 
     f.append(info, punto, ic);
     cont.appendChild(f);
@@ -261,6 +276,7 @@ function cierre(d, fecha) {
     });
     sec.appendChild(caja);
 
+    const dos = (n) => String(n).padStart(2, "0");
     let timer = null;
     const actualizar = () => {
       const ms = fecha - new Date();
@@ -270,7 +286,6 @@ function cierre(d, fecha) {
         return;
       }
       const s = Math.floor(ms / 1000);
-      const dos = (n) => String(n).padStart(2, "0");
       num.dias.textContent = Math.floor(s / 86400);
       num.horas.textContent = dos(Math.floor((s % 86400) / 3600));
       num.min.textContent = dos(Math.floor((s % 3600) / 60));
