@@ -4,7 +4,7 @@ import { doc, getDoc }
 
 const idInvitacion = new URLSearchParams(location.search).get("i");
 
-["css/extras.css", "css/fondos.css"].forEach((href) => {
+["css/extras.css", "css/fondos.css", "css/paleta.css"].forEach((href) => {
   const css = document.createElement("link");
   css.rel = "stylesheet";
   css.href = href;
@@ -49,13 +49,79 @@ function decorar(sec) {
 }
 
 const main = document.getElementById("invitacion");
+let paletaPendiente = false;
+
+function programarPaleta() {
+  if (paletaPendiente) return;
+  paletaPendiente = true;
+  requestAnimationFrame(() => {
+    paletaPendiente = false;
+    aplicarPaletaSecciones();
+  });
+}
+
+function aplicarPaletaSecciones() {
+  if (!main) return;
+  const visibles = Array.from(main.children).filter((s) =>
+    s.tagName === "SECTION" &&
+    !s.classList.contains("portada") &&
+    !s.hidden &&
+    s.style.display !== "none"
+  );
+  let paso = 0;
+  let destacadas = 0;
+  let prev = "";
+
+  visibles.forEach((sec) => {
+    sec.classList.remove("sec-a", "sec-b", "sec-c", "sec-galeria", "sec-cierre");
+    if (sec.id === "sec-galeria") {
+      sec.classList.add("sec-galeria");
+      prev = "galeria";
+      return;
+    }
+    if (sec.id === "sec-cierre") {
+      sec.classList.add("sec-cierre");
+      prev = "cierre";
+      return;
+    }
+    if (!sec.textContent.trim() && !sec.querySelector("iframe, img, form, .cuenta, .timeline, .pase")) {
+      return;
+    }
+    const esDestacada =
+      (sec.querySelector("#cuenta") || sec.querySelector("#form-rsvp")) &&
+      destacadas < 2 &&
+      prev !== "c";
+    if (esDestacada) {
+      sec.classList.add("sec-c");
+      destacadas++;
+      prev = "c";
+      return;
+    }
+    const clase = prev === "a" ? "sec-b" : (prev === "b" ? "sec-a" : (paso % 2 === 0 ? "sec-a" : "sec-b"));
+    sec.classList.add(clase);
+    paso++;
+    prev = clase === "sec-a" ? "a" : "b";
+  });
+}
+
 if (main) {
   main.querySelectorAll("section").forEach(decorar);
+  aplicarPaletaSecciones();
   new MutationObserver((cambios) => {
-    cambios.forEach((c) => c.addedNodes.forEach((n) => {
-      if (n.nodeType === 1 && n.tagName === "SECTION") decorar(n);
-    }));
-  }).observe(main, { childList: true });
+    cambios.forEach((c) => {
+      if (c.type === "childList") {
+        c.addedNodes.forEach((n) => {
+          if (n.nodeType === 1 && n.tagName === "SECTION") decorar(n);
+        });
+      }
+    });
+    programarPaleta();
+  }).observe(main, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["hidden", "style"]
+  });
 }
 
 /* Visor de fotos: reinicia el efecto al cambiar de foto */
