@@ -64,9 +64,14 @@ body.tema-oscuro #invitacion > section.sec-galeria {
   background:linear-gradient(170deg, color-mix(in srgb, var(--texto) 82%, var(--acento)) 0%, #151311 100%);
   color:#f6f1e8;
   padding-top:64px;
-  padding-bottom:84px;
+  padding-bottom:68px;
 }
-#invitacion > section.sec-cierre::before { background:var(--sec-acento); }
+#invitacion > section.sec-cierre:has(+ .firma-ke) { padding-bottom:50px; }
+#invitacion > section.sec-cierre::before {
+  width:96px;
+  height:1px;
+  background:linear-gradient(90deg, transparent, var(--sec-acento), transparent);
+}
 #invitacion > section.sec-cierre .nos-lugar,
 #invitacion > section.sec-cierre .gracias,
 #invitacion > section.sec-cierre .corazon-final,
