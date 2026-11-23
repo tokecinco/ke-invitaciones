@@ -124,7 +124,7 @@ function mostrar(d, lim, invitado) {
 
   $("cargando").hidden = true;
   $("sobre").hidden = false;
-$("btn-abrir").addEventListener("click", () => {
+  $("btn-abrir").addEventListener("click", () => {
     const caja = document.querySelector(".sobre-caja");
     const sobreEl = $("sobre");
     const invEl = $("invitacion");
@@ -150,6 +150,7 @@ $("btn-abrir").addEventListener("click", () => {
       setTimeout(() => invEl.classList.remove("entrando"), 1400);
     }, 480);
   });
+}
 
 function agregarFirma(d) {
   if (d.showBrand === false || $("firma-ke")) return;
