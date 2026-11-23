@@ -124,7 +124,7 @@ function mostrar(d, lim, invitado) {
 
   $("cargando").hidden = true;
   $("sobre").hidden = false;
-  $("btn-abrir").addEventListener("click", () => {
+$("btn-abrir").addEventListener("click", () => {
     const caja = document.querySelector(".sobre-caja");
     const sobreEl = $("sobre");
     const invEl = $("invitacion");
@@ -139,14 +139,18 @@ function mostrar(d, lim, invitado) {
     caja.classList.add("saliendo");
     sobreEl.classList.add("saliendo");
     setTimeout(() => {
-      sobreEl.hidden = true;
       invEl.classList.add("entrando");
       invEl.hidden = false;
       window.scrollTo(0, 0);
       activarRevelado();
       if (hayMusica) reproducir();
-      setTimeout(() => invEl.classList.remove("entrando"), 900);
-    }, 550);
+    }, 150);
+    setTimeout(() => {
+      sobreEl.hidden = true;
+    }, 900);
+    setTimeout(() => {
+      invEl.classList.remove("entrando");
+    }, 1350);
   });
 }
 
