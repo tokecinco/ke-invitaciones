@@ -18,7 +18,8 @@ export const ESTILOS_FONDO = [
   ["filete", "Doble filete elegante"],
   ["flores", "Flores en las esquinas"],
   ["estrellado", "Cielo estrellado (para fondos oscuros)"],
-  ["globos", "Globos de fiesta"]
+  ["globos", "Globos de fiesta"],
+  ["estrella", "Estrella dorada (portada, cuenta y galería en estrella)"]
 ];
 
 export const PATRONES = [
