@@ -12,13 +12,13 @@
 
 .it-punto { grid-column:2; grid-row:1; justify-self:center; width:12px; height:12px;
   border-radius:50%; background:var(--acento); position:relative; z-index:1;
-  box-shadow:0 0 0 3px var(--fondo); }
+  box-shadow:0 0 0 3px var(--sec-bg, var(--fondo)); }
 
 .it-info { grid-column:1; grid-row:1; text-align:right; min-width:0; }
 .it-hora { display:block; font-size:.95rem; letter-spacing:.1em; text-transform:uppercase;
   color:var(--acento); line-height:1.2; }
 .it-titulo { margin:3px 0 0; font-size:.82rem; letter-spacing:.12em; text-transform:uppercase;
-  color:var(--texto); line-height:1.35; opacity:.88; overflow-wrap:break-word; }
+  color:var(--texto); line-height:1.35; opacity:.88; overflow-wrap:anywhere; }
 
 .it-icono { grid-column:3; grid-row:1; justify-self:start; color:var(--acento);
   display:flex; align-items:center; justify-content:center; }
