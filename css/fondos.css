@@ -380,7 +380,7 @@ body.fondo-glam .galeria img:first-child {
   box-shadow:8px 8px 0 rgba(183,110,121,.35); transform:none;
 }
 /* ===== Ajustes para que nada se salga de la pantalla en celulares ===== */
-html, body { max-width:100%; overflow-x:hidden; }
+html, body { max-width:100%; overflow-x:hidden; overflow-x:clip; }
 img, iframe, video, canvas { max-width:100%; }
 h1, h2, h3, p { overflow-wrap:anywhere; }
 
