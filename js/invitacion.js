@@ -53,7 +53,6 @@ async function cargar() {
       };
     }
   } catch (e) { console.error(e); }
-  // El paquete Pase QR es fijo: solo la portada, sin música y con invitación personalizada.
   if (clave === "pase") lim = { ...LIMITES.pase };
 
   let invitado = null;
@@ -121,20 +120,58 @@ function mostrar(d, lim, invitado) {
   if (hayMusica) configurarMusica(d.music);
   configurarRsvp(d, invitado);
   configurarCompartir(nombre);
+  agregarFirma(d);
 
   $("cargando").hidden = true;
   $("sobre").hidden = false;
   $("btn-abrir").addEventListener("click", () => {
     const caja = document.querySelector(".sobre-caja");
-    caja.classList.add("saliendo");
-    setTimeout(() => {
-      $("sobre").hidden = true;
-      $("invitacion").hidden = false;
+    const sobreEl = $("sobre");
+    const invEl = $("invitacion");
+    if (REDUCIR) {
+      sobreEl.hidden = true;
+      invEl.hidden = false;
       window.scrollTo(0, 0);
       activarRevelado();
       if (hayMusica) reproducir();
-    }, REDUCIR ? 0 : 600);
+      return;
+    }
+    caja.classList.add("saliendo");
+    sobreEl.classList.add("saliendo");
+    setTimeout(() => {
+      sobreEl.hidden = true;
+      invEl.classList.add("entrando");
+      invEl.hidden = false;
+      window.scrollTo(0, 0);
+      activarRevelado();
+      if (hayMusica) reproducir();
+      setTimeout(() => invEl.classList.remove("entrando"), 900);
+    }, 550);
   });
+}
+
+function agregarFirma(d) {
+  if (d.showBrand === false || $("firma-ke")) return;
+  const base = location.origin + location.pathname.replace(/[^/]*$/, "");
+  const f = document.createElement("footer");
+  f.id = "firma-ke";
+  f.className = "firma-ke";
+  const a = document.createElement("a");
+  a.href = base;
+  a.target = "_blank";
+  a.rel = "noopener";
+  const mono = document.createElement("span");
+  mono.className = "firma-mono";
+  mono.setAttribute("aria-hidden", "true");
+  mono.textContent = "KE";
+  const txt = document.createElement("span");
+  txt.append("Invitación creada con ");
+  const b = document.createElement("b");
+  b.textContent = "KE Invitaciones";
+  txt.appendChild(b);
+  a.append(mono, txt);
+  f.appendChild(a);
+  $("invitacion").appendChild(f);
 }
 
 function personalizar(invitado) {
@@ -302,15 +339,17 @@ function cerrarVisor() {
   document.body.style.overflow = "";
 }
 
+const dos = (n) => String(n).padStart(2, "0");
+
 function iniciarCuenta(fecha) {
   const actualizar = () => {
     let ms = fecha - new Date();
     if (ms < 0) ms = 0;
     const s = Math.floor(ms / 1000);
     $("c-dias").textContent = Math.floor(s / 86400);
-    $("c-horas").textContent = Math.floor((s % 86400) / 3600);
-    $("c-min").textContent = Math.floor((s % 3600) / 60);
-    $("c-seg").textContent = s % 60;
+    $("c-horas").textContent = dos(Math.floor((s % 86400) / 3600));
+    $("c-min").textContent = dos(Math.floor((s % 3600) / 60));
+    $("c-seg").textContent = dos(s % 60);
   };
   actualizar();
   setInterval(actualizar, 1000);
