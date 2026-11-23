@@ -270,10 +270,11 @@ function cierre(d, fecha) {
         return;
       }
       const s = Math.floor(ms / 1000);
+      const dos = (n) => String(n).padStart(2, "0");
       num.dias.textContent = Math.floor(s / 86400);
-      num.horas.textContent = Math.floor((s % 86400) / 3600);
-      num.min.textContent = Math.floor((s % 3600) / 60);
-      num.seg.textContent = s % 60;
+      num.horas.textContent = dos(Math.floor((s % 86400) / 3600));
+      num.min.textContent = dos(Math.floor((s % 3600) / 60));
+      num.seg.textContent = dos(s % 60);
     };
     actualizar();
     timer = setInterval(actualizar, 1000);
