@@ -1,0 +1,111 @@
+/* ================= PALETA POR SECCIONES (3 COLORES + GALERÍA + CIERRE) ================= */
+#invitacion > section:not(.portada) {
+  max-width:none;
+  width:100%;
+  padding:52px max(22px, calc(50% - 258px));
+  --sec-bg:var(--fondo);
+}
+
+/* Color A: fondo principal */
+#invitacion > section.sec-a {
+  --sec-bg:var(--fondo);
+  background-color:transparent;
+}
+
+/* Color B: fondo alternativo apenas diferente */
+#invitacion > section.sec-b {
+  --sec-bg:color-mix(in srgb, var(--suave) 38%, var(--fondo));
+  background-color:rgba(128,128,128,.04);
+  background-color:color-mix(in srgb, var(--suave) 38%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--acento) 12%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--acento) 12%, transparent);
+}
+body.tema-oscuro #invitacion > section.sec-b {
+  --sec-bg:color-mix(in srgb, var(--suave) 55%, var(--fondo));
+  background-color:color-mix(in srgb, var(--suave) 55%, transparent);
+}
+
+/* Color C: sección destacada (máximo 1 o 2) */
+#invitacion > section.sec-c {
+  --sec-bg:color-mix(in srgb, var(--acento) 14%, var(--suave));
+  background-color:var(--suave);
+  background-color:var(--sec-bg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--acento) 28%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--acento) 28%, transparent);
+}
+body.tema-oscuro #invitacion > section.sec-c {
+  --sec-bg:color-mix(in srgb, var(--acento) 18%, var(--suave));
+}
+:where(.sec-c) .icono {
+  background:var(--fondo);
+}
+:where(body:not(.fondo-glam)) :where(.sec-c) .cuenta div {
+  background:var(--fondo);
+  border:1px solid color-mix(in srgb, var(--acento) 24%, transparent);
+}
+
+/* Galería: fondo neutro que favorece las fotos */
+#invitacion > section.sec-galeria {
+  --sec-bg:color-mix(in srgb, var(--texto) 8%, color-mix(in srgb, var(--suave) 32%, var(--fondo)));
+  background-color:#ebe6df;
+  background-color:var(--sec-bg);
+  background-image:radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.05) 100%);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--acento) 18%, transparent),
+    inset 0 -1px 0 color-mix(in srgb, var(--acento) 18%, transparent);
+}
+body.tema-oscuro #invitacion > section.sec-galeria {
+  --sec-bg:color-mix(in srgb, var(--texto) 6%, #131316);
+  background-color:#1c1c20;
+  background-color:var(--sec-bg);
+  background-image:radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.22) 100%);
+}
+:where(.sec-galeria) .icono { background:var(--fondo); }
+:where(body.tema-oscuro) :where(.sec-galeria) .icono { background:var(--suave); }
+
+/* Cierre: oscuro o especial */
+#invitacion > section.sec-cierre {
+  --sec-acento:color-mix(in srgb, var(--acento) 72%, #ffffff);
+  --sec-bg:color-mix(in srgb, var(--texto) 86%, var(--acento));
+  background:#1c1917;
+  background:linear-gradient(170deg, color-mix(in srgb, var(--texto) 82%, var(--acento)) 0%, #151311 100%);
+  color:#f6f1e8;
+  padding-top:64px;
+  padding-bottom:84px;
+  border-top:1px solid color-mix(in srgb, var(--sec-acento) 35%, transparent);
+}
+#invitacion > section.sec-cierre::before { background:var(--sec-acento); }
+#invitacion > section.sec-cierre .nos-lugar,
+#invitacion > section.sec-cierre .gracias,
+#invitacion > section.sec-cierre .corazon-final,
+#invitacion > section.sec-cierre .cuenta b { color:var(--sec-acento); }
+#invitacion > section.sec-cierre .cuenta div {
+  background:rgba(255,255,255,.07);
+  border:1px solid color-mix(in srgb, var(--sec-acento) 34%, transparent);
+  box-shadow:none;
+}
+#invitacion > section.sec-cierre .cuenta span { color:rgba(246,241,232,.8); }
+
+body.tema-oscuro #invitacion > section.sec-cierre {
+  --sec-acento:var(--acento);
+  --sec-bg:color-mix(in srgb, var(--fondo) 75%, #000000);
+  background:radial-gradient(circle at 50% 20%, color-mix(in srgb, var(--acento) 20%, var(--suave)), color-mix(in srgb, var(--fondo) 72%, #000000));
+  color:var(--texto);
+}
+body.tema-oscuro #invitacion > section.sec-cierre .cuenta div {
+  background:color-mix(in srgb, var(--suave) 80%, #000000);
+  border:1px solid color-mix(in srgb, var(--acento) 35%, transparent);
+}
+body.tema-oscuro #invitacion > section.sec-cierre .cuenta span { color:var(--texto); opacity:.85; }
+body.ef-titulos #invitacion > section.sec-cierre .cuenta b {
+  background:linear-gradient(100deg, var(--sec-acento) 30%, #ffffff 50%, var(--sec-acento) 70%);
+  background-size:250% 100%;
+  -webkit-background-clip:text;
+  background-clip:text;
+}
+
+/* Mantiene integrados los detalles de línea de tiempo y cortes del pase QR */
+#sec-itinerario .it-punto { box-shadow:0 0 0 3px var(--sec-bg, var(--fondo)); }
+.pase-corte::before, .pase-corte::after { background:var(--sec-bg, var(--fondo)); }
