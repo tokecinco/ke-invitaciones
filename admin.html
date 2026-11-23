@@ -329,6 +329,7 @@
       $("f-regalo").value = x.gift || "";
       $("f-whatsapp").value = x.whatsapp || "";
       $("f-musica").value = x.music || "";
+      $("f-firma").checked = x.showBrand !== false;
       aplicarLimites();
       verFotos(fotosExistentes);
       $("titulo-form").textContent = "Editar invitación";
@@ -391,8 +392,9 @@
         gift: $("f-paquete").value === "pase" ? "" : $("f-regalo").value.trim(),
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
-        photos: fotosFinal
-      };
+     photos: fotosFinal,
+     showBrand: $("f-firma").checked
+   };
 
       $("btn-crear").disabled = true;
       msg.textContent = editId ? "Guardando..." : "Creando...";
