@@ -152,6 +152,7 @@ async function decoracion() {
     }
 
     if (typeof x.fondo === "string" && /^[a-z0-9-]{2,30}$/.test(x.fondo)) {
+    if (typeof x.fondo === "string" && /^[a-z0-9-]{2,30}$/.test(x.fondo)) {
       document.body.classList.add("fondo-" + x.fondo);
       const p = document.getElementById("portada");
       if (p && !p.querySelector(".rama")) {
@@ -162,24 +163,7 @@ async function decoracion() {
           p.appendChild(r);
         });
       }
-      if (x.fondo === "estrella") envolverGaleriaEstrella();
     }
   } catch (e) { console.error(e); }
-}
-
-function envolverGaleriaEstrella() {
-  const gal = document.getElementById("galeria");
-  if (!gal) return;
-  const envolver = () => {
-    Array.from(gal.children).forEach((el) => {
-      if (el.tagName !== "IMG") return;
-      const marco = document.createElement("div");
-      marco.className = "galeria-item";
-      gal.replaceChild(marco, el);
-      marco.appendChild(el);
-    });
-  };
-  envolver();
-  new MutationObserver(envolver).observe(gal, { childList: true });
 }
 decoracion();
