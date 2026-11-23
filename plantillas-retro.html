@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Plantillas Retro - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:580px}
+    h1,h2{color:#c9a24b}
+    input,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:10px 0}
+    .preview{border-radius:10px;padding:14px;margin:8px 0;text-align:center;border:1px solid rgba(0,0,0,.1)}
+    .preview h3{margin:0 0 4px;font-size:1.35rem;font-weight:normal}
+    .preview small{display:block;opacity:.85;margin-bottom:8px}
+    .preview span{display:inline-block;padding:5px 14px;border-radius:999px;font-size:.82rem;color:#fff}
+    .desc{font-size:.9rem;color:#555;margin:6px 0}
+    .muestra{display:flex;gap:6px;margin-top:8px}
+    .muestra span{flex:1;height:22px;border-radius:6px;border:1px solid #ddd}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Plantillas Retro & Vintage</h1>
+  <p><a href="plantillas.html">Plantillas</a> - <a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <p>Cargá estas <b>8 plantillas retro profesionales</b>. Se agrega la categoría <b>Retro & Vintage</b> en la página principal (después podés moverlas o editarlas desde <i>Plantillas</i>).</p>
+      <button id="btn-cargar" type="button">Cargar las 8 plantillas retro</button>
+      <p id="msg" class="msg"></p>
+      <div id="lista"></div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { buscarFuente, cargarFuente } from "./js/fuentes.js";
+
+    const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+
+    const CATEGORIAS_BASE = [
+      ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
+      ["especial", "Eventos especiales"], ["pase", "Pase QR"]
+    ];
+
+    const PLANTILLAS = [
+      {
+        id: "retro-gatsby",
+        name: "Art Deco Gatsby (Años 20)",
+        desc: "Negro carbón y dorado champagne con esquinas geométricas Art Deco, diamantes y títulos con brillo.",
+        fonts: { titulo: "'Cinzel', serif", texto: "'Josefin Sans', sans-serif", boton: "'Cinzel', serif" },
+        colors: { fondo: "#121316", texto: "#f2ead9", acento: "#d4af37", suave: "#1e2026" },
+        tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 95 },
+        fondo: "noche", patron: "", marco: "", deco: "diamantes", efectos: ["titulos"]
+      },
+      {
+        id: "retro-carta-vintage",
+        name: "Carta Vintage Pergamino",
+        desc: "Papel pergamino con textura real, doble filete clásico, tinta sepia y caligrafía antigua.",
+        fonts: { titulo: "'Rouge Script', cursive", texto: "'Radley', serif", boton: "'Cinzel', serif" },
+        colors: { fondo: "#f5ebd9", texto: "#3b2b20", acento: "#8b4a2b", suave: "#eadbc3" },
+        tamanos: { titulo: 115, subtitulo: 100, info: 100, boton: 95 },
+        fondo: "filete", patron: "papel", marco: "", deco: "", efectos: []
+      },
+      {
+        id: "retro-70s-sunset",
+        name: "Sunset Retro (Años 70)",
+        desc: "Crema vainilla, mostaza y naranja quemado con rayos de sol retro en la portada y textura de papel.",
+        fonts: { titulo: "'DM Serif Display', serif", texto: "'Lora', serif", boton: "'Montserrat', sans-serif" },
+        colors: { fondo: "#fdf3e1", texto: "#3d2516", acento: "#c85a28", suave: "#f5dfb8" },
+        tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 100 },
+        fondo: "rayos", patron: "papel", marco: "redondeado", deco: "soles", efectos: ["botones"]
+      },
+      {
+        id: "retro-50s-pastel",
+        name: "Pastel Diner (Años 50)",
+        desc: "Verde menta pastel y rosa cereza con lunares, marco de dos líneas y destellos.",
+        fonts: { titulo: "'Pacifico', cursive", texto: "'Nunito Sans', sans-serif", boton: "'Josefin Sans', sans-serif" },
+        colors: { fondo: "#f2faf6", texto: "#273835", acento: "#d65a6f", suave: "#dff2ea" },
+        tamanos: { titulo: 105, subtitulo: 100, info: 100, boton: 100 },
+        fondo: "", patron: "lunares", marco: "dos-lineas", deco: "destellos", efectos: ["botones"]
+      },
+      {
+        id: "retro-vinilo-disco",
+        name: "Vinilo & Disco Night",
+        desc: "Azul vinilo oscuro, coral retro y cielo estrellado con notas musicales flotantes.",
+        fonts: { titulo: "'Unbounded', sans-serif", texto: "'Plus Jakarta Sans', sans-serif", boton: "'Montserrat', sans-serif" },
+        colors: { fondo: "#14192b", texto: "#f7f1e5", acento: "#e87a5d", suave: "#202742" },
+        tamanos: { titulo: 90, subtitulo: 95, info: 100, boton: 95 },
+        fondo: "estrellado", patron: "", marco: "brillo", deco: "notas", efectos: ["titulos", "botones"]
+      },
+      {
+        id: "retro-botanico",
+        name: "Herbario Botánico Antiguo",
+        desc: "Estética de libro botánico clásico: marfil antiguo, verde salvia, flores en las esquinas y papel con grano.",
+        fonts: { titulo: "'Cormorant Garamond', serif", texto: "'Lora', serif", boton: "'Cormorant Garamond', serif" },
+        colors: { fondo: "#f7f4ec", texto: "#263327", acento: "#5a7254", suave: "#e7e9dd" },
+        tamanos: { titulo: 105, subtitulo: 100, info: 100, boton: 100 },
+        fondo: "flores", patron: "papel", marco: "esquinas", deco: "hojas", efectos: []
+      },
+      {
+        id: "retro-poster",
+        name: "Afiche Retro Tipográfico",
+        desc: "Estilo cartel impreso de mediados de siglo en hueso, tinta negra y rojo bermellón con marco grueso.",
+        fonts: { titulo: "'Oswald', sans-serif", texto: "'Antic Slab', serif", boton: "'Oswald', sans-serif" },
+        colors: { fondo: "#f6f1e7", texto: "#1a1917", acento: "#b93b2e", suave: "#eae1d0" },
+        tamanos: { titulo: 105, subtitulo: 100, info: 100, boton: 100 },
+        fondo: "", patron: "cuadricula", marco: "grueso", deco: "", efectos: []
+      },
+      {
+        id: "retro-hollywood",
+        name: "Hollywood Clásico Bordó",
+        desc: "Terciopelo bordó vino y oro antiguo con rayos suaves, esquinas decoradas y destellos.",
+        fonts: { titulo: "'Bodoni Moda', serif", texto: "'Gilda Display', serif", boton: "'Cinzel', serif" },
+        colors: { fondo: "#2c0e16", texto: "#f7ebd9", acento: "#d8b36a", suave: "#421622" },
+        tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 95 },
+        fondo: "rayos", patron: "", marco: "esquinas", deco: "destellos", efectos: ["titulos"]
+      }
+    ];
+
+    $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      dibujar();
+    });
+
+    function dibujar() {
+      const cont = $("lista");
+      cont.textContent = "";
+      PLANTILLAS.forEach((p) => {
+        Object.values(p.fonts).forEach((css) => cargarFuente(buscarFuente(css)));
+        const c = document.createElement("div"); c.className = "caja";
+
+        const pv = document.createElement("div"); pv.className = "preview";
+        pv.style.background = p.colors.fondo;
+        pv.style.color = p.colors.texto;
+        pv.style.fontFamily = p.fonts.texto;
+
+        const h = document.createElement("h3");
+        h.textContent = p.name;
+        h.style.color = p.colors.acento;
+        h.style.fontFamily = p.fonts.titulo;
+        if (p.fonts.titulo.includes("Oswald")) h.style.fontWeight = "700";
+
+        const sub = document.createElement("small");
+        sub.textContent = "Muestra de texto y combinación tipográfica retro";
+
+        const btn = document.createElement("span");
+        btn.textContent = "Confirmar asistencia";
+        btn.style.background = p.colors.acento;
+        btn.style.fontFamily = p.fonts.boton;
+
+        pv.append(h, sub, btn);
+
+        const d = document.createElement("div"); d.className = "desc"; d.textContent = p.desc;
+        const m = document.createElement("div"); m.className = "muestra";
+        ["fondo", "suave", "acento", "texto"].forEach((x) => {
+          const s = document.createElement("span"); s.style.background = p.colors[x]; m.appendChild(s);
+        });
+        c.append(pv, d, m);
+        cont.appendChild(c);
+      });
+    }
+
+    async function asegurarCategoria() {
+      const ref = doc(db, "settings", "categories");
+      const s = await getDoc(ref);
+      let items;
+      if (s.exists() && Array.isArray(s.data().items)) {
+        items = s.data().items.slice();
+      } else {
+        items = CATEGORIAS_BASE.map(([id, name]) => ({ id: id, name: name }));
+      }
+      if (items.some((c) => c && c.id === "retro")) {
+        if (!s.exists()) await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+        return false;
+      }
+      items.push({ id: "retro", name: "Retro & Vintage" });
+      await setDoc(ref, { items: items, updatedAt: serverTimestamp() });
+      return true;
+    }
+
+    $("btn-cargar").addEventListener("click", async () => {
+      const btn = $("btn-cargar");
+      btn.disabled = true;
+      $("msg").textContent = "Cargando plantillas retro...";
+      try {
+        let nuevas = 0, actualizadas = 0;
+        for (const p of PLANTILLAS) {
+          const diseno = {
+            name: p.name,
+            category: "retro",
+            font: p.fonts.texto,
+            fonts: p.fonts,
+            tamanos: p.tamanos,
+            colors: p.colors,
+            fondo: p.fondo,
+            patron: p.patron,
+            marco: p.marco,
+            deco: p.deco,
+            efectos: p.efectos,
+            sections: TODAS
+          };
+          const ref = doc(db, "templates", p.id);
+          const ex = await getDoc(ref);
+          if (ex.exists()) {
+            diseno.updatedAt = serverTimestamp();
+            await updateDoc(ref, diseno);
+            actualizadas++;
+          } else {
+            diseno.sampleImage = "";
+            diseno.active = true;
+            diseno.showHome = true;
+            diseno.createdAt = serverTimestamp();
+            await setDoc(ref, diseno);
+            nuevas++;
+          }
+        }
+        const cat = await asegurarCategoria();
+        $("msg").textContent = "Listo: " + nuevas + " creada(s) y " + actualizadas + " actualizada(s)." +
+          (cat ? " Se agregó la categoría \"Retro & Vintage\"." : "");
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo cargar. Revisá que hayas iniciado sesión como administrador.";
+      }
+      btn.disabled = false;
+    });
+  </script>
+</body>
+      </html>
