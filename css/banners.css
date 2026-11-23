@@ -1,0 +1,96 @@
+#sec-banners { max-width:960px; margin:0 auto; padding:26px 18px 34px; }
+#sec-banners::before { display:none; }
+
+.ban-wrap { position:relative; }
+.ban-vista {
+  overflow:hidden;
+  border-radius:20px;
+  border:1px solid rgba(201,162,75,.28);
+  background:#f5efe4;
+  box-shadow:0 12px 32px rgba(26,22,16,.08);
+  touch-action:pan-y;
+}
+.ban-pista {
+  display:flex;
+  transition:transform .65s cubic-bezier(.22, 1, .36, 1);
+  will-change:transform;
+}
+.ban-slide {
+  flex:0 0 100%;
+  width:100%;
+  aspect-ratio:16 / 9;
+  display:block;
+  position:relative;
+  overflow:hidden;
+}
+.ban-slide img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+  user-select:none;
+  -webkit-user-drag:none;
+}
+
+.ban-flecha {
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  border:1px solid rgba(201,162,75,.4);
+  background:rgba(255,250,243,.88);
+  -webkit-backdrop-filter:blur(6px);
+  backdrop-filter:blur(6px);
+  color:#1a1a1a;
+  font-size:1.45rem;
+  line-height:1;
+  cursor:pointer;
+  z-index:2;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  box-shadow:0 6px 16px rgba(0,0,0,.16);
+  transition:transform .25s ease, background-color .25s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.ban-flecha:hover { background:#fff; transform:translateY(-50%) scale(1.06); }
+.ban-flecha:active { transform:translateY(-50%) scale(.95); }
+.ban-izq { left:10px; }
+.ban-der { right:10px; }
+
+.ban-puntos {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  gap:7px;
+  margin-top:14px;
+}
+.ban-puntos button {
+  width:8px;
+  height:8px;
+  padding:0;
+  border:0;
+  border-radius:999px;
+  background:rgba(201,162,75,.35);
+  cursor:pointer;
+  transition:width .3s ease, background-color .3s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.ban-puntos button.on {
+  width:24px;
+  background:#c9a24b;
+}
+
+@media (min-width:720px) {
+  #sec-banners { padding:34px 24px 44px; }
+  .ban-vista { border-radius:24px; }
+  .ban-slide { aspect-ratio:2 / 1; }
+  .ban-flecha { width:44px; height:44px; font-size:1.6rem; }
+  .ban-izq { left:14px; }
+  .ban-der { right:14px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ban-pista { transition:none; }
+  }
