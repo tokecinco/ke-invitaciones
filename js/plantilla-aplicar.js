@@ -33,6 +33,13 @@ const TAMANOS = ["titulo", "subtitulo", "info", "boton"];
 const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
 const idInvitacion = new URLSearchParams(location.search).get("i");
 
+function esOscuro(hex) {
+  if (!esColor(hex)) return false;
+  const n = parseInt(hex.slice(1), 16);
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  return (0.299 * r + 0.587 * g + 0.114 * b) < 140;
+}
+
 // Aplica una tipografía. Si la fuente tiene "peso" (por ejemplo negrita), también lo aplica.
 function fuente(estilo, variable, valor, rol) {
   const f = buscarFuente(valor);
@@ -59,7 +66,10 @@ async function aplicar() {
 
     const c = x.colors || {};
     const estilo = document.body.style;
-    if (esColor(c.fondo)) estilo.setProperty("--fondo", c.fondo);
+    if (esColor(c.fondo)) {
+      estilo.setProperty("--fondo", c.fondo);
+      if (esOscuro(c.fondo)) document.body.classList.add("tema-oscuro");
+    }
     if (esColor(c.texto)) estilo.setProperty("--texto", c.texto);
     if (esColor(c.acento)) estilo.setProperty("--acento", c.acento);
     if (esColor(c.suave)) estilo.setProperty("--suave", c.suave);
