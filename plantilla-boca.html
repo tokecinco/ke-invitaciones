@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Plantilla 60 Años Azul y Oro - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    .check{display:flex;align-items:center;margin:10px 0}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:12px 0}
+    .preview{position:relative;border-radius:12px;padding:28px 18px;margin:10px 0;text-align:center;background:#0a1d42;color:#f7f2e4;border:1px solid rgba(229,181,58,.55)}
+    .preview-in{border:1px solid rgba(229,181,58,.35);border-radius:8px;padding:20px 12px}
+    .preview small{display:block;letter-spacing:3px;text-transform:uppercase;font-size:.72rem;opacity:.85;margin-bottom:6px}
+    .preview h2{margin:4px 0 8px;font-size:1.75rem;color:#e5b53a;letter-spacing:.1em;text-transform:uppercase}
+    .preview p{margin:0 0 14px;font-size:.95rem;opacity:.92}
+    .preview .muestra-btn{display:inline-block;background:#e5b53a;color:#0a1d42;padding:9px 20px;border-radius:2px;font-size:.82rem;letter-spacing:.15em;text-transform:uppercase;font-weight:bold}
+    .colores{display:flex;gap:6px;margin-top:10px}
+    .colores span{flex:1;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,.12)}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Plantilla 60 Años (Azul y Oro)</h1>
+  <p><a href="plantillas.html">Plantillas</a> - <a href="admin.html">Invitaciones</a> - <a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido" class="caja">
+      <div id="preview" class="preview">
+        <div class="preview-in">
+          <small>Mis 60 años</small>
+          <h2 id="pv-tit">Carlos</h2>
+          <p id="pv-txt">Te espero para celebrar una noche inolvidable, azul y oro.</p>
+          <span id="pv-btn" class="muestra-btn">Confirmar asistencia</span>
+        </div>
+      </div>
+
+      <div class="colores">
+        <span style="background:#0a1d42" title="Fondo #0a1d42"></span>
+        <span style="background:#132c5c" title="Suave #132c5c"></span>
+        <span style="background:#e5b53a" title="Acento #e5b53a"></span>
+        <span style="background:#f7f2e4" title="Texto #f7f2e4"></span>
+      </div>
+
+      <label>Nombre de la plantilla</label>
+      <input id="f-nombre" value="60 Años Gala Azul y Oro" maxlength="60">
+
+      <label>Categoría</label>
+      <select id="f-cat"></select>
+
+      <label class="check"><input id="f-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
+
+      <button id="btn-cargar" type="button">Guardar plantilla Azul y Oro</button>
+      <p id="msg" class="msg"></p>
+    </div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { buscarFuente, cargarFuente } from "./js/fuentes.js";
+
+    const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+    const CATEGORIAS_BASE = [
+      ["especial", "Eventos especiales"], ["cumpleanos", "Cumpleaños infantiles"],
+      ["quince", "15 años"], ["boda", "Casamientos"], ["bautismo", "Bautismos"],
+      ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"], ["pase", "Pase QR"]
+    ];
+
+    const FONTS = {
+      titulo: "'Cinzel', serif",
+      texto: "'Lora', serif",
+      boton: "'Cinzel', serif"
+    };
+    Object.values(FONTS).forEach((css) => cargarFuente(buscarFuente(css)));
+    $("preview").style.fontFamily = FONTS.texto;
+    $("pv-tit").style.fontFamily = FONTS.titulo;
+    $("pv-btn").style.fontFamily = FONTS.boton;
+
+    $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargarCategorias();
+    });
+
+    async function cargarCategorias() {
+      let lista = CATEGORIAS_BASE;
+      try {
+        const s = await getDoc(doc(db, "settings", "categories"));
+        if (s.exists() && Array.isArray(s.data().items) && s.data().items.length) {
+          lista = s.data().items
+            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string")
+            .map((c) => [c.id, c.name]);
+        }
+      } catch (e) { console.error(e); }
+
+      const sel = $("f-cat");
+      sel.innerHTML = "";
+      lista.forEach(([id, nom]) => {
+        const o = document.createElement("option");
+        o.value = id; o.textContent = nom;
+        sel.appendChild(o);
+      });
+      if (lista.some(([id]) => id === "especial")) sel.value = "especial";
+    }
+
+    $("btn-cargar").addEventListener("click", async () => {
+      const nombre = $("f-nombre").value.trim() || "60 Años Gala Azul y Oro";
+      const btn = $("btn-cargar");
+      btn.disabled = true;
+      $("msg").textContent = "Guardando plantilla...";
+      try {
+        const ref = doc(db, "templates", "boca-60-gala");
+        const ex = await getDoc(ref);
+        const diseno = {
+          name: nombre,
+          category: $("f-cat").value || "especial",
+          showHome: $("f-home").checked,
+          font: FONTS.texto,
+          fonts: FONTS,
+          tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 95 },
+          colors: {
+            fondo: "#0a1d42",
+            texto: "#f7f2e4",
+            acento: "#e5b53a",
+            suave: "#132c5c"
+          },
+          fondo: "noche",
+          patron: "",
+          marco: "",
+          deco: "estrellas",
+          efectos: ["titulos"],
+          sections: TODAS
+        };
+        if (ex.exists()) {
+          diseno.updatedAt = serverTimestamp();
+          await updateDoc(ref, diseno);
+          $("msg").textContent = "Plantilla actualizada (identificador: boca-60-gala). Ya podés usarla en admin.html.";
+        } else {
+          diseno.sampleImage = "";
+          diseno.active = true;
+          diseno.createdAt = serverTimestamp();
+          await setDoc(ref, diseno);
+          $("msg").textContent = "Plantilla creada (identificador: boca-60-gala). Ya podés elegirla en admin.html.";
+        }
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
+      btn.disabled = false;
+    });
+  </script>
+</body>
+  </html>
