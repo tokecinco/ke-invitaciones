@@ -138,21 +138,18 @@ $("btn-abrir").addEventListener("click", () => {
     }
     caja.classList.add("saliendo");
     sobreEl.classList.add("saliendo");
-    setTimeout(() => {
-      invEl.classList.add("entrando");
-      invEl.hidden = false;
-      window.scrollTo(0, 0);
-      activarRevelado();
-      if (hayMusica) reproducir();
-    }, 150);
+    invEl.style.opacity = "0";
+    invEl.hidden = false;
+    window.scrollTo(0, 0);
+    activarRevelado();
+    if (hayMusica) reproducir();
     setTimeout(() => {
       sobreEl.hidden = true;
-    }, 900);
-    setTimeout(() => {
-      invEl.classList.remove("entrando");
-    }, 1350);
+      invEl.classList.add("entrando");
+      invEl.style.opacity = "";
+      setTimeout(() => invEl.classList.remove("entrando"), 1400);
+    }, 480);
   });
-}
 
 function agregarFirma(d) {
   if (d.showBrand === false || $("firma-ke")) return;
