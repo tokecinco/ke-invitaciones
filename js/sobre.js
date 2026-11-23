@@ -143,7 +143,7 @@ function montar() {
     sobre3d.classList.add("abierto");
     chispas();
     sonido();
-    setTimeout(() => { btn.dataset.listo = "1"; btn.click(); }, 1500);
+    setTimeout(() => { btn.dataset.listo = "1"; btn.click(); }, 3500);
   }
 
   sobre.addEventListener("click", (e) => {
