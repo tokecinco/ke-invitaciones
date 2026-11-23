@@ -152,7 +152,6 @@ async function decoracion() {
     }
 
     if (typeof x.fondo === "string" && /^[a-z0-9-]{2,30}$/.test(x.fondo)) {
-    if (typeof x.fondo === "string" && /^[a-z0-9-]{2,30}$/.test(x.fondo)) {
       document.body.classList.add("fondo-" + x.fondo);
       const p = document.getElementById("portada");
       if (p && !p.querySelector(".rama")) {
