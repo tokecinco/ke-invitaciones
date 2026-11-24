@@ -8,70 +8,115 @@
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
-    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:580px}
     h1,h2{color:#c9a24b}
     input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
     label{font-size:.9rem;display:block;margin-top:10px}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:.9rem}
+    .ban-item{border:1px solid #eadfc8;border-radius:10px;padding:10px;margin:10px 0;background:#fffdf8}
+    .ban-item img{width:100%;aspect-ratio:2/1;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px;background:#f5efe4}
+    .ban-acciones{display:flex;gap:6px;flex-wrap:wrap;margin-top:4px}
+    .ban-acciones button{width:auto;padding:7px 12px;margin:0;font-size:.86rem}
+    .nota{font-size:.86rem;color:#666;margin:4px 0 8px}
     .msg{min-height:1.4em}
   </style>
 </head>
 <body>
   <h1>Configuración</h1>
-  <p><a href="dashboard.html">Menú</a></p>
+  <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Invitaciones</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <div class="caja">
-      <label>WhatsApp de contacto (con código de país, sin + ni espacios. Ej: 5491112345678)</label>
-      <input id="f-wa" inputmode="numeric" placeholder="5491112345678">
-      <label>Promoción (opcional, se muestra junto al precio)</label>
-      <input id="f-promo" maxlength="140" placeholder="Ej: 10% de descuento este mes">
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <div class="caja">
+        <label>WhatsApp de contacto (con código de país, sin + ni espacios. Ej: 5491112345678)</label>
+        <input id="f-wa" inputmode="numeric" placeholder="5491112345678">
+        <label>Promoción (opcional, se muestra junto al precio)</label>
+        <input id="f-promo" maxlength="140" placeholder="Ej: 10% de descuento este mes">
+      </div>
+
+      <h2>Demostración de cada modelo</h2>
+      <p>Elegí qué invitación real se muestra como demostración. Tiene que estar activa y sin vencer.</p>
+      <div id="demos" class="caja"></div>
+
+      <button id="btn-guardar" type="button">Guardar configuración</button>
+      <p id="msg" class="msg"></p>
+
+      <h2 id="sec-banners">Banners de la página principal</h2>
+      <div class="caja">
+        <p class="nota">Se muestran debajo de la portada principal y antes de "Cómo funciona". Recomendado: imágenes horizontales (16:9 o 2:1, ej. 1200×600 px). Hasta 6 banners; se comprimen automáticamente.</p>
+        <input id="b-files" type="file" accept="image/*" multiple>
+        <div id="b-lista"></div>
+        <button id="b-guardar" type="button">Guardar banners</button>
+        <p id="b-msg" class="msg"></p>
+      </div>
     </div>
-
-    <h2>Demostración de cada modelo</h2>
-    <p>Elegí qué invitación real se muestra como demostración. Tiene que estar activa y sin vencer.</p>
-    <div id="demos" class="caja"></div>
-
-    <button id="btn-guardar" type="button">Guardar configuración</button>
-    <p id="msg" class="msg"></p>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const MAX_BANNERS = 6;
     let plantillas = [];
+    let banners = [];
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
     });
 
     async function cargar() {
       try {
-        const [tp, inv, site] = await Promise.all([
+        const [tp, inv, site, ban] = await Promise.all([
           getDocs(collection(db, "templates")),
           getDocs(collection(db, "invitations")),
-          getDoc(doc(db, "settings", "site"))
+          getDoc(doc(db, "settings", "site")),
+          getDoc(doc(db, "settings", "banners"))
         ]);
         const s = site.exists() ? site.data() : {};
         $("f-wa").value = s.whatsapp || "";
@@ -83,7 +128,7 @@
 
         const cont = $("demos");
         cont.textContent = "";
-        if (!plantillas.length) { cont.textContent = "Primero cargá las plantillas en plantillas.html."; return; }
+        if (!plantillas.length) { cont.textContent = "Primero cargá las plantillas en plantillas.html."; }
         plantillas.forEach((p) => {
           const l = document.createElement("label"); l.textContent = p.name;
           const sel = document.createElement("select"); sel.id = "demo-" + p.id;
@@ -96,6 +141,15 @@
           sel.value = demos[p.id] || "";
           cont.append(l, sel);
         });
+
+        banners = ban.exists() && Array.isArray(ban.data().items)
+          ? ban.data().items.filter((b) => b && b.image).map((b) => ({
+              image: b.image,
+              alt: b.alt || "",
+              link: b.link || ""
+            }))
+          : [];
+        pintarBanners();
       } catch (e) {
         console.error(e);
         $("msg").textContent = "No se pudo cargar la configuración.";
@@ -122,6 +176,137 @@
         console.error(e);
         $("msg").textContent = "No se pudo guardar.";
       }
+    });
+
+    /* Optimización y gestión de banners */
+    function comprimirBanner(archivo) {
+      return new Promise((ok, mal) => {
+        const img = new Image();
+        const url = URL.createObjectURL(archivo);
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          let max = 1200;
+          let q = 0.82;
+          const tope = 140000;
+          let out = "";
+          for (let i = 0; i < 6; i++) {
+            const k = Math.min(1, max / img.width);
+            const c = document.createElement("canvas");
+            c.width = Math.round(img.width * k);
+            c.height = Math.round(img.height * k);
+            c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+            out = c.toDataURL("image/webp", q);
+            if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/jpeg", q);
+            if (out.length <= tope) break;
+            max = Math.round(max * 0.85);
+            q = Math.max(0.5, q - 0.08);
+          }
+          ok(out);
+        };
+        img.onerror = () => mal(new Error("imagen"));
+        img.src = url;
+      });
+    }
+
+    function pintarBanners() {
+      const cont = $("b-lista");
+      cont.textContent = "";
+      if (!banners.length) {
+        cont.textContent = "Todavía no hay banners cargados (no se muestra la sección en la página principal).";
+        return;
+      }
+      banners.forEach((b, i) => {
+        const card = document.createElement("div"); card.className = "ban-item";
+        const im = document.createElement("img"); im.src = b.image; im.alt = b.alt || "";
+        const alt = document.createElement("input");
+        alt.placeholder = "Descripción corta (opcional, ej: Promo 15 años)";
+        alt.maxLength = 80; alt.value = b.alt || "";
+        alt.addEventListener("input", () => { b.alt = alt.value; });
+
+        const lnk = document.createElement("input");
+        lnk.placeholder = "Enlace al tocar (opcional, ej: #modelos o https://...)";
+        lnk.maxLength = 200; lnk.value = b.link || "";
+        lnk.addEventListener("input", () => { b.link = lnk.value; });
+
+        const acc = document.createElement("div"); acc.className = "ban-acciones";
+        const btn = (t, cl, fn) => {
+          const bt = document.createElement("button");
+          bt.type = "button"; bt.textContent = t; if (cl) bt.className = cl; bt.onclick = fn; return bt;
+        };
+        if (i > 0) acc.appendChild(btn("↑ Subir", "sec", () => {
+          [banners[i - 1], banners[i]] = [banners[i], banners[i - 1]];
+          pintarBanners();
+        }));
+        if (i < banners.length - 1) acc.appendChild(btn("↓ Bajar", "sec", () => {
+          [banners[i + 1], banners[i]] = [banners[i], banners[i + 1]];
+          pintarBanners();
+        }));
+        acc.appendChild(btn("Quitar", "rojo", () => {
+          banners.splice(i, 1);
+          pintarBanners();
+        }));
+        card.append(im, alt, lnk, acc);
+        cont.appendChild(card);
+      });
+    }
+
+    $("b-files").addEventListener("change", async (e) => {
+      const elegidas = Array.from(e.target.files);
+      if (!elegidas.length) return;
+      const libres = MAX_BANNERS - banners.length;
+      if (libres <= 0) {
+        $("b-msg").textContent = "Ya llegaste al máximo de " + MAX_BANNERS + " banners. Quitá alguno para subir otro.";
+        e.target.value = "";
+        return;
+      }
+      const archivos = elegidas.slice(0, libres);
+      $("b-msg").textContent = "Optimizando imagen(es)...";
+      try {
+        for (const a of archivos) {
+          const data = await comprimirBanner(a);
+          banners.push({ image: data, alt: "", link: "" });
+        }
+        pintarBanners();
+        $("b-msg").textContent = (elegidas.length > libres
+          ? "Se agregaron " + archivos.length + " (máximo " + MAX_BANNERS + " en total). "
+          : "Imagen(es) lista(s). ") + "Tocá \"Guardar banners\" para publicar.";
+      } catch (err) {
+        console.error(err);
+        $("b-msg").textContent = "No se pudo procesar una de las imágenes.";
+      }
+      e.target.value = "";
+    });
+
+    $("b-guardar").addEventListener("click", async () => {
+      const msg = $("b-msg");
+      const salida = [];
+      for (const b of banners) {
+        const link = String(b.link || "").trim();
+        if (link && !/^https:\/\//i.test(link) && !/^#[a-z0-9-]+$/i.test(link)) {
+          msg.textContent = "Un enlace no es válido: debe empezar con https:// o con # (ej: #modelos).";
+          return;
+        }
+        salida.push({ image: b.image, alt: String(b.alt || "").trim(), link: link });
+      }
+      if (JSON.stringify(salida).length > 920000) {
+        msg.textContent = "Los banners pesan demasiado juntos. Usá menos banners o imágenes más livianas.";
+        return;
+      }
+      $("b-guardar").disabled = true;
+      msg.textContent = "Guardando banners...";
+      try {
+        await setDoc(doc(db, "settings", "banners"), {
+          items: salida,
+          updatedAt: serverTimestamp()
+        });
+        msg.textContent = salida.length
+          ? "Banners guardados (" + salida.length + "). Ya se ven en la página principal."
+          : "Banners quitados de la página principal.";
+      } catch (e) {
+        console.error(e);
+        msg.textContent = "No se pudieron guardar los banners.";
+      }
+      $("b-guardar").disabled = false;
     });
   </script>
 </body>
