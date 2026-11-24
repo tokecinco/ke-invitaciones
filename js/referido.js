@@ -2,23 +2,10 @@ import { db } from "./firebase.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-const CLAVE = "ke-ref";
-const VIGENCIA = 30 * 24 * 60 * 60 * 1000;
+try { localStorage.removeItem("ke-ref"); } catch (e) {}
 
 const param = new URLSearchParams(location.search).get("r");
-if (param && /^[a-z0-9]{3,20}$/i.test(param)) {
-  try {
-    localStorage.setItem(CLAVE, JSON.stringify({ c: param.toLowerCase(), t: Date.now() }));
-  } catch (e) {}
-}
-
-function codigo() {
-  try {
-    const v = JSON.parse(localStorage.getItem(CLAVE) || "null");
-    if (v && Date.now() - v.t < VIGENCIA) return v.c;
-  } catch (e) {}
-  return "";
-}
+const codigo = (param && /^[a-z0-9]{3,20}$/i.test(param)) ? param.toLowerCase() : "";
 
 let waRev = "";
 
@@ -40,13 +27,12 @@ function aplicarEnTodo() {
 }
 
 async function iniciar() {
-  const c = codigo();
-  if (!c) return;
+  if (!codigo) return;
   try {
     const snap = await getDoc(doc(db, "settings", "resellers"));
     if (!snap.exists()) return;
     const links = snap.data().links || {};
-    const num = String(links[c] || "").replace(/\D/g, "");
+    const num = String(links[codigo] || "").replace(/\D/g, "");
     if (num.length < 8 || num.length > 15) return;
     waRev = num;
     aplicarEnTodo();
