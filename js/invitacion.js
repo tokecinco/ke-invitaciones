@@ -42,9 +42,13 @@ async function cargar() {
 
   const clave = d.package === "premium" ? "premium" : (d.package === "pase" ? "pase" : "basico");
   let lim = { ...LIMITES[clave] };
+  let tpl = null;
   try {
-    const p = await getDoc(doc(db, "settings", "packages"));
-    if (p.exists() && p.data()[clave]) {
+    const [p, t] = await Promise.all([
+      getDoc(doc(db, "settings", "packages")).catch(() => null),
+      d.template ? getDoc(doc(db, "templates", d.template)).catch(() => null) : null
+    ]);
+    if (p && p.exists() && p.data()[clave]) {
       const g = p.data()[clave];
       lim = {
         maxPhotos: g.maxPhotos || lim.maxPhotos,
@@ -52,6 +56,7 @@ async function cargar() {
         personalized: !!g.personalized
       };
     }
+    if (t && t.exists()) tpl = t.data();
   } catch (e) { console.error(e); }
   if (clave === "pase") lim = { ...LIMITES.pase };
 
@@ -65,10 +70,10 @@ async function cargar() {
     } catch (e) { console.error(e); }
   }
 
-  mostrar(d, lim, invitado);
+  mostrar(d, lim, invitado, tpl);
 }
 
-function mostrar(d, lim, invitado) {
+function mostrar(d, lim, invitado, tpl) {
   const plantillas = ["cumple", "quince", "boda"];
   if (plantillas.includes(d.template)) document.body.classList.add("tpl-" + d.template);
 
@@ -82,13 +87,20 @@ function mostrar(d, lim, invitado) {
 
   if (invitado) personalizar(invitado);
 
-  const fotos = (Array.isArray(d.photos) ? d.photos.filter(imagenSegura) : []).slice(0, lim.maxPhotos);
-  if (fotos.length) {
-    $("portada").style.setProperty("--foto", 'url("' + fotos[0] + '")');
+  const usarMuestra = tpl && imagenSegura(tpl.sampleImage) &&
+    (d.useTemplateCover === true || (d.useTemplateCover !== false && tpl.sampleAsCover === true));
+  const fotos = Array.isArray(d.photos) ? d.photos.filter(imagenSegura) : [];
+  const portada = usarMuestra ? tpl.sampleImage : (fotos[0] || "");
+  const galeria = usarMuestra
+    ? fotos.slice(0, Math.max(lim.maxPhotos - 1, 0))
+    : fotos.slice(1, lim.maxPhotos);
+
+  if (portada) {
+    $("portada").style.setProperty("--foto", 'url("' + portada + '")');
     $("portada").classList.add("con-foto");
   }
   decorarPortada();
-  armarGaleria(fotos.slice(1));
+  armarGaleria(galeria);
 
   const fecha = d.date ? new Date(d.date + "T" + (d.time || "00:00") + ":00") : null;
   if (fecha && !isNaN(fecha)) {
