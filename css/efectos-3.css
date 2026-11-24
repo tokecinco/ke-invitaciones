@@ -213,4 +213,73 @@ body.fondo-arco-fino .portada::before {
 body.fondo-arco-fino .portada::after,
 body.fondo-arco-fino .portada.con-foto::after {
   inset:auto; top:calc(6vh - 10px); left:0; right:0; margin:0 auto;
-  width:calc(min(70vw, 290px) + 20px); height:
+  width:calc(min(70vw, 290px) + 20px); height:calc(max(42vh, 250px) + 20px);
+  border:1px solid var(--acento); outline:1px solid color-mix(in srgb, var(--acento) 40%, transparent);
+  outline-offset:6px; border-radius:999px 999px 0 0; background:none; opacity:1;
+}
+body.fondo-arco-fino .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-arco-fino .portada.con-foto h1,
+body.fondo-arco-fino .portada.con-foto .para b { color:var(--acento); }
+body.fondo-arco-fino .galeria img,
+body.fondo-arco-fino .galeria img:nth-child(odd),
+body.fondo-arco-fino .galeria img:nth-child(even),
+body.fondo-arco-fino .galeria img:first-child { border:0; border-radius:120px 120px 8px 8px; transform:none; background:none; }
+
+/* 6. Óvalo clásico */
+body.fondo-marco-oval .rama { display:none; }
+body.fondo-marco-oval .portada {
+  background:var(--fondo); justify-content:flex-start;
+  padding-top:calc(7vh + max(40vh, 250px) + 42px); padding-bottom:90px;
+}
+body.fondo-marco-oval .portada::before {
+  inset:auto; top:7vh; left:0; right:0; margin:0 auto;
+  width:min(62vw, 260px); height:40vh; min-height:250px; border-radius:50%;
+  background-color:var(--suave); animation:none;
+  box-shadow:0 0 0 8px color-mix(in srgb, var(--acento) 12%, transparent);
+}
+body.fondo-marco-oval .portada::after,
+body.fondo-marco-oval .portada.con-foto::after {
+  inset:auto; top:calc(7vh - 12px); left:0; right:0; margin:0 auto;
+  width:calc(min(62vw, 260px) + 24px); height:calc(max(40vh, 250px) + 24px);
+  border:1px solid var(--acento); border-radius:50%; background:none; opacity:.85;
+}
+body.fondo-marco-oval .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-marco-oval .portada.con-foto h1,
+body.fondo-marco-oval .portada.con-foto .para b { color:var(--acento); }
+
+/* 7. Cinta y tarjetón */
+body.fondo-cinta-saten .portada > .rama-der { display:none; }
+body.fondo-cinta-saten .portada > .rama-izq {
+  position:absolute !important; top:0; bottom:0; left:50%; width:min(28vw, 130px);
+  transform:translateX(-50%); z-index:1; pointer-events:none;
+  background:linear-gradient(90deg, transparent, var(--suave) 15%, var(--suave) 85%, transparent);
+  opacity:.75;
+}
+body.fondo-cinta-saten .portada:not(.con-foto) > * { position:relative; z-index:2; }
+body.fondo-cinta-saten .tipo {
+  background:var(--fondo); padding:5px 16px; border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--acento) 45%, transparent);
+}
+body.fondo-cinta-saten .portada.con-foto .tipo { color:var(--texto); text-shadow:none; }
+
+/* 8. Fiesta Glow moderno */
+body.fondo-neon-fiesta .rama { display:none; }
+body.fondo-neon-fiesta .portada {
+  background:
+    radial-gradient(circle at 50% 42%, color-mix(in srgb, var(--acento) 26%, transparent), transparent 60%),
+    var(--fondo);
+}
+body.fondo-neon-fiesta #nombre {
+  text-shadow:0 0 24px color-mix(in srgb, var(--acento) 55%, transparent);
+}
+body.fondo-neon-fiesta .boton {
+  border-radius:999px;
+  box-shadow:0 0 18px color-mix(in srgb, var(--acento) 45%, transparent);
+}
+body.fondo-neon-fiesta .cuenta div,
+body.fondo-neon-fiesta .tarjeta-esp,
+body.fondo-neon-fiesta .libro-card,
+body.fondo-neon-fiesta .regalo-alias {
+  border:1px solid color-mix(in srgb, var(--acento) 48%, transparent);
+  box-shadow:0 0 18px color-mix(in srgb, var(--acento) 14%, transparent);
+                                                              }
