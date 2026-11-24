@@ -18,7 +18,15 @@ export const ESTILOS_FONDO = [
   ["filete", "Doble filete elegante"],
   ["flores", "Flores en las esquinas"],
   ["estrellado", "Cielo estrellado (para fondos oscuros)"],
-  ["globos", "Globos de fiesta"]
+  ["globos", "Globos de fiesta"],
+  ["editorial", "Editorial de revista (minimalista con marco)"],
+  ["aurora", "Aurora artística suave"],
+  ["artdeco", "Art Déco geométrico"],
+  ["botanico", "Botánico (arco y ramas de olivo)"],
+  ["arco-fino", "Arco doble fino (sin ramas)"],
+  ["marco-oval", "Óvalo clásico (retrato)"],
+  ["cinta-saten", "Cinta de satén central"],
+  ["neon-fiesta", "Fiesta Glow moderno"]
 ];
 
 export const PATRONES = [
@@ -33,7 +41,15 @@ export const PATRONES = [
   ["ondas", "Ondas"],
   ["escamas", "Escamas"],
   ["estrellitas", "Estrellitas"],
-  ["papel", "Papel con textura"]
+  ["papel", "Papel con textura"],
+  ["lino", "Tela de lino fina"],
+  ["terrazzo", "Terrazzo minimalista"],
+  ["espiga", "Espiga / Chevron suave"],
+  ["arcos", "Arcos escandinavos"],
+  ["mosaico", "Mosaico Art Déco"],
+  ["marmol-suave", "Vetas de mármol suave"],
+  ["destellos-fondo", "Micro-destellos de fondo"],
+  ["borde-degrade", "Halo suave en los bordes"]
 ];
 
 export const MARCOS = [
@@ -67,7 +83,15 @@ export const DECOS = [
   ["diamantes", "Diamantes"],
   ["aviones", "Aviones"],
   ["capullos", "Capullos"],
-  ["confeti", "Confeti"]
+  ["confeti", "Confeti"],
+  ["mariposas", "Mariposas finas"],
+  ["petalos", "Pétalos"],
+  ["plumas", "Plumas minimalistas"],
+  ["brillos-4", "Destellos de 4 puntas"],
+  ["olivo", "Hojitas de olivo"],
+  ["burbujas-finas", "Burbujas finas dobles"],
+  ["lazos", "Lazos / moños"],
+  ["coronas-finas", "Coronas finas"]
 ];
 
 export const EFECTOS = [
