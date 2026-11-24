@@ -33,6 +33,10 @@
     .inv{border:1px solid #eadfc8;border-left:5px solid #ccc;border-radius:10px;padding:8px 10px;margin:8px 0;background:#fffdf8}
     .inv.si{border-left-color:#4caf50}
     .inv.no{border-left-color:#c0392b}
+    .fc-foto{display:flex;gap:10px;align-items:flex-start;border:1px solid #eadfc8;border-radius:10px;padding:8px;margin:8px 0;background:#fffdf8}
+    .fc-foto img{width:68px;height:68px;object-fit:cover;border-radius:6px;flex:0 0 auto;background:#eee}
+    .fc-foto-info{flex:1;min-width:0}
+    .fc-foto-info p{margin:3px 0;font-size:.9rem;font-style:italic;overflow-wrap:anywhere}
     .vista{width:100%;border:1px solid #eadfc8;border-radius:8px;margin:8px 0}
     .boton-link{display:inline-block;background:#c9a24b;color:#fff;text-decoration:none;border-radius:10px;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .msg{min-height:1.4em}
@@ -216,28 +220,31 @@
       bCopiar.onclick = () => navigator.clipboard.writeText(linkDe(id)).then(() => { bCopiar.textContent = "Copiado ✓"; });
       const bInv = h("button", "Invitados y pases", "sec");
       const bConf = h("button", "Confirmaciones", "sec");
+      const bFoto = h("button", "Fotocabina virtual", "sec");
       const bHash = h("button", "Hashtag de las fotos", "sec");
       const bLibro = h("button", "Libro de mensajes", "sec");
       t.append(bCopiar, bInv, bConf);
-      if (!esPase) t.append(bHash, bLibro);
+      if (!esPase) t.append(bFoto, bHash, bLibro);
 
       const pInv = h("div", "", "panelx"); pInv.hidden = true;
       const pConf = h("div", "", "panelx"); pConf.hidden = true;
+      const pFoto = h("div", "", "panelx"); pFoto.hidden = true;
       const pHash = h("div", "", "panelx"); pHash.hidden = true;
       const pLibro = h("div", "", "panelx"); pLibro.hidden = true;
       t.append(pInv, pConf);
-      if (!esPase) t.append(pHash, pLibro);
+      if (!esPase) t.append(pFoto, pHash, pLibro);
 
       invitados(id, x, bInv, pInv);
       confirmaciones(id, bConf, pConf);
       if (!esPase) {
+        fotocabina(id, x, bFoto, pFoto);
         hashtag(id, x, bHash, pHash);
         libro(id, x, bLibro, pLibro);
       }
       return t;
     }
 
-    /* Lista de invitados: el cliente envía las invitaciones con pase por WhatsApp */
+    /* Lista de invitados */
     function nuevoId() {
       const a = new Uint8Array(10);
       crypto.getRandomValues(a);
@@ -435,16 +442,17 @@
       };
     }
 
-    function interruptor(id, x, campoNombre, nombre, panel) {
+    function interruptor(id, x, campoNombre, nombre, panel, defecto = false) {
       const estado = h("p");
       const b = h("button", "Abrir");
       const pintar = () => {
-        const on = x[campoNombre] === true;
-        estado.textContent = nombre + ": " + (on ? "abierto" : "cerrado");
+        const on = defecto ? x[campoNombre] !== false : x[campoNombre] === true;
+        estado.textContent = nombre + ": " + (on ? "abierta" : "cerrada");
         b.textContent = on ? "Cerrar" : "Abrir";
       };
       b.onclick = async () => {
-        const nuevo = !(x[campoNombre] === true);
+        const actual = defecto ? x[campoNombre] !== false : x[campoNombre] === true;
+        const nuevo = !actual;
         try {
           await updateDoc(doc(db, "invitations", id), { [campoNombre]: nuevo });
           x[campoNombre] = nuevo;
@@ -456,7 +464,7 @@
     }
 
     function libro(id, x, boton, panel) {
-      interruptor(id, x, "guestbookOpen", "Libro de mensajes", panel);
+      interruptor(id, x, "guestbookOpen", "Libro de mensajes", panel, false);
       const lista = h("div");
       panel.appendChild(lista);
       let cargado = false;
@@ -498,7 +506,6 @@
       };
     }
 
-    /* Hashtag de las fotos y tarjeta con QR para las mesas */
     function cargarScript(src) {
       return new Promise((ok, mal) => {
         const s = document.createElement("script");
@@ -507,6 +514,187 @@
       });
     }
 
+    /* Fotocabina Virtual: código QR para mesa + moderación de fotos */
+    async function generarQrSolo(url) {
+      if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+      const qr = window.qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      const n = qr.getModuleCount();
+      const celda = 14, margen = 4;
+      const lado = (n + margen * 2) * celda;
+      const c = document.createElement("canvas");
+      c.width = lado; c.height = lado;
+      const g = c.getContext("2d");
+      g.fillStyle = "#ffffff"; g.fillRect(0, 0, lado, lado);
+      g.fillStyle = "#000000";
+      for (let f = 0; f < n; f++) {
+        for (let k = 0; k < n; k++) {
+          if (qr.isDark(f, k)) g.fillRect((k + margen) * celda, (f + margen) * celda, celda, celda);
+        }
+      }
+      return c.toDataURL("image/png");
+    }
+
+    async function generarTarjetaFotocabina(url, x) {
+      if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+      const qr = window.qrcode(0, "M");
+      qr.addData(url);
+      qr.make();
+      const n = qr.getModuleCount();
+
+      const W = 1200, H = 1600;
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const g = c.getContext("2d");
+      g.fillStyle = "#fffaf3"; g.fillRect(0, 0, W, H);
+      g.strokeStyle = "#c9a24b";
+      g.lineWidth = 3; g.strokeRect(40, 40, W - 80, H - 80);
+      g.lineWidth = 1; g.strokeRect(62, 62, W - 124, H - 124);
+      g.textAlign = "center";
+
+      const texto = (t, y, fuente, tam, ancho, color) => {
+        let s = tam;
+        do {
+          g.font = fuente.replace("%", s + "px");
+          if (g.measureText(t).width <= ancho) break;
+          s -= 4;
+        } while (s > 26);
+        g.fillStyle = color;
+        g.fillText(t, W / 2, y);
+      };
+
+      texto("Fotocabina Virtual", 230, "italic % Georgia, serif", 108, 960, "#3a3a3a");
+
+      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.beginPath();
+      g.moveTo(W / 2 - 170, 290); g.lineTo(W / 2 - 22, 290);
+      g.moveTo(W / 2 + 22, 290); g.lineTo(W / 2 + 170, 290);
+      g.stroke();
+      g.fillStyle = "#c9a24b";
+      g.beginPath();
+      g.moveTo(W / 2, 277); g.lineTo(W / 2 + 12, 290); g.lineTo(W / 2, 303); g.lineTo(W / 2 - 12, 290);
+      g.closePath(); g.fill();
+
+      texto("Escaneá el código con tu celular", 390, "% Georgia, serif", 48, 960, "#555555");
+      texto("y subí tu foto Polaroid con un mensaje", 450, "% Georgia, serif", 44, 960, "#555555");
+      texto("al muro del evento", 510, "italic % Georgia, serif", 46, 960, "#b8892b");
+
+      const margen = 2;
+      const celda = Math.floor(620 / (n + margen * 2));
+      const lado = celda * (n + margen * 2);
+      const qx = Math.round((W - lado) / 2), qy = 610;
+      g.fillStyle = "#ffffff";
+      g.fillRect(qx - 32, qy - 32, lado + 64, lado + 64);
+      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeRect(qx - 32, qy - 32, lado + 64, lado + 64);
+      g.fillStyle = "#000000";
+      for (let f = 0; f < n; f++) {
+        for (let k = 0; k < n; k++) {
+          if (qr.isDark(f, k)) g.fillRect(qx + (k + margen) * celda, qy + (f + margen) * celda, celda, celda);
+        }
+      }
+
+      texto("1 foto por invitado", 1365, "% Georgia, serif", 38, 960, "#777777");
+      const evento = [x.honoree, x.eventType].filter(Boolean).join(" - ");
+      if (evento) texto(evento, 1460, "italic % Georgia, serif", 42, 960, "#b8892b");
+      return c.toDataURL("image/png");
+    }
+
+    function fotocabina(id, x, boton, panel) {
+      const url = base() + "fotocabina.html?i=" + encodeURIComponent(id);
+      panel.appendChild(h("p", "Los invitados escanean el código QR en su mesa, sacan o eligen 1 foto estilo Polaroid y dejan un breve mensaje en el muro."));
+      interruptor(id, x, "photoboothOpen", "Fotocabina virtual", panel, true);
+
+      const acc = h("div");
+      const bTarj = h("button", "Generar tarjeta con QR para las mesas");
+      const bQr = h("button", "Descargar solo el QR (PNG)", "sec");
+      const bCop = h("button", "Copiar enlace", "sec");
+      bCop.onclick = () => navigator.clipboard.writeText(url).then(() => { bCop.textContent = "Copiado ✓"; });
+      const bVer = h("a", "Abrir muro", "boton-link");
+      bVer.href = url; bVer.target = "_blank"; bVer.rel = "noopener";
+      acc.append(bTarj, bQr, bCop, bVer);
+
+      const salida = h("div");
+      bTarj.onclick = async () => {
+        salida.textContent = "Generando tarjeta...";
+        try {
+          const png = await generarTarjetaFotocabina(url, x);
+          salida.textContent = "";
+          salida.appendChild(h("p", "Tarjeta lista para imprimir y apoyar en las mesas (formato 3:4, por ejemplo 15 × 20 cm)."));
+          const im = document.createElement("img");
+          im.className = "vista"; im.src = png; im.alt = "Tarjeta QR de la fotocabina";
+          salida.appendChild(im);
+          const d = h("a", "Descargar tarjeta (PNG)", "boton-link");
+          d.href = png; d.download = "tarjeta-fotocabina-" + id + ".png";
+          const p = h("button", "Imprimir", "sec");
+          p.onclick = () => {
+            const w = window.open("", "_blank");
+            if (!w) { alert("El navegador bloqueó la ventana. Descargá la tarjeta e imprimila desde tu galería."); return; }
+            w.document.write("<!DOCTYPE html><html><head><meta charset='utf-8'><title>Tarjeta Fotocabina</title>" +
+              "<style>@page{margin:0}body{margin:0}img{width:100%;display:block}</style></head><body><img src='" + png + "'></body></html>");
+            w.document.close();
+            setTimeout(() => w.print(), 500);
+          };
+          salida.append(d, p);
+        } catch (e) {
+          console.error(e);
+          salida.textContent = "No se pudo generar la tarjeta. Revisá tu conexión e intentá de nuevo.";
+        }
+      };
+
+      bQr.onclick = async () => {
+        try {
+          const png = await generarQrSolo(url);
+          const d = document.createElement("a");
+          d.href = png; d.download = "qr-fotocabina-" + id + ".png";
+          d.click();
+        } catch (e) { console.error(e); alert("No se pudo generar el QR."); }
+      };
+
+      const lista = h("div");
+      panel.append(acc, salida, h("h2", "Fotos subidas"), lista);
+
+      let cargado = false;
+      async function cargarFotos() {
+        lista.textContent = "Cargando...";
+        try {
+          const s = await getDocs(query(collection(db, "photobooth"), where("invitationId", "==", id)));
+          const items = s.docs.map((d) => ({ pid: d.id, f: d.data() }))
+            .sort((a, b) => (b.f.createdAt?.seconds || 0) - (a.f.createdAt?.seconds || 0));
+          lista.textContent = "";
+          if (!items.length) { lista.textContent = "Todavía no hay fotos subidas."; return; }
+          items.forEach(({ pid, f }) => {
+            const row = h("div", "", "fc-foto");
+            const im = document.createElement("img"); im.src = f.photo; im.alt = f.name;
+            const info = h("div", "", "fc-foto-info");
+            info.appendChild(h("b", f.name));
+            if (f.message) info.appendChild(h("p", "“" + f.message + "”"));
+            const desc = h("a", "Descargar", "boton-link");
+            desc.href = f.photo; desc.download = "polaroid-" + pid + ".webp";
+            const del = h("button", "Eliminar", "rojo");
+            del.onclick = async () => {
+              if (!confirm("¿Eliminar la foto de " + f.name + "?")) return;
+              try { await deleteDoc(doc(db, "photobooth", pid)); cargarFotos(); }
+              catch (e) { console.error(e); }
+            };
+            info.append(desc, del);
+            row.append(im, info);
+            lista.appendChild(row);
+          });
+        } catch (e) {
+          console.error(e);
+          lista.textContent = "No se pudieron cargar las fotos.";
+        }
+      }
+
+      boton.onclick = () => {
+        panel.hidden = !panel.hidden;
+        if (!panel.hidden && !cargado) { cargado = true; cargarFotos(); }
+      };
+    }
+
+    /* Hashtag de las fotos y tarjeta con QR para las mesas */
     async function generarTarjeta(tag, x) {
       if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
       const url = "https://www.instagram.com/explore/tags/" + encodeURIComponent(tag) + "/";
