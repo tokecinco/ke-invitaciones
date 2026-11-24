@@ -73,6 +73,8 @@
         <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
         <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
         <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
+        <label class="check"><input id="f-usar-muestra" type="checkbox">Usar imagen de muestra de la plantilla como portada</label>
+        <p id="aviso-muestra" class="msg" style="font-size:.85rem;color:#777;margin:0"></p>
         <label id="lbl-fotos">Fotos (la primera es la portada)</label>
         <input id="f-fotos" type="file" accept="image/*" multiple>
         <div id="vista-fotos" class="fotos"></div>
@@ -115,6 +117,7 @@
     let editId = null;
     let pedidoId = null;
     let todas = [];
+    let tplDatos = {};
 
     $("btn-login").addEventListener("click", async () => {
       $("login-msg").textContent = "Entrando...";
@@ -150,15 +153,27 @@
 
     async function cargarPaquetes() {
       try {
-        const s = await getDoc(doc(db, "settings", "packages"));
+        const [s, tp] = await Promise.all([
+          getDoc(doc(db, "settings", "packages")),
+          getDocs(collection(db, "templates"))
+        ]);
         if (s.exists()) {
           const g = s.data();
           ["basico", "premium"].forEach((k) => {
             if (g[k]) paquetes[k] = { maxPhotos: g[k].maxPhotos || paquetes[k].maxPhotos, music: !!g[k].music };
           });
         }
+        tplDatos = {};
+        tp.forEach((d) => {
+          const x = d.data();
+          tplDatos[d.id] = { sampleAsCover: !!x.sampleAsCover, hasImage: !!x.sampleImage };
+        });
       } catch (e) { console.error(e); }
       paquetes.pase = { maxPhotos: 1, music: false };
+      if (!editId) {
+        const td = tplDatos[$("f-template").value];
+        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
+      }
       aplicarLimites();
     }
 
@@ -211,9 +226,23 @@
     function aplicarLimites() {
       const k = $("f-paquete").value;
       const l = limites();
-      $("lbl-fotos").textContent = k === "pase"
-        ? "Foto de portada (este paquete incluye solo la portada)"
-        : "Fotos: la primera es la portada, más hasta " + Math.max(l.maxPhotos - 1, 0) + " de galería";
+      const usarMuestra = $("f-usar-muestra").checked;
+      const galMax = Math.max(l.maxPhotos - 1, 0);
+      if (usarMuestra) {
+        $("lbl-fotos").textContent = k === "pase"
+          ? "Fotos (este paquete usa solo la portada de la plantilla)"
+          : "Fotos de galería (opcional, hasta " + galMax + "; la portada será la imagen de muestra)";
+        $("f-fotos").disabled = k === "pase";
+      } else {
+        $("lbl-fotos").textContent = k === "pase"
+          ? "Foto de portada (este paquete incluye solo la portada)"
+          : "Fotos: la primera es la portada, más hasta " + galMax + " de galería";
+        $("f-fotos").disabled = false;
+      }
+      const td = tplDatos[$("f-template").value];
+      $("aviso-muestra").textContent = usarMuestra && td && !td.hasImage
+        ? "Aviso: esta plantilla todavía no tiene imagen de muestra cargada en Plantillas."
+        : "";
       $("f-musica").disabled = !l.music;
       $("f-musica").placeholder = l.music
         ? "Enlace de música (https://... .mp3) opcional"
@@ -227,6 +256,14 @@
       if (sinRegalo) $("f-regalo").value = "";
     }
     $("f-paquete").addEventListener("change", aplicarLimites);
+    $("f-usar-muestra").addEventListener("change", aplicarLimites);
+    $("f-template").addEventListener("change", () => {
+      if (!editId) {
+        const td = tplDatos[$("f-template").value];
+        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
+      }
+      aplicarLimites();
+    });
 
     function slug(t) {
       return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -280,13 +317,14 @@
     }
 
     $("f-fotos").addEventListener("change", async (e) => {
-      const max = limites().maxPhotos;
+      const usarMuestra = $("f-usar-muestra").checked;
+      const max = usarMuestra ? Math.max(limites().maxPhotos - 1, 0) : limites().maxPhotos;
       const elegidas = Array.from(e.target.files);
       const archivos = elegidas.slice(0, max);
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
-        for (let i = 0; i < archivos.length; i++) fotos.push(await comprimir(archivos[i], i === 0));
+        for (let i = 0; i < archivos.length; i++) fotos.push(await comprimir(archivos[i], !usarMuestra && i === 0));
         verFotos(fotos);
         let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
         if (elegidas.length > max) {
@@ -334,6 +372,8 @@
       $("f-whatsapp").value = x.whatsapp || "";
       $("f-musica").value = x.music || "";
       $("f-firma").checked = x.showBrand !== false;
+      const td = tplDatos[x.template];
+      $("f-usar-muestra").checked = x.useTemplateCover === true || (x.useTemplateCover !== false && !!(td && td.sampleAsCover));
       aplicarLimites();
       verFotos(fotosExistentes);
       $("titulo-form").textContent = "Editar invitación";
@@ -367,11 +407,15 @@
       if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Maps debe empezar con https://"; return; }
       if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
 
+      const usarMuestra = $("f-usar-muestra").checked;
+      const maxFinal = usarMuestra ? Math.max(l.maxPhotos - 1, 0) : l.maxPhotos;
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
-      if (fotosFinal.length > l.maxPhotos) {
-        msg.textContent = l.maxPhotos === 1
-          ? "Este paquete incluye solo la foto de portada. Elegí una sola foto."
-          : "Este paquete permite la portada + " + (l.maxPhotos - 1) + " fotos de galería. Elegí fotos nuevas o cambiá a Premium.";
+      if (fotosFinal.length > maxFinal) {
+        msg.textContent = maxFinal === 0
+          ? "Este paquete usa solo la portada de la plantilla; quitá las fotos o destildá la opción."
+          : (maxFinal === 1
+            ? "Este paquete permite 1 foto. Elegí una sola o cambiá a Premium."
+            : "Este paquete permite hasta " + maxFinal + " fotos. Elegí fotos nuevas o cambiá a Premium.");
         return;
       }
       if (fotosFinal.join("").length > 980000) {
@@ -397,6 +441,8 @@
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
      photos: fotosFinal,
+        useTemplateCover: usarMuestra,
+        showBrand: $("f-firma").checked
      showBrand: $("f-firma").checked
    };
 
