@@ -120,6 +120,7 @@
       <label>Imagen de muestra (opcional)</label>
       <input id="f-muestra" type="file" accept="image/*">
       <img id="v-muestra" class="miniatura" alt="" hidden>
+      <label class="check"><input id="f-muestra-portada" type="checkbox">Usar esta imagen de muestra como portada por defecto</label>
 
       <button id="btn-guardar" type="submit">Guardar plantilla</button>
       <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
@@ -466,6 +467,7 @@
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = k === "portada" || s.includes(k); });
       muestraActual = x.sampleImage || "";
       if (muestraActual) { $("v-muestra").src = muestraActual; $("v-muestra").hidden = false; }
+      $("f-muestra-portada").checked = !!x.sampleAsCover;
       $("titulo-form").textContent = "Editar plantilla: " + id;
       $("btn-cancelar").hidden = false;
       previsualizar();
@@ -500,7 +502,8 @@
         deco: $("f-deco").value,
         efectos: EFECTOS.map(([k]) => k).filter((k) => $("e-" + k).checked),
         sections: SECCIONES.map(([k]) => k).filter((k) => $("s-" + k).checked),
-        sampleImage: muestra || muestraActual || ""
+        sampleImage: muestra || muestraActual || "",
+        sampleAsCover: $("f-muestra-portada").checked
       };
       $("btn-guardar").disabled = true;
       msg.textContent = "Guardando...";
@@ -563,7 +566,8 @@
           const t = document.createElement("div"); t.className = "caja";
           const n = document.createElement("b"); n.textContent = x.name || id;
           const info = document.createElement("div");
-          info.textContent = nombreCategoria(x.category) + " - identificador: " + id;
+          info.textContent = nombreCategoria(x.category) + " - identificador: " + id +
+            (x.sampleAsCover ? " - muestra como portada" : "");
           const vis = esVisible(x);
           const estado = document.createElement("div");
           estado.className = vis ? "visible" : "oculta";
