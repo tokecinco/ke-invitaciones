@@ -25,25 +25,14 @@ function linkValido(url) {
   return typeof url === "string" && (/^https:\/\//i.test(url) || /^#[a-z0-9-]+$/i.test(url));
 }
 
-async function iniciar() {
-  const hero = document.querySelector(".hero");
-  if (!hero) return;
+function montarCarrusel({ ancla, idSec, aria, etiqueta, items, eagerPrimera }) {
+  if (!ancla || !items.length) return;
 
-  let items = [];
-  try {
-    const snap = await getDoc(doc(db, "settings", "banners"));
-    if (!snap.exists()) return;
-    const lista = Array.isArray(snap.data().items) ? snap.data().items : [];
-    items = lista.filter((b) => b && imgValida(b.image));
-  } catch (e) {
-    console.error(e);
-    return;
-  }
-  if (!items.length) return;
+  const sec = el("section", "banners-sec");
+  sec.id = idSec;
+  sec.setAttribute("aria-label", aria);
 
-  const sec = document.createElement("section");
-  sec.id = "sec-banners";
-  sec.setAttribute("aria-label", "Novedades y promociones");
+  if (etiqueta) sec.appendChild(el("p", "ban-etiqueta", etiqueta));
 
   const wrap = el("div", "ban-wrap");
   const vista = el("div", "ban-vista");
@@ -57,9 +46,9 @@ async function iniciar() {
     }
     const img = document.createElement("img");
     img.src = b.image;
-    img.alt = b.alt || ("Banner " + (i + 1));
+    img.alt = b.alt || (aria + " " + (i + 1));
     img.decoding = "async";
-    img.loading = i === 0 ? "eager" : "lazy";
+    img.loading = (eagerPrimera && i === 0) ? "eager" : "lazy";
     slide.appendChild(img);
     pista.appendChild(slide);
   });
@@ -67,7 +56,7 @@ async function iniciar() {
   vista.appendChild(pista);
   wrap.appendChild(vista);
   sec.appendChild(wrap);
-  hero.insertAdjacentElement("afterend", sec);
+  ancla.insertAdjacentElement("afterend", sec);
 
   if (items.length < 2) return;
 
@@ -159,6 +148,41 @@ async function iniciar() {
 
   pintar();
   reiniciar();
+}
+
+async function iniciar() {
+  const hero = document.querySelector(".hero");
+  const precios = document.getElementById("precios");
+
+  const [b1, b2] = await Promise.all([
+    getDoc(doc(db, "settings", "banners")).catch(() => null),
+    getDoc(doc(db, "settings", "bannersPubli")).catch(() => null)
+  ]);
+
+  if (b1 && b1.exists()) {
+    const items1 = (Array.isArray(b1.data().items) ? b1.data().items : []).filter((b) => b && imgValida(b.image));
+    montarCarrusel({
+      ancla: hero,
+      idSec: "sec-banners",
+      aria: "Novedades y promociones",
+      etiqueta: "",
+      items: items1,
+      eagerPrimera: true
+    });
+  }
+
+  if (b2 && b2.exists()) {
+    const d2 = b2.data();
+    const items2 = (Array.isArray(d2.items) ? d2.items : []).filter((b) => b && imgValida(b.image));
+    montarCarrusel({
+      ancla: precios,
+      idSec: "sec-banners-publi",
+      aria: "Publicidad",
+      etiqueta: String(d2.label || "").trim(),
+      items: items2,
+      eagerPrimera: false
+    });
+  }
 }
 
 iniciar();
