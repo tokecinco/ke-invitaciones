@@ -12,13 +12,13 @@
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     input[type=checkbox]{width:auto;margin:0 8px 0 0}
-.check{display:flex;align-items:center;margin:8px 0;font-size:.95rem}
     input:disabled,textarea:disabled{background:#eee}
     textarea{min-height:70px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
     button.sec{background:#1a1a1a}
     button.rojo{background:#c0392b}
     label{font-size:.9rem;display:block;margin-top:8px}
+    .check{display:flex;align-items:center;margin:8px 0;font-size:.95rem}
     a{color:#c9a24b}
     .tarjeta{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
     .tarjeta button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
@@ -188,7 +188,6 @@
         pedidoId = pid;
         if (o.product && ["basico", "premium", "pase"].includes(o.product)) {
           $("f-paquete").value = o.product;
-          aplicarLimites();
         }
         if (d.template) {
           const sel = $("f-template");
@@ -200,6 +199,9 @@
           }
           sel.value = d.template;
         }
+        const td = tplDatos[$("f-template").value];
+        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
+        aplicarLimites();
         $("f-honoree").value = d.honoree || "";
         $("f-tipo").value = o.eventType || "";
         $("f-fecha").value = o.eventDate || "";
@@ -324,13 +326,15 @@
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
-        for (let i = 0; i < archivos.length; i++) fotos.push(await comprimir(archivos[i], !usarMuestra && i === 0));
+        for (let i = 0; i < archivos.length; i++) {
+          fotos.push(await comprimir(archivos[i], !usarMuestra && i === 0));
+        }
         verFotos(fotos);
         let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
         if (elegidas.length > max) {
           t += max === 1
-            ? " Este paquete incluye solo la portada: se usó la primera."
-            : " Este paquete permite la portada + " + (max - 1) + " de galería: se usaron las primeras.";
+            ? " Este paquete permite 1 foto: se usó la primera."
+            : " Este paquete permite hasta " + max + " foto(s): se usaron las primeras.";
         }
         $("f-msg").textContent = t;
       } catch (err) {
@@ -347,6 +351,8 @@
       $("btn-crear").textContent = "Crear invitación";
       $("btn-cancelar").hidden = true;
       $("aviso-edicion").hidden = true;
+      const td = tplDatos[$("f-template").value];
+      $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
       aplicarLimites();
     }
     $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
@@ -440,11 +446,10 @@
         gift: $("f-paquete").value === "pase" ? "" : $("f-regalo").value.trim(),
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
-     photos: fotosFinal,
+        photos: fotosFinal,
         useTemplateCover: usarMuestra,
         showBrand: $("f-firma").checked
-     showBrand: $("f-firma").checked
-   };
+      };
 
       $("btn-crear").disabled = true;
       msg.textContent = editId ? "Guardando..." : "Creando...";
