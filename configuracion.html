@@ -57,13 +57,24 @@
       <button id="btn-guardar" type="button">Guardar configuración</button>
       <p id="msg" class="msg"></p>
 
-      <h2 id="sec-banners">Banners de la página principal</h2>
+      <h2 id="sec-banners">Banners principales (debajo de portada)</h2>
       <div class="caja">
-        <p class="nota">Se muestran debajo de la portada principal y antes de "Cómo funciona". Recomendado: imágenes horizontales (16:9 o 2:1, ej. 1200×600 px). Hasta 6 banners; se comprimen automáticamente.</p>
+        <p class="nota">Se muestran debajo del Hero y antes de "Cómo funciona". Recomendado: 16:9 o 2:1 (ej. 1200×600 px). Hasta 6 banners; se optimizan solos.</p>
         <input id="b-files" type="file" accept="image/*" multiple>
         <div id="b-lista"></div>
-        <button id="b-guardar" type="button">Guardar banners</button>
+        <button id="b-guardar" type="button">Guardar banners principales</button>
         <p id="b-msg" class="msg"></p>
+      </div>
+
+      <h2 id="sec-publi">Banners de publicidad (debajo de Precios)</h2>
+      <div class="caja">
+        <p class="nota">Se muestran debajo de los paquetes y arriba de "Preguntas frecuentes". Hasta 6 banners independientes.</p>
+        <label>Etiqueta arriba del carrusel (opcional, ej: Publicidad)</label>
+        <input id="p-label" maxlength="40" placeholder="Publicidad">
+        <input id="p-files" type="file" accept="image/*" multiple>
+        <div id="p-lista"></div>
+        <button id="p-guardar" type="button">Guardar banners de publicidad</button>
+        <p id="p-msg" class="msg"></p>
       </div>
     </div>
   </section>
@@ -79,7 +90,6 @@
     const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     const MAX_BANNERS = 6;
     let plantillas = [];
-    let banners = [];
 
     $("btn-login").addEventListener("click", async () => {
       $("login-msg").textContent = "Entrando...";
@@ -110,75 +120,6 @@
       cargar();
     });
 
-    async function cargar() {
-      try {
-        const [tp, inv, site, ban] = await Promise.all([
-          getDocs(collection(db, "templates")),
-          getDocs(collection(db, "invitations")),
-          getDoc(doc(db, "settings", "site")),
-          getDoc(doc(db, "settings", "banners"))
-        ]);
-        const s = site.exists() ? site.data() : {};
-        $("f-wa").value = s.whatsapp || "";
-        $("f-promo").value = s.promo || "";
-        const demos = s.demos || {};
-
-        plantillas = tp.docs.map((d) => ({ id: d.id, name: d.data().name || d.id }));
-        const invitaciones = inv.docs.map((d) => ({ id: d.id, name: (d.data().honoree || d.id) + " (" + d.id + ")" }));
-
-        const cont = $("demos");
-        cont.textContent = "";
-        if (!plantillas.length) { cont.textContent = "Primero cargá las plantillas en plantillas.html."; }
-        plantillas.forEach((p) => {
-          const l = document.createElement("label"); l.textContent = p.name;
-          const sel = document.createElement("select"); sel.id = "demo-" + p.id;
-          const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Sin demostración";
-          sel.appendChild(o0);
-          invitaciones.forEach((i) => {
-            const o = document.createElement("option"); o.value = i.id; o.textContent = i.name;
-            sel.appendChild(o);
-          });
-          sel.value = demos[p.id] || "";
-          cont.append(l, sel);
-        });
-
-        banners = ban.exists() && Array.isArray(ban.data().items)
-          ? ban.data().items.filter((b) => b && b.image).map((b) => ({
-              image: b.image,
-              alt: b.alt || "",
-              link: b.link || ""
-            }))
-          : [];
-        pintarBanners();
-      } catch (e) {
-        console.error(e);
-        $("msg").textContent = "No se pudo cargar la configuración.";
-      }
-    }
-
-    $("btn-guardar").addEventListener("click", async () => {
-      const wa = $("f-wa").value.replace(/\D/g, "");
-      if (wa && (wa.length < 8 || wa.length > 15)) {
-        $("msg").textContent = "El número de WhatsApp no parece válido."; return;
-      }
-      const demos = {};
-      plantillas.forEach((p) => {
-        const v = $("demo-" + p.id) ? $("demo-" + p.id).value : "";
-        if (v) demos[p.id] = v;
-      });
-      $("msg").textContent = "Guardando...";
-      try {
-        await setDoc(doc(db, "settings", "site"), {
-          whatsapp: wa, promo: $("f-promo").value.trim(), demos: demos, updatedAt: serverTimestamp()
-        });
-        $("msg").textContent = "Configuración guardada.";
-      } catch (e) {
-        console.error(e);
-        $("msg").textContent = "No se pudo guardar.";
-      }
-    });
-
-    /* Optimización y gestión de banners */
     function comprimirBanner(archivo) {
       return new Promise((ok, mal) => {
         const img = new Image();
@@ -208,106 +149,194 @@
       });
     }
 
-    function pintarBanners() {
-      const cont = $("b-lista");
-      cont.textContent = "";
-      if (!banners.length) {
-        cont.textContent = "Todavía no hay banners cargados (no se muestra la sección en la página principal).";
-        return;
+    function crearGestor({ docId, filesId, listaId, guardarId, msgId, labelId, vacioTexto }) {
+      let lista = [];
+
+      function pintar() {
+        const cont = $(listaId);
+        cont.textContent = "";
+        if (!lista.length) { cont.textContent = vacioTexto; return; }
+        lista.forEach((b, i) => {
+          const card = document.createElement("div"); card.className = "ban-item";
+          const im = document.createElement("img"); im.src = b.image; im.alt = b.alt || "";
+          const alt = document.createElement("input");
+          alt.placeholder = "Descripción corta (opcional)";
+          alt.maxLength = 80; alt.value = b.alt || "";
+          alt.addEventListener("input", () => { b.alt = alt.value; });
+
+          const lnk = document.createElement("input");
+          lnk.placeholder = "Enlace al tocar (opcional, ej: https://... o #modelos)";
+          lnk.maxLength = 200; lnk.value = b.link || "";
+          lnk.addEventListener("input", () => { b.link = lnk.value; });
+
+          const acc = document.createElement("div"); acc.className = "ban-acciones";
+          const btn = (t, cl, fn) => {
+            const bt = document.createElement("button");
+            bt.type = "button"; bt.textContent = t; if (cl) bt.className = cl; bt.onclick = fn; return bt;
+          };
+          if (i > 0) acc.appendChild(btn("↑ Subir", "sec", () => {
+            [lista[i - 1], lista[i]] = [lista[i], lista[i - 1]];
+            pintar();
+          }));
+          if (i < lista.length - 1) acc.appendChild(btn("↓ Bajar", "sec", () => {
+            [lista[i + 1], lista[i]] = [lista[i], lista[i + 1]];
+            pintar();
+          }));
+          acc.appendChild(btn("Quitar", "rojo", () => {
+            lista.splice(i, 1);
+            pintar();
+          }));
+          card.append(im, alt, lnk, acc);
+          cont.appendChild(card);
+        });
       }
-      banners.forEach((b, i) => {
-        const card = document.createElement("div"); card.className = "ban-item";
-        const im = document.createElement("img"); im.src = b.image; im.alt = b.alt || "";
-        const alt = document.createElement("input");
-        alt.placeholder = "Descripción corta (opcional, ej: Promo 15 años)";
-        alt.maxLength = 80; alt.value = b.alt || "";
-        alt.addEventListener("input", () => { b.alt = alt.value; });
 
-        const lnk = document.createElement("input");
-        lnk.placeholder = "Enlace al tocar (opcional, ej: #modelos o https://...)";
-        lnk.maxLength = 200; lnk.value = b.link || "";
-        lnk.addEventListener("input", () => { b.link = lnk.value; });
-
-        const acc = document.createElement("div"); acc.className = "ban-acciones";
-        const btn = (t, cl, fn) => {
-          const bt = document.createElement("button");
-          bt.type = "button"; bt.textContent = t; if (cl) bt.className = cl; bt.onclick = fn; return bt;
-        };
-        if (i > 0) acc.appendChild(btn("↑ Subir", "sec", () => {
-          [banners[i - 1], banners[i]] = [banners[i], banners[i - 1]];
-          pintarBanners();
-        }));
-        if (i < banners.length - 1) acc.appendChild(btn("↓ Bajar", "sec", () => {
-          [banners[i + 1], banners[i]] = [banners[i], banners[i + 1]];
-          pintarBanners();
-        }));
-        acc.appendChild(btn("Quitar", "rojo", () => {
-          banners.splice(i, 1);
-          pintarBanners();
-        }));
-        card.append(im, alt, lnk, acc);
-        cont.appendChild(card);
-      });
-    }
-
-    $("b-files").addEventListener("change", async (e) => {
-      const elegidas = Array.from(e.target.files);
-      if (!elegidas.length) return;
-      const libres = MAX_BANNERS - banners.length;
-      if (libres <= 0) {
-        $("b-msg").textContent = "Ya llegaste al máximo de " + MAX_BANNERS + " banners. Quitá alguno para subir otro.";
-        e.target.value = "";
-        return;
-      }
-      const archivos = elegidas.slice(0, libres);
-      $("b-msg").textContent = "Optimizando imagen(es)...";
-      try {
-        for (const a of archivos) {
-          const data = await comprimirBanner(a);
-          banners.push({ image: data, alt: "", link: "" });
-        }
-        pintarBanners();
-        $("b-msg").textContent = (elegidas.length > libres
-          ? "Se agregaron " + archivos.length + " (máximo " + MAX_BANNERS + " en total). "
-          : "Imagen(es) lista(s). ") + "Tocá \"Guardar banners\" para publicar.";
-      } catch (err) {
-        console.error(err);
-        $("b-msg").textContent = "No se pudo procesar una de las imágenes.";
-      }
-      e.target.value = "";
-    });
-
-    $("b-guardar").addEventListener("click", async () => {
-      const msg = $("b-msg");
-      const salida = [];
-      for (const b of banners) {
-        const link = String(b.link || "").trim();
-        if (link && !/^https:\/\//i.test(link) && !/^#[a-z0-9-]+$/i.test(link)) {
-          msg.textContent = "Un enlace no es válido: debe empezar con https:// o con # (ej: #modelos).";
+      $(filesId).addEventListener("change", async (e) => {
+        const elegidas = Array.from(e.target.files);
+        if (!elegidas.length) return;
+        const libres = MAX_BANNERS - lista.length;
+        if (libres <= 0) {
+          $(msgId).textContent = "Ya llegaste al máximo de " + MAX_BANNERS + " banners. Quitá alguno para subir otro.";
+          e.target.value = "";
           return;
         }
-        salida.push({ image: b.image, alt: String(b.alt || "").trim(), link: link });
-      }
-      if (JSON.stringify(salida).length > 920000) {
-        msg.textContent = "Los banners pesan demasiado juntos. Usá menos banners o imágenes más livianas.";
-        return;
-      }
-      $("b-guardar").disabled = true;
-      msg.textContent = "Guardando banners...";
+        const archivos = elegidas.slice(0, libres);
+        $(msgId).textContent = "Optimizando imagen(es)...";
+        try {
+          for (const a of archivos) {
+            const data = await comprimirBanner(a);
+            lista.push({ image: data, alt: "", link: "" });
+          }
+          pintar();
+          $(msgId).textContent = (elegidas.length > libres
+            ? "Se agregaron " + archivos.length + " (máximo " + MAX_BANNERS + " en total). "
+            : "Imagen(es) lista(s). ") + "Tocá el botón de guardar para publicar.";
+        } catch (err) {
+          console.error(err);
+          $(msgId).textContent = "No se pudo procesar una de las imágenes.";
+        }
+        e.target.value = "";
+      });
+
+      $(guardarId).addEventListener("click", async () => {
+        const msg = $(msgId);
+        const salida = [];
+        for (const b of lista) {
+          const link = String(b.link || "").trim();
+          if (link && !/^https:\/\//i.test(link) && !/^#[a-z0-9-]+$/i.test(link)) {
+            msg.textContent = "Un enlace no es válido: debe empezar con https:// o con # (ej: #modelos).";
+            return;
+          }
+          salida.push({ image: b.image, alt: String(b.alt || "").trim(), link: link });
+        }
+        if (JSON.stringify(salida).length > 920000) {
+          msg.textContent = "Las imágenes pesan demasiado juntas. Usá menos o más livianas.";
+          return;
+        }
+        const datos = { items: salida, updatedAt: serverTimestamp() };
+        if (labelId) datos.label = $(labelId).value.trim();
+
+        $(guardarId).disabled = true;
+        msg.textContent = "Guardando...";
+        try {
+          await setDoc(doc(db, "settings", docId), datos);
+          msg.textContent = salida.length
+            ? "Guardados (" + salida.length + "). Ya se ven en la página principal."
+            : "Banners quitados de la página principal.";
+        } catch (e) {
+          console.error(e);
+          msg.textContent = "No se pudieron guardar.";
+        }
+        $(guardarId).disabled = false;
+      });
+
+      return {
+        cargar(snap, defLabel) {
+          if (labelId) $(labelId).value = snap && snap.exists() ? (snap.data().label ?? "") : (defLabel || "");
+          lista = snap && snap.exists() && Array.isArray(snap.data().items)
+            ? snap.data().items.filter((b) => b && b.image).map((b) => ({
+                image: b.image, alt: b.alt || "", link: b.link || ""
+              }))
+            : [];
+          pintar();
+        }
+      };
+    }
+
+    const gestorPrincipal = crearGestor({
+      docId: "banners", filesId: "b-files", listaId: "b-lista",
+      guardarId: "b-guardar", msgId: "b-msg",
+      vacioTexto: "Todavía no hay banners principales cargados."
+    });
+
+    const gestorPubli = crearGestor({
+      docId: "bannersPubli", filesId: "p-files", listaId: "p-lista",
+      guardarId: "p-guardar", msgId: "p-msg", labelId: "p-label",
+      vacioTexto: "Todavía no hay banners de publicidad cargados."
+    });
+
+    async function cargar() {
       try {
-        await setDoc(doc(db, "settings", "banners"), {
-          items: salida,
-          updatedAt: serverTimestamp()
+        const [tp, inv, site, ban, pub] = await Promise.all([
+          getDocs(collection(db, "templates")),
+          getDocs(collection(db, "invitations")),
+          getDoc(doc(db, "settings", "site")),
+          getDoc(doc(db, "settings", "banners")).catch(() => null),
+          getDoc(doc(db, "settings", "bannersPubli")).catch(() => null)
+        ]);
+        const s = site.exists() ? site.data() : {};
+        $("f-wa").value = s.whatsapp || "";
+        $("f-promo").value = s.promo || "";
+        const demos = s.demos || {};
+
+        plantillas = tp.docs.map((d) => ({ id: d.id, name: d.data().name || d.id }));
+        const invitaciones = inv.docs.map((d) => ({ id: d.id, name: (d.data().honoree || d.id) + " (" + d.id + ")" }));
+
+        const cont = $("demos");
+        cont.textContent = "";
+        if (!plantillas.length) { cont.textContent = "Primero cargá las plantillas en plantillas.html."; }
+        plantillas.forEach((p) => {
+          const l = document.createElement("label"); l.textContent = p.name;
+          const sel = document.createElement("select"); sel.id = "demo-" + p.id;
+          const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Sin demostración";
+          sel.appendChild(o0);
+          invitaciones.forEach((i) => {
+            const o = document.createElement("option"); o.value = i.id; o.textContent = i.name;
+            sel.appendChild(o);
+          });
+          sel.value = demos[p.id] || "";
+          cont.append(l, sel);
         });
-        msg.textContent = salida.length
-          ? "Banners guardados (" + salida.length + "). Ya se ven en la página principal."
-          : "Banners quitados de la página principal.";
+
+        gestorPrincipal.cargar(ban);
+        gestorPubli.cargar(pub, "Publicidad");
       } catch (e) {
         console.error(e);
-        msg.textContent = "No se pudieron guardar los banners.";
+        $("msg").textContent = "No se pudo cargar la configuración.";
       }
-      $("b-guardar").disabled = false;
+    }
+
+    $("btn-guardar").addEventListener("click", async () => {
+      const wa = $("f-wa").value.replace(/\D/g, "");
+      if (wa && (wa.length < 8 || wa.length > 15)) {
+        $("msg").textContent = "El número de WhatsApp no parece válido."; return;
+      }
+      const demos = {};
+      plantillas.forEach((p) => {
+        const v = $("demo-" + p.id) ? $("demo-" + p.id).value : "";
+        if (v) demos[p.id] = v;
+      });
+      $("msg").textContent = "Guardando...";
+      try {
+        await setDoc(doc(db, "settings", "site"), {
+          whatsapp: wa, promo: $("f-promo").value.trim(), demos: demos, updatedAt: serverTimestamp()
+        });
+        $("msg").textContent = "Configuración guardada.";
+      } catch (e) {
+        console.error(e);
+        $("msg").textContent = "No se pudo guardar.";
+      }
     });
   </script>
 </body>
-</html>
+  </html>
