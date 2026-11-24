@@ -1,0 +1,267 @@
+:root {
+  --fondo:#fffaf3; --texto:#1a1a1a; --acento:#c9a24b;
+  --suave:#f6dde2; --fuente:Georgia, serif;
+}
+[hidden] { display:none !important; }
+* { box-sizing:border-box; }
+html, body { max-width:100%; overflow-x:hidden; overflow-x:clip; }
+body {
+  margin:0;
+  background:var(--fondo);
+  color:var(--texto);
+  font-family:var(--f-texto, var(--fuente));
+  text-align:center;
+  line-height:1.5;
+}
+h1, h2 {
+  font-family:var(--f-titulo, var(--fuente));
+  color:var(--acento);
+  font-weight:normal;
+  margin:6px 0;
+}
+.pantalla {
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+}
+
+.fc-wrap { max-width:740px; margin:0 auto; padding:28px 16px 64px; }
+.fc-cab { padding:14px 10px 22px; }
+.fc-pre {
+  margin:0;
+  font-size:.78rem;
+  letter-spacing:3px;
+  text-transform:uppercase;
+  opacity:.8;
+}
+.fc-cab h1 { font-size:clamp(1.9rem, 7.5vw, 2.9rem); line-height:1.15; }
+.fc-sub { margin:4px 0 14px; font-style:italic; opacity:.85; }
+.fc-linea {
+  width:90px;
+  height:1px;
+  margin:14px auto;
+  background:linear-gradient(90deg, transparent, var(--acento), transparent);
+}
+.fc-volver {
+  display:inline-block;
+  color:var(--acento);
+  font-size:.86rem;
+  text-decoration:none;
+  border-bottom:1px solid color-mix(in srgb, var(--acento) 45%, transparent);
+  padding-bottom:2px;
+}
+
+/* Caja para subir la Polaroid */
+.fc-subir {
+  max-width:440px;
+  margin:0 auto 30px;
+  background:var(--suave);
+  border:1px solid color-mix(in srgb, var(--acento) 30%, transparent);
+  border-radius:18px;
+  padding:20px 16px;
+  box-shadow:0 10px 28px rgba(0,0,0,.08);
+}
+.fc-subir h2 { font-size:1.35rem; margin-bottom:6px; }
+.fc-ayuda { font-size:.9rem; margin:0 0 14px; opacity:.88; }
+.fc-form { display:flex; flex-direction:column; gap:10px; }
+.fc-form input[type=text],
+.fc-form textarea {
+  width:100%;
+  padding:12px;
+  border:1px solid rgba(128,128,128,.25);
+  border-radius:12px;
+  font-size:1rem;
+  font-family:inherit;
+  background:#fff;
+  color:#1a1a1a;
+}
+.fc-form textarea { min-height:76px; resize:vertical; }
+
+.fc-file-lbl {
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  background:#fff;
+  color:#1a1a1a;
+  border:1.5px dashed var(--acento);
+  border-radius:14px;
+  padding:14px 16px;
+  cursor:pointer;
+  font-size:.96rem;
+}
+.fc-file-lbl input { display:none; }
+
+.fc-boton {
+  display:inline-block;
+  background:var(--acento);
+  color:#fff;
+  border:0;
+  border-radius:999px;
+  padding:13px 24px;
+  font-size:1rem;
+  font-family:var(--f-boton, var(--fuente));
+  cursor:pointer;
+  box-shadow:0 6px 16px rgba(0,0,0,.16);
+  transition:transform .2s;
+}
+.fc-boton:active { transform:scale(.97); }
+.fc-boton:disabled { opacity:.6; cursor:default; }
+.fc-estado { min-height:1.4em; margin:4px 0 0; font-size:.92rem; }
+
+/* Vista previa estilo Polaroid antes de publicar */
+.fc-preview-wrap { display:flex; justify-content:center; margin:4px 0; }
+.polaroid {
+  background:#fff;
+  color:#1a1a1a;
+  padding:9px 9px 14px;
+  border-radius:4px;
+  box-shadow:0 10px 24px rgba(0,0,0,.18);
+  text-align:center;
+  border:1px solid rgba(0,0,0,.06);
+}
+.polaroid.prev { width:210px; }
+.polaroid img {
+  width:100%;
+  aspect-ratio:1 / 1;
+  object-fit:cover;
+  display:block;
+  background:#eee;
+  border-radius:2px;
+}
+.polaroid-nom {
+  margin:9px 2px 0;
+  font-size:.9rem;
+  font-style:italic;
+  color:#2b2b2b;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.polaroid-prev-msj {
+  margin:3px 2px 0;
+  font-size:.76rem;
+  color:#666;
+  overflow-wrap:anywhere;
+}
+
+/* Muro de miniaturas */
+.fc-muro-cab {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:16px;
+}
+.fc-muro-cab h2 { margin:0; font-size:1.45rem; }
+.fc-cont {
+  font-size:.82rem;
+  padding:3px 10px;
+  border-radius:999px;
+  background:var(--suave);
+  color:var(--acento);
+  border:1px solid color-mix(in srgb, var(--acento) 30%, transparent);
+}
+.fc-grid {
+  display:grid;
+  grid-template-columns:repeat(2, 1fr);
+  gap:14px;
+  padding:6px 4px;
+}
+@media (min-width:560px) {
+  .fc-grid { grid-template-columns:repeat(3, 1fr); gap:18px; }
+}
+.fc-card {
+  cursor:pointer;
+  transition:transform .28s ease, box-shadow .28s ease;
+  -webkit-tap-highlight-color:transparent;
+}
+.fc-card:nth-child(odd) { transform:rotate(-1.6deg); }
+.fc-card:nth-child(even) { transform:rotate(1.6deg); }
+.fc-card:nth-child(3n) { transform:rotate(-.7deg); }
+@media (hover:hover) {
+  .fc-card:hover { transform:rotate(0) scale(1.03); z-index:2; box-shadow:0 14px 30px rgba(0,0,0,.24); }
+}
+.fc-card:active { transform:scale(.97); }
+.fc-card-pie {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  margin-top:9px;
+}
+.fc-card-pie .polaroid-nom { margin:0; }
+.fc-msj-tag {
+  font-size:.72rem;
+  color:var(--acento);
+  flex:0 0 auto;
+}
+.fc-vacio { opacity:.75; font-style:italic; margin:20px 0; }
+
+/* Visor ampliado con mensaje */
+#fc-visor {
+  position:fixed;
+  inset:0;
+  z-index:200;
+  background:rgba(0,0,0,.88);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:20px;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .28s ease;
+}
+#fc-visor.abierto { opacity:1; pointer-events:auto; }
+.fc-modal {
+  background:#fff;
+  color:#1a1a1a;
+  width:min(90vw, 390px);
+  padding:14px 14px 22px;
+  border-radius:6px;
+  box-shadow:0 22px 60px rgba(0,0,0,.5);
+  text-align:center;
+  animation:zoomPol .32s ease;
+}
+@keyframes zoomPol { from { opacity:0; transform:scale(.9); } to { opacity:1; transform:none; } }
+.fc-modal img {
+  width:100%;
+  max-height:56vh;
+  object-fit:cover;
+  display:block;
+  border-radius:2px;
+  background:#eee;
+}
+.fc-modal-msj {
+  margin:14px 6px 8px;
+  font-size:1.05rem;
+  font-style:italic;
+  line-height:1.4;
+  color:#222;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+}
+.fc-modal-nom {
+  margin:0;
+  font-size:.9rem;
+  color:#666;
+}
+.fc-nav {
+  position:fixed;
+  background:rgba(255,255,255,.16);
+  color:#fff;
+  border:0;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  font-size:1.7rem;
+  line-height:1;
+  cursor:pointer;
+}
+.fc-cerrar { top:14px; right:14px; }
+.fc-ant { left:8px; top:50%; transform:translateY(-50%); }
+.fc-sig { right:8px; top:50%; transform:translateY(-50%); }
+.fc-pag { position:fixed; bottom:14px; left:0; right:0; color:#fff; font-size:.9rem; opacity:.85; }
