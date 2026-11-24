@@ -1,0 +1,216 @@
+/* ================= NUEVOS DETALLES DE FONDO (PATRONES) ================= */
+body.patron-lino {
+  background-image:
+    repeating-linear-gradient(0deg, transparent 0 5px, color-mix(in srgb, var(--acento) 8%, transparent) 5px 6px),
+    repeating-linear-gradient(90deg, transparent 0 5px, color-mix(in srgb, var(--acento) 8%, transparent) 5px 6px);
+}
+body.patron-terrazzo {
+  background-image:
+    radial-gradient(ellipse 3px 5px at 14% 22%, color-mix(in srgb, var(--acento) 26%, transparent) 95%, transparent),
+    radial-gradient(ellipse 5px 3px at 68% 16%, color-mix(in srgb, var(--texto) 12%, transparent) 95%, transparent),
+    radial-gradient(ellipse 4px 4px at 42% 62%, color-mix(in srgb, var(--acento) 20%, transparent) 95%, transparent),
+    radial-gradient(ellipse 6px 3px at 84% 74%, color-mix(in srgb, var(--suave) 85%, transparent) 95%, transparent),
+    radial-gradient(ellipse 3px 6px at 26% 84%, color-mix(in srgb, var(--texto) 10%, transparent) 95%, transparent);
+  background-size:120px 120px;
+}
+body.patron-espiga {
+  background-image:
+    linear-gradient(135deg, color-mix(in srgb, var(--acento) 12%, transparent) 25%, transparent 25%),
+    linear-gradient(225deg, color-mix(in srgb, var(--acento) 12%, transparent) 25%, transparent 25%);
+  background-size:28px 18px;
+}
+body.patron-arcos {
+  background-image:
+    radial-gradient(circle at 50% 100%, transparent 18px, color-mix(in srgb, var(--acento) 16%, transparent) 18.5px 19.5px, transparent 20px),
+    radial-gradient(circle at 0% 100%, transparent 18px, color-mix(in srgb, var(--acento) 16%, transparent) 18.5px 19.5px, transparent 20px),
+    radial-gradient(circle at 100% 100%, transparent 18px, color-mix(in srgb, var(--acento) 16%, transparent) 18.5px 19.5px, transparent 20px);
+  background-size:40px 24px;
+}
+body.patron-mosaico {
+  background-image:
+    linear-gradient(30deg, color-mix(in srgb, var(--acento) 10%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--acento) 10%, transparent) 87.5%),
+    linear-gradient(150deg, color-mix(in srgb, var(--acento) 10%, transparent) 12%, transparent 12.5%, transparent 87%, color-mix(in srgb, var(--acento) 10%, transparent) 87.5%),
+    linear-gradient(60deg, color-mix(in srgb, var(--acento) 8%, transparent) 25%, transparent 25.5%, transparent 75%, color-mix(in srgb, var(--acento) 8%, transparent) 75%);
+  background-size:36px 62px;
+}
+body.patron-marmol-suave {
+  background-image:
+    linear-gradient(118deg, transparent 36%, color-mix(in srgb, var(--acento) 12%, transparent) 36.4%, transparent 37.4%, transparent 64%, color-mix(in srgb, var(--texto) 7%, transparent) 64.3%, transparent 65.5%),
+    linear-gradient(54deg, transparent 22%, color-mix(in srgb, var(--texto) 6%, transparent) 22.3%, transparent 23.2%, transparent 78%, color-mix(in srgb, var(--acento) 10%, transparent) 78.3%, transparent 79.2%);
+  background-attachment:fixed;
+}
+body.patron-destellos-fondo {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90' viewBox='0 0 90 90'%3E%3Cpath d='M22 14l1.3 4.7L28 20l-4.7 1.3L22 26l-1.3-4.7L16 20l4.7-1.3Z' fill='%23999' fill-opacity='.18'/%3E%3Cpath d='M68 56l1 3.5 3.5 1-3.5 1-1 3.5-1-3.5-3.5-1 3.5-1Z' fill='%23999' fill-opacity='.16'/%3E%3C/svg%3E");
+}
+body.patron-borde-degrade {
+  background-image:
+    radial-gradient(ellipse at 0% 50%, color-mix(in srgb, var(--acento) 16%, transparent), transparent 46%),
+    radial-gradient(ellipse at 100% 50%, color-mix(in srgb, var(--acento) 16%, transparent), transparent 46%);
+  background-attachment:fixed;
+}
+
+/* ================= NUEVAS DECORACIONES FLOTANTES (VECTORIALES) ================= */
+body.deco-mariposas .brillo::before,
+body.deco-petalos .brillo::before,
+body.deco-plumas .brillo::before,
+body.deco-brillos-4 .brillo::before,
+body.deco-olivo .brillo::before,
+body.deco-burbujas-finas .brillo::before,
+body.deco-lazos .brillo::before,
+body.deco-coronas-finas .brillo::before {
+  content:""; display:block; width:20px; height:20px; background:var(--acento); opacity:.82;
+  -webkit-mask-position:center; -webkit-mask-repeat:no-repeat; -webkit-mask-size:contain;
+  mask-position:center; mask-repeat:no-repeat; mask-size:contain;
+}
+body[class*="deco-"] .brillo:nth-child(3n)::before { width:26px; height:26px; }
+body[class*="deco-"] .brillo:nth-child(4n)::before { width:14px; height:14px; }
+body[class*="deco-"] .brillo:nth-child(odd)::before { transform:rotate(-12deg); }
+body[class*="deco-"] .brillo:nth-child(even)::before { transform:rotate(12deg); }
+
+body.deco-mariposas .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cg fill='black'%3E%3Cpath d='M12 10C10 4 5 0 2 2 0 4 1 8 5 10 2 11 1 15 4 17 7 19 10 15 12 10Z'/%3E%3Cpath d='M12 10C14 4 19 0 22 2 24 4 23 8 19 10 22 11 23 15 20 17 17 19 14 15 12 10Z'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-petalos .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2C7 7 5 13 8 18c2 3 6 3 8 0 3-5 1-11-4-16Z'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-plumas .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' d='M20 4C14 4 9 8 6 14l4 4c6-3 10-8 10-14ZM4 20l8-8M9 11l3 3'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-brillos-4 .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 2l2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2Z'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-olivo .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='black'%3E%3Cpath d='M12 21V5' stroke='black' stroke-width='1.5'/%3E%3Cellipse cx='8' cy='14' rx='2.5' ry='4.5' transform='rotate(-35 8 14)'/%3E%3Cellipse cx='16' cy='11' rx='2.5' ry='4.5' transform='rotate(35 16 11)'/%3E%3Cellipse cx='12' cy='5' rx='2.2' ry='3.8'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-burbujas-finas .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' fill='none' stroke='black' stroke-width='1.6'/%3E%3Cpath d='M8.5 8.5a5 5 0 0 1 4-2' fill='none' stroke='black' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-lazos .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' d='M12 12C9 8 4 7 4 11s5 3 8 1Zm0 0c3-4 8-5 8-1s-5 3-8 1Zm0 0-3 7m3-7 3 7'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+body.deco-coronas-finas .brillo::before {
+  --m:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cpath fill='none' stroke='black' stroke-width='1.7' stroke-linejoin='round' d='M3 16L5 6l4.5 5L12 4l2.5 7L19 6l2 10Z'/%3E%3C/svg%3E");
+  -webkit-mask-image:var(--m); mask-image:var(--m);
+}
+
+/* ================= NUEVOS ESTILOS DE FONDO COMPLETOS ================= */
+
+/* 1. Editorial de revista */
+body.fondo-editorial .portada > .rama-der { display:none; }
+body.fondo-editorial .portada > .rama-izq {
+  position:absolute !important; inset:16px; z-index:2; pointer-events:none;
+  border:1px solid color-mix(in srgb, var(--acento) 55%, transparent);
+}
+body.fondo-editorial .tipo { letter-spacing:.42em; font-size:.74rem; }
+body.fondo-editorial #nombre { letter-spacing:.08em; text-transform:uppercase; font-size:clamp(1.9rem, 8.5vw, 3.1rem); }
+body.fondo-editorial h2 { letter-spacing:.32em; text-transform:uppercase; font-size:.96rem; }
+body.fondo-editorial .boton { border-radius:4px; letter-spacing:.14em; text-transform:uppercase; font-size:.78rem; box-shadow:none; }
+body.fondo-editorial .cuenta div { border-radius:4px; box-shadow:none; }
+body.fondo-editorial .tarjeta-esp,
+body.fondo-editorial .libro-card,
+body.fondo-editorial .regalo-alias { border-radius:4px; box-shadow:none; }
+body.fondo-editorial .galeria img,
+body.fondo-editorial .galeria img:nth-child(odd),
+body.fondo-editorial .galeria img:nth-child(even),
+body.fondo-editorial .galeria img:first-child { border:0; border-radius:4px; transform:none; box-shadow:0 8px 22px rgba(0,0,0,.09); background:none; }
+
+/* 2. Aurora artística suave */
+body.fondo-aurora .rama { display:none; }
+body.fondo-aurora .portada {
+  background:
+    radial-gradient(circle at 18% 22%, color-mix(in srgb, var(--acento) 34%, transparent), transparent 48%),
+    radial-gradient(circle at 82% 28%, var(--suave), transparent 54%),
+    radial-gradient(circle at 50% 84%, color-mix(in srgb, var(--acento) 22%, transparent), transparent 52%),
+    var(--fondo);
+}
+body.fondo-aurora .boton { border-radius:999px; }
+body.fondo-aurora .cuenta div,
+body.fondo-aurora .tarjeta-esp,
+body.fondo-aurora .libro-card,
+body.fondo-aurora .regalo-alias {
+  border-radius:22px;
+  border:1px solid color-mix(in srgb, var(--acento) 22%, transparent);
+  box-shadow:0 10px 26px rgba(0,0,0,.05);
+}
+
+/* 3. Art Déco geométrico */
+body.fondo-artdeco .portada > .rama-izq {
+  position:absolute !important; inset:0; z-index:1; pointer-events:none;
+  background:var(--acento); opacity:.16;
+  --deco:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='60' viewBox='0 0 80 60'%3E%3Cg fill='none' stroke='black' stroke-width='1.1'%3E%3Ccircle cx='40' cy='60' r='36'/%3E%3Ccircle cx='40' cy='60' r='26'/%3E%3Ccircle cx='40' cy='60' r='16'/%3E%3Ccircle cx='0' cy='30' r='36'/%3E%3Ccircle cx='80' cy='30' r='36'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask:var(--deco) 0 0 / 80px 60px repeat;
+  mask:var(--deco) 0 0 / 80px 60px repeat;
+}
+body.fondo-artdeco .portada > .rama-der {
+  position:absolute !important; inset:14px; z-index:2; pointer-events:none;
+  border:1px solid color-mix(in srgb, var(--acento) 65%, transparent);
+  outline:1px solid color-mix(in srgb, var(--acento) 35%, transparent); outline-offset:-6px;
+}
+body.fondo-artdeco #nombre { letter-spacing:.16em; text-transform:uppercase; font-size:clamp(1.8rem, 8vw, 2.9rem); }
+body.fondo-artdeco .linea { position:relative; overflow:visible; }
+body.fondo-artdeco .linea::after {
+  content:"\25C6"; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  font-size:.65rem; color:var(--acento);
+}
+body.fondo-artdeco .boton { border-radius:2px; letter-spacing:.18em; text-transform:uppercase; font-size:.76rem; }
+body.fondo-artdeco .cuenta div { border-radius:2px; border:1px solid color-mix(in srgb, var(--acento) 42%, transparent); }
+body.fondo-artdeco .galeria img,
+body.fondo-artdeco .galeria img:nth-child(odd),
+body.fondo-artdeco .galeria img:nth-child(even),
+body.fondo-artdeco .galeria img:first-child { border:1px solid color-mix(in srgb, var(--acento) 55%, transparent); padding:4px; border-radius:0; transform:none; background:var(--fondo); }
+
+/* 4. Botánico (olivo y eucalipto) */
+body.fondo-botanico .portada {
+  background:var(--fondo); justify-content:flex-start;
+  padding-top:calc(7vh + max(40vh, 240px) + 38px); padding-bottom:90px;
+}
+body.fondo-botanico .portada::before {
+  inset:auto; top:7vh; left:0; right:0; margin:0 auto;
+  width:min(68vw, 280px); height:40vh; min-height:240px; border-radius:999px 999px 18px 18px;
+  background-color:var(--suave); animation:none;
+}
+body.fondo-botanico .portada::after,
+body.fondo-botanico .portada.con-foto::after {
+  inset:auto; top:calc(7vh - 10px); left:0; right:0; margin:0 auto;
+  width:calc(min(68vw, 280px) + 20px); height:calc(max(40vh, 240px) + 20px);
+  border:1px solid color-mix(in srgb, var(--acento) 65%, transparent);
+  border-radius:999px 999px 22px 22px; background:none; opacity:1;
+}
+body.fondo-botanico .portada.con-foto { color:var(--texto); text-shadow:none; }
+body.fondo-botanico .portada.con-foto h1,
+body.fondo-botanico .portada.con-foto .para b { color:var(--acento); }
+body.fondo-botanico .portada > .rama {
+  position:absolute !important; width:130px; height:220px; z-index:2; pointer-events:none;
+  background:var(--acento); opacity:.52;
+  --olivo:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 130 220'%3E%3Cpath d='M65 212C55 152 72 88 58 10' fill='none' stroke='black' stroke-width='2'/%3E%3Cg fill='black'%3E%3Cellipse cx='44' cy='175' rx='8' ry='18' transform='rotate(-40 44 175)'/%3E%3Cellipse cx='84' cy='158' rx='8' ry='18' transform='rotate(38 84 158)'/%3E%3Cellipse cx='42' cy='132' rx='8' ry='18' transform='rotate(-38 42 132)'/%3E%3Cellipse cx='84' cy='112' rx='8' ry='18' transform='rotate(38 84 112)'/%3E%3Cellipse cx='44' cy='86' rx='7' ry='17' transform='rotate(-35 44 86)'/%3E%3Cellipse cx='80' cy='66' rx='7' ry='16' transform='rotate(35 80 66)'/%3E%3Cellipse cx='48' cy='42' rx='6' ry='14' transform='rotate(-30 48 42)'/%3E%3Cellipse cx='60' cy='14' rx='5' ry='13'/%3E%3C/g%3E%3C/svg%3E");
+  -webkit-mask:var(--olivo) center / contain no-repeat; mask:var(--olivo) center / contain no-repeat;
+}
+body.fondo-botanico .portada > .rama-izq { left:-18px; top:16px; transform:rotate(12deg); }
+body.fondo-botanico .portada > .rama-der { right:-18px; bottom:76px; transform:scaleX(-1) rotate(12deg); }
+body.fondo-botanico .galeria img,
+body.fondo-botanico .galeria img:nth-child(odd),
+body.fondo-botanico .galeria img:nth-child(even),
+body.fondo-botanico .galeria img:first-child { border:0; border-radius:18px; transform:none; background:none; }
+
+/* 5. Arco doble fino (sin ramas) */
+body.fondo-arco-fino .rama { display:none; }
+body.fondo-arco-fino .portada {
+  background:var(--fondo); justify-content:flex-start;
+  padding-top:calc(6vh + max(42vh, 250px) + 38px); padding-bottom:90px;
+}
+body.fondo-arco-fino .portada::before {
+  inset:auto; top:6vh; left:0; right:0; margin:0 auto;
+  width:min(70vw, 290px); height:42vh; min-height:250px;
+  border-radius:999px 999px 0 0; background-color:var(--suave); animation:none;
+}
+body.fondo-arco-fino .portada::after,
+body.fondo-arco-fino .portada.con-foto::after {
+  inset:auto; top:calc(6vh - 10px); left:0; right:0; margin:0 auto;
+  width:calc(min(70vw, 290px) + 20px); height:
