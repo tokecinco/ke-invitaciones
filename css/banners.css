@@ -1,5 +1,15 @@
-#sec-banners { max-width:960px; margin:0 auto; padding:26px 18px 34px; }
+.banners-sec { max-width:960px; margin:0 auto; padding:26px 18px 34px; }
 #sec-banners::before { display:none; }
+#sec-banners-publi { padding-top:40px; padding-bottom:44px; }
+
+.ban-etiqueta {
+  text-align:center;
+  font-size:.72rem;
+  letter-spacing:2px;
+  text-transform:uppercase;
+  color:#7a7267;
+  margin:0 0 12px;
+}
 
 .ban-wrap { position:relative; }
 .ban-vista {
@@ -84,7 +94,8 @@
 }
 
 @media (min-width:720px) {
-  #sec-banners { padding:34px 24px 44px; }
+  .banners-sec { padding:34px 24px 44px; }
+  #sec-banners-publi { padding-top:48px; padding-bottom:54px; }
   .ban-vista { border-radius:24px; }
   .ban-slide { aspect-ratio:2 / 1; }
   .ban-flecha { width:44px; height:44px; font-size:1.6rem; }
