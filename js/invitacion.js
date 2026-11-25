@@ -9,7 +9,7 @@ const idInvitacion = params.get("i");
 const idInvitado = params.get("g");
 const REDUCIR = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
 const LIMITES = {
-  basico: { maxPhotos: 7, music: false, personalized: false },
+  basico: { maxPhotos: 7, music: true, personalized: false },
   premium: { maxPhotos: 9, music: true, personalized: true },
   pase: { maxPhotos: 1, music: false, personalized: true }
 };
@@ -52,7 +52,7 @@ async function cargar() {
       const g = p.data()[clave];
       lim = {
         maxPhotos: g.maxPhotos || lim.maxPhotos,
-        music: !!g.music,
+        music: p.data().v3 === true ? !!g.music : (clave === "pase" ? false : true),
         personalized: !!g.personalized
       };
     }
