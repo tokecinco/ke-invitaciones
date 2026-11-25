@@ -111,7 +111,8 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
-    const PROD = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
+    const PROD_NUEVOS = { basico: "Invitación Esencial", premium: "Invitación Premium" };
+    const PROD = { ...PROD_NUEVOS, pase: "Invitación Pase QR (ant.)" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
     const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -160,7 +161,7 @@
         revs = {}; rs.forEach((d) => { revs[d.id] = d.data(); });
         invs = {}; is.forEach((d) => { invs[d.id] = d.data(); });
         precios = {};
-        if (pq.exists()) ["basico", "premium", "pase"].forEach((k) => {
+        if (pq.exists()) ["basico", "premium"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
         armarSelectores();
@@ -177,7 +178,7 @@
 
     function armarSelectores() {
       $("n-producto").innerHTML = "";
-      Object.keys(PROD).forEach((k) => $("n-producto").appendChild(opcion(k, PROD[k])));
+      Object.keys(PROD_NUEVOS).forEach((k) => $("n-producto").appendChild(opcion(k, PROD_NUEVOS[k])));
       precioDelProducto();
 
       $("n-rev").innerHTML = "";
@@ -399,7 +400,7 @@
           await setDoc(doc(db, "payments", inv.value), {
             invitationId: inv.value, ownerId: i.ownerId || auth.currentUser.uid,
             honoree: i.honoree || "",
-            package: (i.package === "premium" || i.package === "pase") ? i.package : "basico",
+            package: i.package === "premium" ? "premium" : (i.package === "pase" ? "pase" : "basico"),
             price: ap, received: co,
             status: ap > 0 && co >= ap ? "pagado" : (co > 0 ? "senado" : "pendiente"),
             note: "Pedido de " + p.clientName + (r ? " (revendedor " + r.name + ")" : ""),
