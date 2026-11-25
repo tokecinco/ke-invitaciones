@@ -49,9 +49,8 @@
       <form id="form" novalidate>
         <label>Paquete</label>
         <select id="f-paquete">
-          <option value="basico">Básico</option>
+          <option value="basico">Esencial</option>
           <option value="premium">Premium</option>
-          <option value="pase">Pase QR</option>
         </select>
         <label>Plantilla</label>
         <select id="f-template">
@@ -105,12 +104,11 @@
 
     const $ = (id) => document.getElementById(id);
     const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
-    // maxPhotos cuenta la portada: Básico = portada + 6, Premium = portada + 8, Pase QR = solo portada
+    const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
+    // maxPhotos cuenta la portada: Esencial = portada + 6, Premium = portada + 8
     let paquetes = {
-      basico:  { maxPhotos: 7, music: false },
-      premium: { maxPhotos: 9, music: true },
-      pase:    { maxPhotos: 1, music: false }
+      basico:  { maxPhotos: 7, music: true },
+      premium: { maxPhotos: 9, music: true }
     };
     let fotos = [];
     let fotosExistentes = [];
@@ -160,7 +158,10 @@
         if (s.exists()) {
           const g = s.data();
           ["basico", "premium"].forEach((k) => {
-            if (g[k]) paquetes[k] = { maxPhotos: g[k].maxPhotos || paquetes[k].maxPhotos, music: !!g[k].music };
+            if (g[k]) paquetes[k] = {
+              maxPhotos: g[k].maxPhotos || paquetes[k].maxPhotos,
+              music: g.v3 === true ? !!g[k].music : true
+            };
           });
         }
         tplDatos = {};
@@ -169,7 +170,6 @@
           tplDatos[d.id] = { sampleAsCover: !!x.sampleAsCover, hasImage: !!x.sampleImage };
         });
       } catch (e) { console.error(e); }
-      paquetes.pase = { maxPhotos: 1, music: false };
       if (!editId) {
         const td = tplDatos[$("f-template").value];
         $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
@@ -186,7 +186,7 @@
         const o = s.data();
         const d = o.invitationData || {};
         pedidoId = pid;
-        if (o.product && ["basico", "premium", "pase"].includes(o.product)) {
+        if (o.product && ["basico", "premium"].includes(o.product)) {
           $("f-paquete").value = o.product;
         }
         if (d.template) {
@@ -212,7 +212,7 @@
         $("f-bienvenida").value = d.welcome || "";
         $("f-mensaje").value = d.message || "";
         $("f-dress").value = d.dressCode || "";
-        $("f-regalo").value = $("f-paquete").value === "pase" ? "" : (d.gift || "");
+        $("f-regalo").value = d.gift || "";
         const tel = String(o.clientPhone || "").replace(/\D/g, "");
         if (tel) $("f-whatsapp").value = tel;
         if (o.notes) $("f-info").value = o.notes;
@@ -226,21 +226,15 @@
     function limites() { return paquetes[$("f-paquete").value] || paquetes.basico; }
 
     function aplicarLimites() {
-      const k = $("f-paquete").value;
       const l = limites();
       const usarMuestra = $("f-usar-muestra").checked;
       const galMax = Math.max(l.maxPhotos - 1, 0);
       if (usarMuestra) {
-        $("lbl-fotos").textContent = k === "pase"
-          ? "Fotos (este paquete usa solo la portada de la plantilla)"
-          : "Fotos de galería (opcional, hasta " + galMax + "; la portada será la imagen de muestra)";
-        $("f-fotos").disabled = k === "pase";
+        $("lbl-fotos").textContent = "Fotos de galería (opcional, hasta " + galMax + "; la portada será la imagen de muestra)";
       } else {
-        $("lbl-fotos").textContent = k === "pase"
-          ? "Foto de portada (este paquete incluye solo la portada)"
-          : "Fotos: la primera es la portada, más hasta " + galMax + " de galería";
-        $("f-fotos").disabled = false;
+        $("lbl-fotos").textContent = "Fotos: la primera es la portada, más hasta " + galMax + " de galería";
       }
+      $("f-fotos").disabled = false;
       const td = tplDatos[$("f-template").value];
       $("aviso-muestra").textContent = usarMuestra && td && !td.hasImage
         ? "Aviso: esta plantilla todavía no tiene imagen de muestra cargada en Plantillas."
@@ -250,12 +244,8 @@
         ? "Enlace de música (https://... .mp3) opcional"
         : "Música: no incluida en este paquete";
       if (!l.music) $("f-musica").value = "";
-      const sinRegalo = k === "pase";
-      $("f-regalo").disabled = sinRegalo;
-      $("f-regalo").placeholder = sinRegalo
-        ? "Regalos: no incluidos en este paquete"
-        : "Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')";
-      if (sinRegalo) $("f-regalo").value = "";
+      $("f-regalo").disabled = false;
+      $("f-regalo").placeholder = "Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')";
     }
     $("f-paquete").addEventListener("change", aplicarLimites);
     $("f-usar-muestra").addEventListener("change", aplicarLimites);
@@ -276,7 +266,6 @@
       return location.origin + location.pathname.replace(/admin\.html$/, "") + "i/" + id;
     }
 
-    // La portada se guarda con alta calidad (WebP/JPEG); las demás se ajustan para que todo entre en la invitación.
     function comprimir(archivo, esPortada) {
       return new Promise((ok, mal) => {
         const img = new Image();
@@ -361,7 +350,7 @@
       salirDeEdicion();
       editId = id;
       fotosExistentes = Array.isArray(x.photos) ? x.photos : [];
-      $("f-paquete").value = x.package || "basico";
+      $("f-paquete").value = x.package === "premium" ? "premium" : "basico";
       $("f-template").value = x.template || "cumple";
       $("f-honoree").value = x.honoree || "";
       $("f-tipo").value = x.eventType || "";
@@ -389,9 +378,6 @@
       if (x.music && !limites().music) {
         aviso += " Ojo: este paquete no incluye música y se va a quitar al guardar. Cambiá a Premium para conservarla.";
       }
-      if (x.gift && $("f-paquete").value === "pase") {
-        aviso += " Ojo: el Pase QR no incluye regalos y el texto de regalo se va a quitar al guardar.";
-      }
       $("aviso-edicion").textContent = aviso;
       $("aviso-edicion").hidden = false;
       $("f-msg").textContent = "";
@@ -417,11 +403,7 @@
       const maxFinal = usarMuestra ? Math.max(l.maxPhotos - 1, 0) : l.maxPhotos;
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
       if (fotosFinal.length > maxFinal) {
-        msg.textContent = maxFinal === 0
-          ? "Este paquete usa solo la portada de la plantilla; quitá las fotos o destildá la opción."
-          : (maxFinal === 1
-            ? "Este paquete permite 1 foto. Elegí una sola o cambiá a Premium."
-            : "Este paquete permite hasta " + maxFinal + " fotos. Elegí fotos nuevas o cambiá a Premium.");
+        msg.textContent = "Este paquete permite hasta " + maxFinal + " foto(s). Elegí menos o cambiá a Premium.";
         return;
       }
       if (fotosFinal.join("").length > 980000) {
@@ -443,7 +425,7 @@
         message: $("f-mensaje").value.trim(),
         info: $("f-info").value.trim(),
         dressCode: $("f-dress").value.trim(),
-        gift: $("f-paquete").value === "pase" ? "" : $("f-regalo").value.trim(),
+        gift: $("f-regalo").value.trim(),
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
         photos: fotosFinal,
@@ -550,7 +532,7 @@
         const n = document.createElement("b"); n.textContent = x.honoree || id;
         const est = document.createElement("div");
         est.textContent = (x.active ? "Activa" : "Desactivada") + " - " +
-          (ETIQ_PAQ[x.package] || "Básico") + " - " + (x.date || "");
+          (ETIQ_PAQ[x.package] || "Esencial") + " - " + (x.date || "");
         const a = document.createElement("a");
         a.href = linkDe(id); a.textContent = linkDe(id); a.target = "_blank";
         a.style.wordBreak = "break-all";
@@ -587,4 +569,4 @@
   </script>
   <script type="module" src="js/plantillas-select.js"></script>
 </body>
-  </html>
+                             </html>
