@@ -23,7 +23,7 @@
     .fila.pagado{border-left-color:#4caf50}
     .fila.senado{border-left-color:#e0a800}
     .fila.pendiente{border-left-color:#c0392b}
-    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -32,77 +32,101 @@
   <p><a href="dashboard.html">Menú</a> - <a href="paquetes.html">Paquetes y precios</a> - <a href="pedidos.html">Pedidos</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <h2>Resumen</h2>
-    <div class="stats">
-      <div class="stat"><b id="s-ing">$0</b>Cobrado</div>
-      <div class="stat"><b id="s-saldo">$0</b>Saldo pendiente</div>
-      <div class="stat"><b id="s-pagadas">0</b>Pagadas</div>
-      <div class="stat"><b id="s-senadas">0</b>Señadas</div>
-      <div class="stat"><b id="s-pend">0</b>Pendientes</div>
-      <div class="stat"><b id="s-total">0</b>Invitaciones</div>
-    </div>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
 
-    <h2>Registrar pago</h2>
-    <div class="caja">
-      <label>Invitación</label>
-      <select id="sel"></select>
-      <p id="info-paq" class="aviso"></p>
-      <label>Precio acordado ($)</label>
-      <input id="f-precio" type="number" min="0" inputmode="numeric">
-      <button id="btn-usar" class="sec" type="button">Usar el precio del paquete</button>
-      <label>Cobrado hasta ahora ($)</label>
-      <input id="f-cobrado" type="number" min="0" inputmode="numeric">
-      <label>Estado</label>
-      <select id="f-estado">
-        <option value="pendiente">Pendiente</option>
-        <option value="senado">Señado</option>
-        <option value="pagado">Pagado</option>
-      </select>
-      <input id="f-nota" placeholder="Nota (opcional)" maxlength="200">
-      <p id="f-saldo"></p>
-      <button id="btn-guardar" type="button">Guardar pago</button>
-      <p id="f-msg" class="msg"></p>
-    </div>
+    <div id="contenido">
+      <h2>Resumen</h2>
+      <div class="stats">
+        <div class="stat"><b id="s-ing">$0</b>Cobrado</div>
+        <div class="stat"><b id="s-saldo">$0</b>Saldo pendiente</div>
+        <div class="stat"><b id="s-pagadas">0</b>Pagadas</div>
+        <div class="stat"><b id="s-senadas">0</b>Señadas</div>
+        <div class="stat"><b id="s-pend">0</b>Pendientes</div>
+        <div class="stat"><b id="s-total">0</b>Invitaciones</div>
+      </div>
 
-    <h2>Detalle</h2>
-    <div id="lista"></div>
+      <h2>Registrar pago</h2>
+      <div class="caja">
+        <label>Invitación</label>
+        <select id="sel"></select>
+        <p id="info-paq" class="aviso"></p>
+        <label>Precio acordado ($)</label>
+        <input id="f-precio" type="number" min="0" inputmode="numeric">
+        <button id="btn-usar" class="sec" type="button">Usar el precio del paquete</button>
+        <label>Cobrado hasta ahora ($)</label>
+        <input id="f-cobrado" type="number" min="0" inputmode="numeric">
+        <label>Estado</label>
+        <select id="f-estado">
+          <option value="pendiente">Pendiente</option>
+          <option value="senado">Señado</option>
+          <option value="pagado">Pagado</option>
+        </select>
+        <input id="f-nota" placeholder="Nota (opcional)" maxlength="200">
+        <p id="f-saldo"></p>
+        <button id="btn-guardar" type="button">Guardar pago</button>
+        <p id="f-msg" class="msg"></p>
+      </div>
+
+      <h2>Detalle</h2>
+      <div id="lista"></div>
+    </div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+    const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
 
     let paquetes = { basico: { price: 0, deposit: 0 }, premium: { price: 0, deposit: 0 }, pase: { price: 0, deposit: 0 } };
     let invitaciones = {};
     let pagos = {};
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) {
         $("login-msg").textContent = "Email o contraseña incorrectos.";
       }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
 
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) iniciar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      iniciar();
     });
 
     async function iniciar() {
