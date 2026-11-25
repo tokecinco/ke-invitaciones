@@ -78,7 +78,7 @@
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInAnonymously, onAuthStateChanged }
+    import { signInAnonymously }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -144,6 +144,7 @@
     }
 
     async function asegurarSesion() {
+      if (auth.authStateReady) await auth.authStateReady();
       if (auth.currentUser) return auth.currentUser;
       const res = await signInAnonymously(auth);
       return res.user;
@@ -154,6 +155,9 @@
     }
     function marcarDispositivo() {
       try { localStorage.setItem("ke-fc-" + idInv, "1"); } catch (e) {}
+    }
+    function limpiarDispositivo() {
+      try { localStorage.removeItem("ke-fc-" + idInv); } catch (e) {}
     }
 
     function comprimirPolaroid(archivo) {
@@ -366,7 +370,7 @@
         console.error(e);
         return error("Esta fotocabina no está disponible.");
       }
-      if (d.active !== true || d.package === "pase") {
+      if (d.active !== true || d.package !== "premium" || d.photobooth === false) {
         return error("Esta fotocabina no está disponible.");
       }
 
@@ -397,8 +401,15 @@
 
       $("sec-subir").hidden = false;
       const mia = u ? fotosMuro.find((x) => x.uid === u.uid) : null;
-      if (mia || yaEnEsteDispositivo()) {
+      if (mia) {
+        marcarDispositivo();
         mostrarYaSubio(mia);
+      } else if (u) {
+        limpiarDispositivo();
+        if (d.photoboothOpen === false) $("cerrada").hidden = false;
+        else $("form").hidden = false;
+      } else if (yaEnEsteDispositivo()) {
+        mostrarYaSubio(null);
       } else if (d.photoboothOpen === false) {
         $("cerrada").hidden = false;
       } else {
@@ -412,4 +423,4 @@
     iniciar();
   </script>
 </body>
-              </html>
+  </html>
