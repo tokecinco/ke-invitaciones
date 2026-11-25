@@ -16,7 +16,7 @@
     button.sec{background:#1a1a1a}
     a{color:#c9a24b}
     .menu{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .menu a{display:block;background:#1a1a1a;color:#fff;text-decoration:none;text-align:center;padding:14px 6px;border-radius:10px;font-size:.92rem}
+    .menu a{display:block;background:#1a1a1a;color:#fff;text-decoration:none;text-align:center;padding:14px 8px;border-radius:10px;font-size:.92rem}
     .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:12px;text-align:center;font-size:.85rem}
     .stat b{display:block;font-size:1.4rem;color:#8a6a1f}
@@ -67,20 +67,31 @@
 
     const MENU = [
       ["Invitaciones", [
-        ["Invitaciones", "admin.html"], ["Invitados", "invitados.html"],
-        ["Extras (itinerario, playlist, hashtag)", "extras.html"], ["Vencimientos", "vencimientos.html"],
-        ["Códigos QR", "qr.html"], ["Control de acceso", "acceso.html"]
+        ["Invitaciones", "admin.html"],
+        ["Invitados y mesas", "invitados.html"],
+        ["Extras (itinerario, fotocabina, libro y regalos)", "extras.html"],
+        ["Vencimientos", "vencimientos.html"],
+        ["Códigos QR", "qr.html"],
+        ["Control de acceso", "acceso.html"]
       ]],
-      ["Negocio", [
-        ["Confirmaciones", "confirmaciones.html"], ["Pagos", "pagos.html"],
-        ["Paquetes y precios", "paquetes.html"], ["Clientes", "clientes.html"]
+      ["Negocio y ventas", [
+        ["Confirmaciones", "confirmaciones.html"],
+        ["Pagos", "pagos.html"],
+        ["Paquetes y precios", "paquetes.html"],
+        ["Pedidos y ventas", "pedidos.html"],
+        ["Revendedores", "revendedores.html"]
       ]],
-      ["Diseño", [
-        ["Plantillas", "plantillas.html"], ["Plantillas nuevas", "plantillas-extra.html"]
-      ]],
-      ["Sitio", [
-        ["Configuración", "configuracion.html"], ["Página principal", "index.html"],
+      ["Clientes", [
+        ["Accesos por código", "accesos.html"],
+        ["Cuentas de clientes", "clientes.html"],
         ["Vista de cliente", "cliente.html"]
+      ]],
+      ["Diseño y sitio", [
+        ["Plantillas", "plantillas.html"],
+        ["Plantillas prearmadas", "plantillas-extra.html"],
+        ["Plantillas Retro", "plantillas-retro.html"],
+        ["Configuración y banners", "configuracion.html"],
+        ["Página principal", "index.html"]
       ]]
     ];
 
@@ -146,14 +157,13 @@
         const pagos = {};
         pag.forEach((d) => { pagos[d.id] = d.data(); });
 
-        let activas = 0, premium = 0, basico = 0, pase = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
+        let activas = 0, premium = 0, esencial = 0, ventas = 0, pend = 0, ingresos = 0, saldo = 0;
         const lista = [];
         inv.forEach((d) => {
           const x = d.data();
           if (x.active) activas++;
           if (x.package === "premium") premium++;
-          else if (x.package === "pase") pase++;
-          else basico++;
+          else if (x.package !== "pase") esencial++;
           const p = pagos[d.id];
           const estado = p ? p.status : "pendiente";
           if (estado === "senado" || estado === "pagado") ventas++; else pend++;
@@ -183,13 +193,12 @@
         s.textContent = "";
         [
           [inv.size, "Invitaciones creadas"], [activas, "Activas"],
-          [premium, "Paquete Premium"], [basico, "Paquete Básico"],
-          [pase, "Paquete Pase QR"], [ventas, "Ventas (señadas o pagadas)"],
-          [pend, "Pendientes de pago"], [$$(ingresos), "Ingresos cobrados"],
-          [$$(saldo), "Saldo por cobrar"], [pedidosNuevos, "Pedidos nuevos"],
-          [$$(comisionPend), "Comisiones a pagar"], [rvs.size, "Revendedores"],
-          [rsv.size, "Confirmaciones recibidas"], [personas, "Personas confirmadas"],
-          [gst.size, "Invitados cargados"]
+          [esencial, "Paquete Esencial"], [premium, "Paquete Premium"],
+          [ventas, "Ventas (señadas o pagadas)"], [pend, "Pendientes de pago"],
+          [$$(ingresos), "Ingresos cobrados"], [$$(saldo), "Saldo por cobrar"],
+          [pedidosNuevos, "Pedidos nuevos"], [$$(comisionPend), "Comisiones a pagar"],
+          [rvs.size, "Revendedores"], [rsv.size, "Confirmaciones recibidas"],
+          [personas, "Personas confirmadas"], [gst.size, "Invitados cargados"]
         ].forEach(([v, t]) => s.appendChild(tarjeta(v, t)));
         s.hidden = false;
         $("estado").textContent = "";
@@ -216,6 +225,5 @@
       }
     }
   </script>
-  <script type="module" src="js/menu-extra.js"></script>
 </body>
 </html>
