@@ -7,7 +7,7 @@ const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
 const CATEGORIAS_BASE = [
   ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
   ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
-  ["especial", "Eventos especiales"], ["pase", "Pase QR"]
+  ["especial", "Eventos especiales"]
 ];
 let CATEGORIAS = CATEGORIAS_BASE;
 const base = location.origin + location.pathname.replace(/[^/]*$/, "");
@@ -52,22 +52,21 @@ async function iniciar() {
       getDoc(doc(db, "settings", "packages")),
       getDoc(doc(db, "settings", "categories"))
     ]);
-    // Solo se muestran las plantillas activas que no estén ocultas de la página principal
     tpl = tp.docs.map((d) => ({ id: d.id, ...d.data() }))
-      .filter((m) => m.active !== false && m.showHome !== false);
+      .filter((m) => m.active !== false && m.showHome !== false && m.category !== "pase");
     if (site.exists()) {
       demos = site.data().demos || {};
       wa = String(site.data().whatsapp || "").replace(/\D/g, "");
     }
     if (pq.exists()) {
-      ["basico", "premium", "pase"].forEach((k) => {
+      ["basico", "premium"].forEach((k) => {
         const p = pq.data()[k];
         if (p && p.price >= 0) precios[k] = p.price;
       });
     }
     if (cats.exists() && Array.isArray(cats.data().items)) {
       CATEGORIAS = cats.data().items
-        .filter((c) => c && typeof c.id === "string" && typeof c.name === "string")
+        .filter((c) => c && typeof c.id === "string" && typeof c.name === "string" && c.id !== "pase")
         .map((c) => [c.id, c.name]);
     }
   } catch (e) {
@@ -148,12 +147,8 @@ async function iniciar() {
     const cat = (CATEGORIAS.find((x) => x[0] === m.category) || [0, ""])[1];
     if (cat) cu.appendChild(el("span", "dis-cat", cat));
 
-    // Los diseños de la categoría Pase QR muestran el precio del Pase QR; los demás, Básico y Premium.
     const pr = el("div", "dis-precios");
-    const lista = m.category === "pase"
-      ? [["pase", "Pase QR"]]
-      : [["basico", "Básico"], ["premium", "Premium"]];
-    lista.forEach(([k, t]) => {
+    [["basico", "Esencial"], ["premium", "Premium"]].forEach(([k, t]) => {
       if (k in precios) {
         const f = el("div");
         f.append(el("span", null, t), el("b", null, $$(precios[k])));
