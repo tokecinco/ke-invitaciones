@@ -8,16 +8,27 @@
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
-    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:560px}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:580px}
     h1,h2{color:#c9a24b}
     input,select,textarea,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
     input[type=checkbox]{width:auto;margin:0 8px 0 0}
-    textarea{min-height:130px}
+    textarea{min-height:110px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    button.rojo{background:#c0392b}
     label{font-size:.9rem;display:block;margin-top:10px}
-    .check{display:flex;align-items:center;font-size:1rem}
+    .check{display:flex;align-items:center;font-size:.96rem;margin:8px 0}
     a{color:#c9a24b}
-    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:10px 0}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:12px;margin:12px 0}
+    .caja button{width:auto;padding:8px 12px;margin:4px 6px 0 0;font-size:.88rem}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0;font-size:.9rem}
+    .fila{border-left:5px solid #ccc;background:#fffdf8;padding:8px 10px;margin:6px 0;border-radius:8px}
+    .fila.ok{border-left-color:#2e9e57}
+    .fila.pend{border-left-color:#e0a800}
+    .fila p{margin:4px 0;white-space:pre-wrap}
+    .fc-foto{display:flex;gap:10px;align-items:flex-start;border:1px solid #eadfc8;border-radius:8px;padding:8px;margin:6px 0;background:#fffdf8}
+    .fc-foto img{width:60px;height:60px;object-fit:cover;border-radius:6px;flex:0 0 auto}
+    .nota{font-size:.86rem;color:#666;margin:4px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -26,61 +37,123 @@
   <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Invitaciones</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <label>Invitación</label>
-    <select id="sel"></select>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
 
-    <div class="caja">
-      <h2>Itinerario</h2>
-      <label>Una actividad por línea: Hora; Actividad (hasta 12)</label>
-      <textarea id="f-it" placeholder="19:30; Recepción de invitados&#10;20:30; Cena&#10;22:00; Baile&#10;01:00; Cierre"></textarea>
+    <div id="contenido">
+      <label>Invitación</label>
+      <select id="sel"></select>
+      <p id="paq-info" class="nota"></p>
+
+      <div class="caja">
+        <h2>Itinerario</h2>
+        <label>Una actividad por línea: Hora; Actividad (hasta 12)</label>
+        <textarea id="f-it" placeholder="19:30; Recepción de invitados&#10;20:30; Cena&#10;22:00; Baile&#10;01:00; Cierre"></textarea>
+      </div>
+
+      <div class="caja">
+        <h2>Playlist de Spotify</h2>
+        <label>Enlace de una playlist pública, álbum o canción</label>
+        <input id="f-spotify" placeholder="https://open.spotify.com/playlist/...">
+      </div>
+
+      <div class="caja">
+        <h2>Hashtag de Instagram</h2>
+        <input id="f-hashtag" placeholder="#Sofia15" maxlength="41">
+      </div>
+
+      <div class="caja">
+        <h2>Fotocabina Virtual (Premium)</h2>
+        <p id="fc-aviso" class="aviso" hidden>Esta invitación es Paquete Esencial; la Fotocabina Virtual funciona solo en Paquete Premium.</p>
+        <label class="check"><input id="f-fc-activa" type="checkbox" checked>Activar Fotocabina Virtual en esta invitación</label>
+        <label class="check"><input id="f-fc-abierta" type="checkbox" checked>Permitir que los invitados suban fotos nuevas (abierta)</label>
+        <a id="fc-link" href="#" target="_blank" rel="noopener">Abrir muro de la Fotocabina</a><br>
+        <button id="btn-fc-ver" class="sec" type="button">Ver / moderar fotos subidas</button>
+        <div id="fc-lista"></div>
+      </div>
+
+      <div class="caja">
+        <h2>Libro de mensajes</h2>
+        <label class="check"><input id="f-libro" type="checkbox">Abrir libro de mensajes en la invitación</label>
+        <p class="nota">Los mensajes nuevos quedan pendientes hasta aprobarlos.</p>
+        <button id="btn-wishes" class="sec" type="button">Ver / moderar mensajes</button>
+        <a id="libro-link" href="libro.html" style="margin-left:8px">Abrir vista completa / imprimir</a>
+        <div id="wishes-lista"></div>
+      </div>
+
+      <div class="caja">
+        <h2>Regalos</h2>
+        <label>Mensaje opcional (ej: "Tu presencia es el mejor regalo")</label>
+        <textarea id="f-gift" style="min-height:70px" maxlength="300"></textarea>
+        <label>Alias para transferir</label>
+        <input id="f-alias" placeholder="Alias (ej: sofia.quince)" maxlength="60">
+        <input id="f-titular" placeholder="Titular de la cuenta (opcional)" maxlength="60">
+        <label>Enlace de pago (opcional)</label>
+        <input id="f-pay" placeholder="https://..." inputmode="url">
+        <input id="f-pay-label" placeholder="Texto del botón (ej: Regalar con Mercado Pago)" maxlength="40">
+        <label>Lista de regalos (hasta 20): Regalo; enlace opcional</label>
+        <textarea id="f-regalos" placeholder="Juego de sábanas; https://tienda.com/sabanas&#10;Cafetera"></textarea>
+        <p class="nota">Reservas de la lista:</p>
+        <div id="reservas"></div>
+      </div>
+
+      <div class="caja">
+        <h2>Pase digital QR (Premium)</h2>
+        <label class="check"><input id="f-pase" type="checkbox" checked>Mostrar pase con código QR en los enlaces personalizados</label>
+      </div>
+
+      <button id="btn-guardar" type="button">Guardar todos los extras</button>
+      <p id="msg" class="msg"></p>
     </div>
-
-    <div class="caja">
-      <h2>Playlist de Spotify</h2>
-      <label>Enlace de una playlist pública, álbum o canción</label>
-      <input id="f-spotify" placeholder="https://open.spotify.com/playlist/...">
-    </div>
-
-    <div class="caja">
-      <h2>Hashtag de Instagram</h2>
-      <input id="f-hashtag" placeholder="#Sofia15" maxlength="41">
-    </div>
-
-    <div class="caja">
-      <h2>Pase digital</h2>
-      <label class="check"><input id="f-pase" type="checkbox" checked>Mostrar pase con código QR en los enlaces personalizados (Premium)</label>
-    </div>
-
-    <button id="btn-guardar" type="button">Guardar extras</button>
-    <p id="msg" class="msg"></p>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
-    import { doc, updateDoc, collection, getDocs }
+    import { doc, updateDoc, deleteDoc, collection, getDocs, query, where, writeBatch }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const base = () => location.origin + location.pathname.replace(/[^/]*$/, "");
     let inv = {};
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
     });
 
     async function cargar() {
@@ -89,11 +162,12 @@
         inv = {};
         snap.forEach((d) => { inv[d.id] = d.data(); });
         $("sel").innerHTML = "";
-        Object.keys(inv).forEach((id) => {
-          const o = document.createElement("option");
-          o.value = id; o.textContent = (inv[id].honoree || id) + " (" + id + ")";
-          $("sel").appendChild(o);
-        });
+        Object.keys(inv).sort((a, b) => (inv[a].honoree || a).localeCompare(inv[b].honoree || b, "es"))
+          .forEach((id) => {
+            const o = document.createElement("option");
+            o.value = id; o.textContent = (inv[id].honoree || id) + " (" + id + ")";
+            $("sel").appendChild(o);
+          });
         const pedida = new URLSearchParams(location.search).get("i");
         if (pedida && inv[pedida]) $("sel").value = pedida;
         llenar();
@@ -104,16 +178,165 @@
     }
 
     function llenar() {
-      const x = inv[$("sel").value];
+      const id = $("sel").value;
+      const x = inv[id];
       if (!x) return;
+
+      const esPremium = x.package === "premium";
+      $("paq-info").textContent = "Paquete actual: " + (esPremium ? "Premium" : "Esencial");
+
       $("f-it").value = (Array.isArray(x.itinerary) ? x.itinerary : [])
         .map((i) => (i.time ? i.time + "; " : "") + i.title).join("\n");
       $("f-spotify").value = x.spotify || "";
       $("f-hashtag").value = x.hashtag ? "#" + x.hashtag : "";
+
+      $("fc-aviso").hidden = esPremium;
+      $("f-fc-activa").disabled = !esPremium;
+      $("f-fc-abierta").disabled = !esPremium;
+      $("f-fc-activa").checked = x.photobooth !== false;
+      $("f-fc-abierta").checked = x.photoboothOpen !== false;
+      $("fc-link").href = base() + "fotocabina.html?i=" + encodeURIComponent(id);
+      $("fc-lista").textContent = "";
+
+      $("f-libro").checked = x.guestbookOpen === true;
+      $("libro-link").href = "libro.html?i=" + encodeURIComponent(id);
+      $("wishes-lista").textContent = "";
+
+      $("f-gift").value = x.gift || "";
+      $("f-alias").value = x.giftAlias || "";
+      $("f-titular").value = x.giftHolder || "";
+      $("f-pay").value = x.giftPayUrl || "";
+      $("f-pay-label").value = x.giftPayLabel || "";
+      $("f-regalos").value = (Array.isArray(x.giftList) ? x.giftList : [])
+        .map((g) => g.name + (g.url ? "; " + g.url : "")).join("\n");
+
+      $("f-pase").disabled = !esPremium && x.package !== "pase";
       $("f-pase").checked = x.pass !== false;
       $("msg").textContent = "";
+      reservas();
     }
     $("sel").addEventListener("change", llenar);
+
+    /* Moderar Fotocabina */
+    $("btn-fc-ver").addEventListener("click", async () => {
+      const id = $("sel").value;
+      const cont = $("fc-lista");
+      if (!id) return;
+      cont.textContent = "Cargando fotos...";
+      try {
+        const s = await getDocs(query(collection(db, "photobooth"), where("invitationId", "==", id)));
+        const items = s.docs.map((d) => ({ pid: d.id, f: d.data() }))
+          .sort((a, b) => (b.f.createdAt?.seconds || 0) - (a.f.createdAt?.seconds || 0));
+        cont.textContent = "";
+        if (!items.length) { cont.textContent = "Todavía no hay fotos subidas."; return; }
+        items.forEach(({ pid, f }) => {
+          const row = document.createElement("div"); row.className = "fc-foto";
+          const im = document.createElement("img"); im.src = f.photo; im.alt = f.name;
+          const info = document.createElement("div"); info.style.flex = "1";
+          const n = document.createElement("b"); n.textContent = f.name;
+          info.appendChild(n);
+          if (f.message) {
+            const p = document.createElement("div"); p.textContent = "“" + f.message + "”";
+            info.appendChild(p);
+          }
+          const del = document.createElement("button");
+          del.type = "button"; del.className = "rojo"; del.textContent = "Eliminar";
+          del.onclick = async () => {
+            if (!confirm("¿Eliminar la foto de " + f.name + "?")) return;
+            try { await deleteDoc(doc(db, "photobooth", pid)); $("btn-fc-ver").click(); }
+            catch (e) { console.error(e); }
+          };
+          info.appendChild(del);
+          row.append(im, info);
+          cont.appendChild(row);
+        });
+      } catch (e) { console.error(e); cont.textContent = "No se pudieron cargar las fotos."; }
+    });
+
+    /* Moderar Libro de mensajes */
+    $("btn-wishes").addEventListener("click", async () => {
+      const id = $("sel").value;
+      const cont = $("wishes-lista");
+      if (!id) return;
+      cont.textContent = "Cargando mensajes...";
+      try {
+        const s = await getDocs(query(collection(db, "wishes"), where("invitationId", "==", id)));
+        const ms = s.docs.map((d) => ({ wid: d.id, m: d.data() }))
+          .sort((a, b) => (b.m.createdAt?.seconds || 0) - (a.m.createdAt?.seconds || 0));
+        cont.textContent = "";
+        if (!ms.length) { cont.textContent = "Todavía no hay mensajes."; return; }
+        ms.forEach(({ wid, m }) => {
+          const f = document.createElement("div");
+          f.className = "fila " + (m.approved ? "ok" : "pend");
+          const n = document.createElement("b"); n.textContent = m.name + (m.approved ? " (Publicado)" : " (Pendiente)");
+          const p = document.createElement("p"); p.textContent = m.message;
+          const ap = document.createElement("button");
+          ap.type = "button"; ap.className = m.approved ? "sec" : ""; ap.textContent = m.approved ? "Ocultar" : "Aprobar";
+          ap.onclick = async () => {
+            try { await updateDoc(doc(db, "wishes", wid), { approved: !m.approved }); $("btn-wishes").click(); }
+            catch (e) { console.error(e); }
+          };
+          const del = document.createElement("button");
+          del.type = "button"; del.className = "rojo"; del.textContent = "Eliminar";
+          del.onclick = async () => {
+            if (!confirm("¿Eliminar este mensaje?")) return;
+            try { await deleteDoc(doc(db, "wishes", wid)); $("btn-wishes").click(); }
+            catch (e) { console.error(e); }
+          };
+          f.append(n, p, ap, del);
+          cont.appendChild(f);
+        });
+      } catch (e) { console.error(e); cont.textContent = "No se pudieron cargar los mensajes."; }
+    });
+
+    /* Reservas de regalos */
+    async function reservas() {
+      const id = $("sel").value;
+      const cont = $("reservas");
+      const lista = (inv[id] && Array.isArray(inv[id].giftList)) ? inv[id].giftList : [];
+      if (!lista.length) { cont.textContent = "Todavía no hay lista de regalos."; return; }
+      cont.textContent = "Cargando...";
+      try {
+        const s = await getDocs(query(collection(db, "giftClaimNames"), where("invitationId", "==", id)));
+        const por = {};
+        s.forEach((d) => { por[d.data().itemId] = d.data(); });
+        cont.textContent = "";
+        lista.forEach((g) => {
+          const f = document.createElement("div");
+          f.className = "fila" + (g.id && por[g.id] ? " ok" : "");
+          const n = document.createElement("b"); n.textContent = g.name;
+          const e = document.createElement("div");
+          e.textContent = !g.id
+            ? "Guardá para habilitar reservas."
+            : (por[g.id] ? "Reservado por " + por[g.id].name : "Disponible");
+          f.append(n, e);
+          if (g.id && por[g.id]) {
+            const b = document.createElement("button");
+            b.type = "button"; b.className = "sec"; b.textContent = "Liberar reserva";
+            b.onclick = async () => {
+              if (!confirm("¿Liberar la reserva de \"" + g.name + "\"?")) return;
+              try {
+                const cid = id + "_" + g.id;
+                const batch = writeBatch(db);
+                batch.delete(doc(db, "giftClaims", cid));
+                batch.delete(doc(db, "giftClaimNames", cid));
+                await batch.commit();
+                reservas();
+              } catch (err) { console.error(err); }
+            };
+            f.appendChild(b);
+          }
+          cont.appendChild(f);
+        });
+      } catch (e) { console.error(e); cont.textContent = "No se pudieron cargar las reservas."; }
+    }
+
+    function nuevoId(usados) {
+      let id;
+      do { id = "r" + Math.random().toString(36).slice(2, 8); } while (usados.has(id));
+      usados.add(id);
+      return id;
+    }
 
     $("btn-guardar").addEventListener("click", async () => {
       const id = $("sel").value;
@@ -126,25 +349,68 @@
       }
       const hashtag = $("f-hashtag").value.replace(/^#+/, "").replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 40);
 
-      const lineas = $("f-it").value.split("\n").map((l) => l.trim()).filter(Boolean);
-      if (lineas.length > 12) { $("msg").textContent = "El itinerario admite hasta 12 actividades."; return; }
-      const itinerary = lineas.map((l) => {
+      const lineasIt = $("f-it").value.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lineasIt.length > 12) { $("msg").textContent = "El itinerario admite hasta 12 actividades."; return; }
+      const itinerary = lineasIt.map((l) => {
         const k = l.indexOf(";");
         if (k === -1) return { time: "", title: l.slice(0, 80) };
         return { time: l.slice(0, k).trim().slice(0, 12), title: l.slice(k + 1).trim().slice(0, 80) };
       }).filter((x) => x.title);
 
+      const pay = $("f-pay").value.trim();
+      if (pay && !/^https:\/\//i.test(pay)) {
+        $("msg").textContent = "El enlace de pago debe empezar con https://";
+        return;
+      }
+      const lineasReg = $("f-regalos").value.split("\n").map((l) => l.trim()).filter(Boolean);
+      if (lineasReg.length > 20) { $("msg").textContent = "La lista de regalos admite hasta 20 ítems."; return; }
+      const previos = Array.isArray(inv[id].giftList) ? inv[id].giftList : [];
+      const usados = new Set(previos.map((p) => p.id).filter(Boolean));
+      const tomados = new Set();
+      const giftList = [];
+      for (const l of lineasReg) {
+        const k = l.indexOf(";");
+        const name = (k === -1 ? l : l.slice(0, k)).trim().slice(0, 80);
+        const url = k === -1 ? "" : l.slice(k + 1).trim();
+        if (!name) continue;
+        if (url && !/^https:\/\//i.test(url)) {
+          $("msg").textContent = "El enlace de \"" + name + "\" debe empezar con https://";
+          return;
+        }
+        const previo = previos.find((p) => p.id && !tomados.has(p.id) && String(p.name).toLowerCase() === name.toLowerCase());
+        const itemId = previo ? previo.id : nuevoId(usados);
+        tomados.add(itemId);
+        giftList.push({ id: itemId, name: name, url: url });
+      }
+
+      $("btn-guardar").disabled = true;
       $("msg").textContent = "Guardando...";
       try {
-        const datos = { spotify: spotify, hashtag: hashtag, itinerary: itinerary, pass: $("f-pase").checked };
+        const datos = {
+          itinerary: itinerary,
+          spotify: spotify,
+          hashtag: hashtag,
+          photobooth: $("f-fc-activa").checked,
+          photoboothOpen: $("f-fc-abierta").checked,
+          guestbookOpen: $("f-libro").checked,
+          gift: $("f-gift").value.trim(),
+          giftAlias: $("f-alias").value.trim(),
+          giftHolder: $("f-titular").value.trim(),
+          giftPayUrl: pay,
+          giftPayLabel: $("f-pay-label").value.trim(),
+          giftList: giftList,
+          pass: $("f-pase").checked
+        };
         await updateDoc(doc(db, "invitations", id), datos);
         inv[id] = { ...inv[id], ...datos };
-        $("msg").textContent = "Extras guardados.";
+        $("msg").textContent = "Todos los extras guardados.";
+        reservas();
       } catch (e) {
         console.error(e);
         $("msg").textContent = "No se pudo guardar.";
       }
+      $("btn-guardar").disabled = false;
     });
   </script>
 </body>
-</html>
+  </html>
