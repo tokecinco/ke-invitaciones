@@ -24,7 +24,7 @@
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin:12px 0}
     .stat{background:#f6dde2;border-radius:12px;padding:10px;text-align:center;font-size:.8rem}
     .stat b{display:block;font-size:1.3rem;color:#8a6a1f}
-    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
@@ -33,67 +33,92 @@
   <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Invitaciones</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <label>Invitación</label>
-    <select id="sel"></select>
-    <p id="aviso" class="aviso" hidden></p>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
 
-    <div id="agregar">
-      <h2>Agregar invitado</h2>
-      <form id="form" novalidate>
-        <label>Nombre del invitado</label>
-        <input id="f-nombre" type="text" placeholder="Ej: Familia Pérez" maxlength="80" autocomplete="off">
-        <div class="fila-dos">
-          <div>
-            <label>Cantidad de lugares</label>
-            <input id="f-lugares" type="number" min="1" max="20" value="1" inputmode="numeric">
-          </div>
-          <div>
-            <label>Número de mesa (opcional)</label>
-            <input id="f-mesa" type="text" placeholder="Ej: 12" maxlength="30" autocomplete="off">
-          </div>
-        </div>
-        <button id="btn-agregar" type="submit">Agregar invitado</button>
-      </form>
-      <p id="msg" class="msg"></p>
-    </div>
+    <div id="contenido">
+      <label>Invitación</label>
+      <select id="sel"></select>
+      <p id="aviso" class="aviso" hidden></p>
 
-    <h2>Lista</h2>
-    <div class="stats">
-      <div class="stat"><b id="s-inv">0</b>Invitados</div>
-      <div class="stat"><b id="s-lug">0</b>Lugares</div>
-      <div class="stat"><b id="s-resp">0</b>Respondieron</div>
+      <div id="agregar">
+        <h2>Agregar invitado</h2>
+        <form id="form" novalidate>
+          <label>Nombre del invitado</label>
+          <input id="f-nombre" type="text" placeholder="Ej: Familia Pérez" maxlength="80" autocomplete="off">
+          <div class="fila-dos">
+            <div>
+              <label>Cantidad de lugares</label>
+              <input id="f-lugares" type="number" min="1" max="20" value="1" inputmode="numeric">
+            </div>
+            <div>
+              <label>Número de mesa (opcional)</label>
+              <input id="f-mesa" type="text" placeholder="Ej: 12" maxlength="30" autocomplete="off">
+            </div>
+          </div>
+          <button id="btn-agregar" type="submit">Agregar invitado</button>
+        </form>
+        <p id="msg" class="msg"></p>
+      </div>
+
+      <h2>Lista</h2>
+      <div class="stats">
+        <div class="stat"><b id="s-inv">0</b>Invitados</div>
+        <div class="stat"><b id="s-lug">0</b>Lugares</div>
+        <div class="stat"><b id="s-resp">0</b>Respondieron</div>
+      </div>
+      <div id="lista"></div>
     </div>
-    <div id="lista"></div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
     let invitaciones = {};
     let personalizado = { basico: false };
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) iniciar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      iniciar();
     });
 
     async function iniciar() {
@@ -109,7 +134,7 @@
         Object.keys(invitaciones).forEach((id) => {
           const o = document.createElement("option");
           o.value = id;
-          o.textContent = (invitaciones[id].honoree || id) + " - " + (ETIQ_PAQ[invitaciones[id].package] || "Básico");
+          o.textContent = (invitaciones[id].honoree || id) + " - " + (ETIQ_PAQ[invitaciones[id].package] || "Esencial");
           $("sel").appendChild(o);
         });
         const pedida = new URLSearchParams(location.search).get("i");
@@ -121,7 +146,6 @@
       }
     }
 
-    // Premium y Pase QR siempre permiten invitados con pase; Básico solo si el paquete lo incluye.
     function permitido(id) {
       const p = invitaciones[id] && invitaciones[id].package;
       return !!invitaciones[id] && (p === "premium" || p === "pase" || personalizado.basico);
@@ -133,7 +157,7 @@
       const ok = permitido(id);
       $("agregar").hidden = !ok;
       $("aviso").hidden = ok;
-      $("aviso").textContent = "El paquete de esta invitación no incluye invitaciones personalizadas con pase. Cambiala a Premium o Pase QR desde Invitaciones.";
+      $("aviso").textContent = "El paquete Esencial no incluye invitaciones personalizadas con pase QR. Cambiala a Premium desde Invitaciones.";
       listar();
     }
     $("sel").addEventListener("change", cambio);
@@ -266,4 +290,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
