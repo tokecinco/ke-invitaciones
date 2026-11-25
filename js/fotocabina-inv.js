@@ -2,7 +2,9 @@ import { db } from "./firebase.js";
 import { doc, getDoc, getDocs, collection, query, where }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
-const idInv = new URLSearchParams(location.search).get("i");
+const params = new URLSearchParams(location.search);
+const idInv = params.get("i");
+const idGuest = params.get("g");
 const $ = (id) => document.getElementById(id);
 const imgOk = (s) => typeof s === "string" && (/^data:image\//i.test(s) || /^https:\/\//i.test(s));
 
@@ -85,10 +87,33 @@ function construir(d, fotos) {
 
   const base = location.origin + location.pathname.replace(/[^/]*$/, "");
   const a = el("a", "boton", fotos.length ? "Ver muro / Subir foto (" + fotos.length + ")" : "Abrir Fotocabina");
-  a.href = base + "fotocabina.html?i=" + encodeURIComponent(idInv);
+  a.href = base + "fotocabina.html?i=" + encodeURIComponent(idInv) + (idGuest ? "&g=" + encodeURIComponent(idGuest) : "");
+  a.addEventListener("click", () => {
+    try {
+      sessionStorage.setItem("ke-abierta-" + idInv, "1");
+      sessionStorage.setItem("ke-ir-fc-" + idInv, "1");
+      if (location.hash !== "#sec-fotocabina") {
+        history.replaceState(null, "", location.pathname + location.search + "#sec-fotocabina");
+      }
+    } catch (e) {}
+  });
   s.appendChild(a);
 
   ref.insertAdjacentElement("beforebegin", s);
+
+  let volverAqui = location.hash === "#sec-fotocabina";
+  try {
+    if (sessionStorage.getItem("ke-ir-fc-" + idInv) === "1") {
+      volverAqui = true;
+      sessionStorage.removeItem("ke-ir-fc-" + idInv);
+    }
+  } catch (e) {}
+  if (volverAqui) {
+    setTimeout(() => {
+      s.scrollIntoView({ behavior: "smooth", block: "start" });
+      s.querySelectorAll(".reveal").forEach((el) => el.classList.add("visible"));
+    }, 150);
+  }
 }
 
 iniciar();
