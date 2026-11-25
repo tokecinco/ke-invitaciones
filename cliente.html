@@ -67,11 +67,17 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { buscarFuente, cargarFuente } from "./js/fuentes.js";
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
     const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
+    const LEGACY_TPL = {
+      cumple: { fondo: "#fff6e0", texto: "#1a1a1a", acento: "#e8833a", font: "'Trebuchet MS', sans-serif" },
+      quince: { fondo: "#fdf0f4", texto: "#1a1a1a", acento: "#b8860b", font: "Georgia, serif" },
+      boda:   { fondo: "#ffffff", texto: "#1a1a1a", acento: "#c9a24b", font: "Georgia, serif" }
+    };
     const params = new URLSearchParams(location.search);
     const idCod = params.get("i");
     const codigo = params.get("c");
@@ -514,6 +520,47 @@
       });
     }
 
+    /* Obtiene los colores y fuentes de la plantilla real de cada invitación */
+    async function obtenerDiseno(x) {
+      const def = LEGACY_TPL[x.template] || { fondo: "#fffaf3", texto: "#1a1a1a", acento: "#c9a24b", font: "Georgia, serif" };
+      let fondo = def.fondo, texto = def.texto, acento = def.acento;
+      let fTit = def.font, fTxt = def.font;
+
+      if (x.template) {
+        try {
+          const ts = await getDoc(doc(db, "templates", x.template));
+          if (ts.exists()) {
+            const t = ts.data();
+            const c = t.colors || {};
+            if (c.fondo) fondo = c.fondo;
+            if (c.texto) texto = c.texto;
+            if (c.acento) acento = c.acento;
+            const f = t.fonts || {};
+            if (f.titulo || t.font) fTit = f.titulo || t.font;
+            if (f.texto || t.font) fTxt = f.texto || t.font;
+          }
+        } catch (e) { console.error(e); }
+      }
+
+      const bTit = buscarFuente(fTit);
+      const bTxt = buscarFuente(fTxt);
+      cargarFuente(bTit);
+      cargarFuente(bTxt);
+
+      const espera = [document.fonts ? document.fonts.ready : Promise.resolve()];
+      if (document.fonts) {
+        espera.push(document.fonts.load((bTit && bTit.peso ? bTit.peso + " " : "") + "48px " + fTit).catch(() => {}));
+        espera.push(document.fonts.load("42px " + fTxt).catch(() => {}));
+      }
+      await Promise.race([Promise.all(espera), new Promise((r) => setTimeout(r, 1500))]);
+
+      return {
+        fondo: fondo, texto: texto, acento: acento,
+        fTit: fTit, pesoTit: (bTit && bTit.peso) ? bTit.peso + " " : "",
+        fTxt: fTxt
+      };
+    }
+
     /* Exportación del muro completo de la Fotocabina (PNG Polaroid y PDF/Imprimir) */
     function cargarImagen(src) {
       return new Promise((ok) => {
@@ -704,7 +751,10 @@
     }
 
     async function generarTarjetaFotocabina(url, x) {
-      if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+      const [dis] = await Promise.all([
+        obtenerDiseno(x),
+        window.qrcode ? Promise.resolve() : cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js")
+      ]);
       const qr = window.qrcode(0, "M");
       qr.addData(url);
       qr.make();
@@ -714,38 +764,41 @@
       const c = document.createElement("canvas");
       c.width = W; c.height = H;
       const g = c.getContext("2d");
-      g.fillStyle = "#fffaf3"; g.fillRect(0, 0, W, H);
-      g.strokeStyle = "#c9a24b";
+      g.fillStyle = dis.fondo; g.fillRect(0, 0, W, H);
+      g.strokeStyle = dis.acento;
       g.lineWidth = 3; g.strokeRect(40, 40, W - 80, H - 80);
       g.lineWidth = 1; g.strokeRect(62, 62, W - 124, H - 124);
       g.textAlign = "center";
 
-      const texto = (t, y, fuente, tam, ancho, color) => {
+      const texto = (t, y, fuente, tam, ancho, color, alpha = 1) => {
         let s = tam;
         do {
           g.font = fuente.replace("%", s + "px");
           if (g.measureText(t).width <= ancho) break;
           s -= 4;
         } while (s > 26);
+        g.save();
+        g.globalAlpha = alpha;
         g.fillStyle = color;
         g.fillText(t, W / 2, y);
+        g.restore();
       };
 
-      texto("Fotocabina Virtual", 230, "italic % Georgia, serif", 108, 960, "#3a3a3a");
+      texto("Fotocabina Virtual", 230, dis.pesoTit + "% " + dis.fTit, 102, 960, dis.acento);
 
-      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeStyle = dis.acento; g.lineWidth = 2;
       g.beginPath();
       g.moveTo(W / 2 - 170, 290); g.lineTo(W / 2 - 22, 290);
       g.moveTo(W / 2 + 22, 290); g.lineTo(W / 2 + 170, 290);
       g.stroke();
-      g.fillStyle = "#c9a24b";
+      g.fillStyle = dis.acento;
       g.beginPath();
       g.moveTo(W / 2, 277); g.lineTo(W / 2 + 12, 290); g.lineTo(W / 2, 303); g.lineTo(W / 2 - 12, 290);
       g.closePath(); g.fill();
 
-      texto("Escaneá el código con tu celular", 390, "% Georgia, serif", 48, 960, "#555555");
-      texto("y subí tu foto Polaroid con un mensaje", 450, "% Georgia, serif", 44, 960, "#555555");
-      texto("al muro del evento", 510, "italic % Georgia, serif", 46, 960, "#b8892b");
+      texto("Escaneá el código con tu celular", 390, "% " + dis.fTxt, 46, 960, dis.texto, 0.92);
+      texto("y subí tu foto Polaroid con un mensaje", 450, "% " + dis.fTxt, 42, 960, dis.texto, 0.92);
+      texto("al muro del evento", 510, "italic % " + dis.fTxt, 44, 960, dis.acento);
 
       const margen = 2;
       const celda = Math.floor(620 / (n + margen * 2));
@@ -753,7 +806,7 @@
       const qx = Math.round((W - lado) / 2), qy = 610;
       g.fillStyle = "#ffffff";
       g.fillRect(qx - 32, qy - 32, lado + 64, lado + 64);
-      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeStyle = dis.acento; g.lineWidth = 2;
       g.strokeRect(qx - 32, qy - 32, lado + 64, lado + 64);
       g.fillStyle = "#000000";
       for (let f = 0; f < n; f++) {
@@ -762,9 +815,9 @@
         }
       }
 
-      texto("1 foto por invitado", 1365, "% Georgia, serif", 38, 960, "#777777");
+      texto("1 foto por invitado", 1365, "% " + dis.fTxt, 36, 960, dis.texto, 0.72);
       const evento = [x.honoree, x.eventType].filter(Boolean).join(" - ");
-      if (evento) texto(evento, 1460, "italic % Georgia, serif", 42, 960, "#b8892b");
+      if (evento) texto(evento, 1460, dis.pesoTit + "% " + dis.fTit, 42, 960, dis.acento);
       return c.toDataURL("image/png");
     }
 
@@ -883,7 +936,10 @@
     }
 
     async function generarTarjeta(tag, x) {
-      if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
+      const [dis] = await Promise.all([
+        obtenerDiseno(x),
+        window.qrcode ? Promise.resolve() : cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js")
+      ]);
       const url = "https://www.instagram.com/explore/tags/" + encodeURIComponent(tag) + "/";
       const qr = window.qrcode(0, "M");
       qr.addData(url);
@@ -894,39 +950,42 @@
       const c = document.createElement("canvas");
       c.width = W; c.height = H;
       const g = c.getContext("2d");
-      g.fillStyle = "#fffaf3";
+      g.fillStyle = dis.fondo;
       g.fillRect(0, 0, W, H);
-      g.strokeStyle = "#c9a24b";
+      g.strokeStyle = dis.acento;
       g.lineWidth = 3; g.strokeRect(40, 40, W - 80, H - 80);
       g.lineWidth = 1; g.strokeRect(62, 62, W - 124, H - 124);
       g.textAlign = "center";
 
-      const texto = (t, y, fuente, tam, ancho, color) => {
+      const texto = (t, y, fuente, tam, ancho, color, alpha = 1) => {
         let s = tam;
         do {
           g.font = fuente.replace("%", s + "px");
           if (g.measureText(t).width <= ancho) break;
           s -= 4;
         } while (s > 28);
+        g.save();
+        g.globalAlpha = alpha;
         g.fillStyle = color;
         g.fillText(t, W / 2, y);
+        g.restore();
       };
 
-      texto("Un recuerdo con vos", 230, "italic % Georgia, serif", 110, 960, "#3a3a3a");
+      texto("Un recuerdo con vos", 230, dis.pesoTit + "% " + dis.fTit, 104, 960, dis.acento);
 
-      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeStyle = dis.acento; g.lineWidth = 2;
       g.beginPath();
       g.moveTo(W / 2 - 170, 290); g.lineTo(W / 2 - 22, 290);
       g.moveTo(W / 2 + 22, 290); g.lineTo(W / 2 + 170, 290);
       g.stroke();
-      g.fillStyle = "#c9a24b";
+      g.fillStyle = dis.acento;
       g.beginPath();
       g.moveTo(W / 2, 277); g.lineTo(W / 2 + 12, 290); g.lineTo(W / 2, 303); g.lineTo(W / 2 - 12, 290);
       g.closePath(); g.fill();
 
-      texto("Compartí tus fotos y videos", 385, "% Georgia, serif", 46, 960, "#555555");
-      texto("del evento con el hashtag", 442, "% Georgia, serif", 46, 960, "#555555");
-      texto("#" + tag, 590, "bold % Georgia, serif", 140, 960, "#b8892b");
+      texto("Compartí tus fotos y videos", 385, "% " + dis.fTxt, 46, 960, dis.texto, 0.9);
+      texto("del evento con el hashtag", 442, "% " + dis.fTxt, 46, 960, dis.texto, 0.9);
+      texto("#" + tag, 590, dis.pesoTit + "% " + dis.fTit, 128, 960, dis.acento);
 
       const margen = 2;
       const celda = Math.floor(600 / (n + margen * 2));
@@ -934,7 +993,7 @@
       const qx = Math.round((W - lado) / 2), qy = 700;
       g.fillStyle = "#ffffff";
       g.fillRect(qx - 30, qy - 30, lado + 60, lado + 60);
-      g.strokeStyle = "#c9a24b"; g.lineWidth = 2;
+      g.strokeStyle = dis.acento; g.lineWidth = 2;
       g.strokeRect(qx - 30, qy - 30, lado + 60, lado + 60);
       g.fillStyle = "#000000";
       for (let f = 0; f < n; f++) {
@@ -943,10 +1002,10 @@
         }
       }
 
-      texto("Escaneá el código y mirá", 1400, "% Georgia, serif", 40, 960, "#555555");
-      texto("las fotos en Instagram", 1446, "% Georgia, serif", 40, 960, "#555555");
+      texto("Escaneá el código y mirá", 1400, "% " + dis.fTxt, 40, 960, dis.texto, 0.78);
+      texto("las fotos en Instagram", 1446, "% " + dis.fTxt, 40, 960, dis.texto, 0.78);
       const evento = [x.honoree, x.eventType].filter(Boolean).join(" - ");
-      if (evento) texto(evento, 1500, "italic % Georgia, serif", 36, 960, "#b8892b");
+      if (evento) texto(evento, 1500, dis.pesoTit + "% " + dis.fTit, 36, 960, dis.acento);
       return c.toDataURL("image/png");
     }
 
