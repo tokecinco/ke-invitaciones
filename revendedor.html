@@ -154,7 +154,8 @@
 
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-    const NOMBRES = { basico: "Invitación Básica", premium: "Invitación Premium", pase: "Invitación Pase QR" };
+    const NOMBRES = { basico: "Invitación Esencial", premium: "Invitación Premium" };
+    const NOMBRES_HIST = { ...NOMBRES, pase: "Invitación Pase QR (ant.)" };
     const ESTADOS = { nuevo: "Nuevo", en_proceso: "En proceso", entregado: "Entregado", cancelado: "Cancelado" };
     const comision = (p) => Math.round((p.collected || 0) * (p.commissionPct || 0) / 100);
     const fechaTs = (ts) => ts && ts.toDate
@@ -235,7 +236,7 @@
       precios = {};
       const pq = await getDoc(doc(db, "settings", "packages"));
       if (pq.exists()) {
-        ["basico", "premium", "pase"].forEach((k) => {
+        ["basico", "premium"].forEach((k) => {
           if (pq.data()[k] && pq.data()[k].price >= 0) precios[k] = pq.data()[k].price;
         });
       }
@@ -251,7 +252,7 @@
       try {
         const snap = await getDocs(collection(db, "templates"));
         snap.docs
-          .filter((d) => d.data().active !== false)
+          .filter((d) => d.data().active !== false && d.data().category !== "pase")
           .map((d) => ({ id: d.id, name: d.data().name || d.id }))
           .sort((a, b) => a.name.localeCompare(b.name, "es"))
           .forEach((t) => {
@@ -399,7 +400,7 @@
         if (com === "pendiente" && (p.commissionPaid || comision(p) <= 0)) return false;
         if (txt) {
           const d = p.invitationData || {};
-          const hay = [p.clientName, p.eventType, p.notes, p.adminNote, NOMBRES[p.product], d.honoree, d.venue]
+          const hay = [p.clientName, p.eventType, p.notes, p.adminNote, NOMBRES_HIST[p.product], d.honoree, d.venue]
             .join(" ").toLowerCase();
           if (!hay.includes(txt)) return false;
         }
@@ -436,7 +437,7 @@
         c.appendChild(cab);
 
         const meta = document.createElement("div"); meta.className = "venta-meta";
-        const partes = [NOMBRES[p.product] || p.product];
+        const partes = [NOMBRES_HIST[p.product] || p.product];
         if (p.eventType) partes.push(p.eventType);
         if (p.eventDate) partes.push("Evento: " + p.eventDate);
         if (p.createdAt) partes.push("Enviado: " + fechaTs(p.createdAt));
@@ -521,4 +522,4 @@
     });
   </script>
 </body>
-  </html>
+                            </html>
