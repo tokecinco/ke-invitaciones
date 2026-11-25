@@ -134,9 +134,26 @@ function mostrar(d, lim, invitado, tpl) {
   configurarCompartir(nombre);
   agregarFirma(d);
 
+  let irFotocabina = location.hash === "#sec-fotocabina";
+  let yaAbierta = irFotocabina;
+  try {
+    if (sessionStorage.getItem("ke-ir-fc-" + idInvitacion) === "1") irFotocabina = yaAbierta = true;
+    if (sessionStorage.getItem("ke-abierta-" + idInvitacion) === "1") yaAbierta = true;
+  } catch (e) {}
+
   $("cargando").hidden = true;
-  $("sobre").hidden = false;
+  if (yaAbierta) {
+    $("sobre").hidden = true;
+    $("invitacion").hidden = false;
+    if (!irFotocabina) window.scrollTo(0, 0);
+    activarRevelado();
+    if (hayMusica) reproducir();
+  } else {
+    $("sobre").hidden = false;
+  }
+
   $("btn-abrir").addEventListener("click", () => {
+    try { sessionStorage.setItem("ke-abierta-" + idInvitacion, "1"); } catch (e) {}
     const caja = document.querySelector(".sobre-caja");
     const sobreEl = $("sobre");
     const invEl = $("invitacion");
