@@ -86,7 +86,9 @@
     import { PATRONES, MARCOS } from "./js/opciones-plantillas.js?v=2";
 
     const $ = (id) => document.getElementById(id);
-    const idInv = new URLSearchParams(location.search).get("i");
+    const paramsFc = new URLSearchParams(location.search);
+    const idInv = paramsFc.get("i");
+    const idGuest = paramsFc.get("g");
     const base = location.origin + location.pathname.replace(/[^/]*$/, "");
     const esColor = (c) => typeof c === "string" && /^#[0-9a-f]{6}$/i.test(c);
     const imgOk = (s) => typeof s === "string" && (/^data:image\//i.test(s) || /^https:\/\//i.test(s));
@@ -386,7 +388,8 @@
       document.title = (d.honoree ? d.honoree + " - " : "") + "Fotocabina Virtual";
       $("titulo").textContent = d.honoree || "Fotocabina";
       $("sub").textContent = d.eventType || "";
-      $("link-inv").href = base + "i/" + encodeURIComponent(idInv);
+      $("link-inv").href = base + "invitacion.html?i=" + encodeURIComponent(idInv) +
+        (idGuest ? "&g=" + encodeURIComponent(idGuest) : "") + "#sec-fotocabina";
 
       let u = null;
       try { u = await asegurarSesion(); } catch (e) { console.error(e); }
