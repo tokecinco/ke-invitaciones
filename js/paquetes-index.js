@@ -3,7 +3,7 @@ import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
 const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
-const TITULOS = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+const TITULOS = { basico: "Esencial", premium: "Premium" };
 
 function h(tag, texto, clase) {
   const e = document.createElement(tag);
@@ -39,7 +39,7 @@ async function iniciar() {
     document.head.appendChild(estilo);
 
     const cont = h("div", "", "paquetes");
-    ["basico", "premium", "pase"].forEach((k) => {
+    ["basico", "premium"].forEach((k) => {
       const p = g[k];
       if (!p) return;
       const c = h("div", "", "paq" + (k === "premium" ? " premium" : ""));
@@ -52,17 +52,28 @@ async function iniciar() {
         ? "Foto de portada + " + galeria + " foto" + (galeria === 1 ? "" : "s") + " en la galería"
         : "Foto de portada";
 
-      const ul = h("ul");
-      [
+      const items = [
+        "Mensaje personalizado",
         "Cuenta regresiva, fecha y mapa del lugar",
+        "Itinerario",
         "Confirmación de asistencia online",
+        "Regalo",
         fotos
-      ].forEach((t) => ul.appendChild(h("li", t)));
-      if (p.music) ul.appendChild(h("li", "Música de fondo"));
-      if (p.personalized) {
-        ul.appendChild(h("li", "Invitación personalizada por invitado"));
-        ul.appendChild(h("li", "Pase digital con código QR"));
+      ];
+      if (p.music || g.v3 !== true) items.push("Música de fondo");
+      items.push("Playlist de Spotify");
+      items.push("Hashtag de Instagram + tarjeta QR para la mesa");
+      items.push("Libro de mensajes");
+      if (k === "premium") {
+        items.push("Fotocabina Virtual (Polaroid con mensajes + tarjeta QR para la mesa)");
       }
+      if (p.personalized) {
+        items.push("Invitación personalizada por invitado");
+        items.push("Pase digital QR, control y organizador de invitados y mesas");
+      }
+
+      const ul = h("ul");
+      items.forEach((t) => ul.appendChild(h("li", t)));
       c.appendChild(ul);
 
       if (p.description) c.appendChild(h("p", p.description, "desc"));
