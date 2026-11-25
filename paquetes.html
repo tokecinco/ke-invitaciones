@@ -14,58 +14,82 @@
     input[type=checkbox]{width:auto;margin:0 8px 0 0}
     textarea{min-height:80px}
     button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
     label{font-size:.9rem;display:block;margin-top:10px}
     .check{display:flex;align-items:center;margin:8px 0;font-size:1rem}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:12px 0}
-    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0}
     .msg{min-height:1.4em}
   </style>
 </head>
 <body>
   <h1>Paquetes</h1>
-  <p><a href="dashboard.html">Menú</a></p>
+  <p><a href="dashboard.html">Menú</a> - <a href="pagos.html">Pagos</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <p>Definí el precio y lo que incluye cada paquete. Podés cambiarlo cuando quieras.</p>
-    <p id="aviso" class="aviso" hidden>Se actualizó el límite de fotos (Básico: portada + 6, Premium: portada + 8). Revisá los datos y tocá <b>Guardar paquetes</b> para aplicarlo.</p>
-    <div id="paquetes"></div>
-    <button id="btn-guardar" type="button">Guardar paquetes</button>
-    <p id="msg" class="msg"></p>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <p>Definí el precio y lo que incluye cada paquete. Podés cambiarlo cuando quieras.</p>
+      <p id="aviso" class="aviso" hidden>Se actualizaron los paquetes (<b>Esencial</b> ahora incluye música de fondo y se eliminó Pase QR). Revisá los datos y tocá <b>Guardar paquetes</b> para aplicarlo.</p>
+      <div id="paquetes"></div>
+      <button id="btn-guardar" type="button">Guardar paquetes</button>
+      <p id="msg" class="msg"></p>
+    </div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 
     const $ = (id) => document.getElementById(id);
-    const PAQ = [["basico", "Paquete Básico"], ["premium", "Paquete Premium"], ["pase", "Paquete Pase QR"]];
-    // "galeria" = fotos de la galería SIN contar la portada
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const PAQ = [["basico", "Paquete Esencial"], ["premium", "Paquete Premium"]];
     const DEFECTO = {
-      basico:  { price: "", deposit: "", galeria: 6, music: false, personalized: false, description: "" },
-      premium: { price: "", deposit: "", galeria: 8, music: true,  personalized: true,  description: "" },
-      pase:    { price: "", deposit: "", description: "" }
+      basico:  { price: "", deposit: "", galeria: 6, music: true, personalized: false, description: "" },
+      premium: { price: "", deposit: "", galeria: 8, music: true, personalized: true,  description: "" }
     };
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) cargar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargar();
     });
 
     function dibujar(datos) {
@@ -74,28 +98,13 @@
       PAQ.forEach(([k, titulo]) => {
         const d = datos[k];
         const c = document.createElement("div"); c.className = "caja";
-        if (k === "pase") {
-          c.innerHTML =
-            "<h2></h2>" +
-            "<p class='aviso'>Incluye lo del Básico con foto de portada y el pase digital con QR para los invitados (con su mesa). No incluye música, playlist, hashtag, itinerario, libro de mensajes ni regalos.</p>" +
-            "<label>Precio ($) - dejalo vacío para no ofrecerlo</label><input id='pase-price' type='number' min='0' inputmode='numeric'>" +
-            "<label>Seña ($)</label><input id='pase-deposit' type='number' min='0' inputmode='numeric'>" +
-            "<label>Texto que se muestra en la página principal (opcional)</label>" +
-            "<textarea id='pase-desc' maxlength='300'></textarea>";
-          c.querySelector("h2").textContent = titulo;
-          cont.appendChild(c);
-          $("pase-price").value = d.price;
-          $("pase-deposit").value = d.deposit;
-          $("pase-desc").value = d.description || "";
-          return;
-        }
         c.innerHTML =
           "<h2></h2>" +
           "<label>Precio ($)</label><input id='" + k + "-price' type='number' min='0' inputmode='numeric'>" +
           "<label>Seña ($)</label><input id='" + k + "-deposit' type='number' min='0' inputmode='numeric'>" +
           "<label>Fotos de la galería, sin contar la portada (de 0 a 8)</label><input id='" + k + "-fotos' type='number' min='0' max='8' inputmode='numeric'>" +
           "<label class='check'><input id='" + k + "-music' type='checkbox'>Incluye música de fondo</label>" +
-          "<label class='check'><input id='" + k + "-guests' type='checkbox'>Incluye invitación personalizada por invitado (con pase QR)</label>" +
+          "<label class='check'><input id='" + k + "-guests' type='checkbox'>Incluye invitación personalizada y pase digital QR</label>" +
           "<label>Texto que se muestra en la página principal (opcional)</label>" +
           "<textarea id='" + k + "-desc' maxlength='300'></textarea>";
         c.querySelector("h2").textContent = titulo;
@@ -119,17 +128,12 @@
             if (!g[k]) return;
             datos[k].price = g[k].price ?? "";
             datos[k].deposit = g[k].deposit ?? "";
-            datos[k].music = !!g[k].music;
+            datos[k].music = g.v3 === true ? !!g[k].music : true;
             datos[k].personalized = !!g[k].personalized;
             datos[k].description = g[k].description || "";
             if (g.v2 === true && g[k].maxPhotos >= 1) datos[k].galeria = g[k].maxPhotos - 1;
           });
-          if (g.pase) {
-            datos.pase.price = g.pase.price ?? "";
-            datos.pase.deposit = g.pase.deposit ?? "";
-            datos.pase.description = g.pase.description || "";
-          }
-          if (g.v2 !== true) $("aviso").hidden = false;
+          if (g.v3 !== true) $("aviso").hidden = false;
         } else {
           const p = await getDoc(doc(db, "settings", "pricing"));
           if (p.exists()) {
@@ -147,17 +151,6 @@
     $("btn-guardar").addEventListener("click", async () => {
       const salida = {};
       for (const [k, titulo] of PAQ) {
-        if (k === "pase") {
-          const price = parseInt($("pase-price").value, 10);
-          if (!(price >= 0)) continue; // sin precio: no se ofrece
-          const deposit = parseInt($("pase-deposit").value, 10) || 0;
-          if (deposit < 0 || deposit > price) { $("msg").textContent = titulo + ": la seña no puede superar el precio."; return; }
-          salida.pase = {
-            price: price, deposit: deposit, maxPhotos: 1, music: false, personalized: true,
-            description: $("pase-desc").value.trim()
-          };
-          continue;
-        }
         const price = parseInt($(k + "-price").value, 10);
         const deposit = parseInt($(k + "-deposit").value, 10);
         const galeria = parseInt($(k + "-fotos").value, 10);
@@ -174,6 +167,7 @@
       $("msg").textContent = "Guardando...";
       try {
         salida.v2 = true;
+        salida.v3 = true;
         salida.updatedAt = serverTimestamp();
         await setDoc(doc(db, "settings", "packages"), salida);
         $("aviso").hidden = true;
