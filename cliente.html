@@ -71,7 +71,7 @@
     const $ = (id) => document.getElementById(id);
     const $$ = (n) => "$" + Number(n || 0).toLocaleString("es-AR");
     const ETIQ = { pendiente: "Pendiente", senado: "Señado", pagado: "Pagado" };
-    const ETIQ_PAQ = { basico: "Básico", premium: "Premium", pase: "Pase QR" };
+    const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
     const params = new URLSearchParams(location.search);
     const idCod = params.get("i");
     const codigo = params.get("c");
@@ -88,6 +88,7 @@
       ? ts.toDate().toLocaleDateString("es-AR", { day: "numeric", month: "short" }) + " " +
         ts.toDate().toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" }) : "";
     const limpiarTag = (t) => String(t || "").replace(/^#+/, "").replace(/[^\p{L}\p{N}_]/gu, "").slice(0, 40);
+    const esc = (s) => String(s || "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
     function errorAuth(e) {
       const c = (e && e.code) || "";
@@ -141,7 +142,6 @@
       if (u.isAnonymous) await modoCodigo(u); else await modoCuenta(u);
     });
 
-    /* Con cuenta */
     async function modoCuenta(u) {
       $("modo").textContent = "Sesión: " + u.email;
       const cont = $("lista");
@@ -165,7 +165,6 @@
       }
     }
 
-    /* Con código */
     async function modoCodigo(u) {
       $("modo").textContent = "Acceso por código";
       const cont = $("lista");
@@ -201,13 +200,15 @@
       }
     }
 
-    /* Tarjeta de la invitación */
     function tarjeta(id, x, p) {
       const esPase = x.package === "pase";
+      const esPremium = x.package === "premium";
+      const conFotocabina = esPremium && x.photobooth !== false;
+
       const t = h("div", "", "caja");
       t.appendChild(h("b", x.honoree || id));
       t.appendChild(h("div", (x.active ? "Publicada" : "No publicada") + " - " + (x.date || "") +
-        " - Paquete " + (ETIQ_PAQ[x.package] || "Básico")));
+        " - Paquete " + (ETIQ_PAQ[x.package] || "Esencial")));
       const a = h("a", linkDe(id));
       a.href = linkDe(id); a.target = "_blank"; a.style.wordBreak = "break-all";
       t.appendChild(a);
@@ -223,28 +224,34 @@
       const bFoto = h("button", "Fotocabina virtual", "sec");
       const bHash = h("button", "Hashtag de las fotos", "sec");
       const bLibro = h("button", "Libro de mensajes", "sec");
-      t.append(bCopiar, bInv, bConf);
-      if (!esPase) t.append(bFoto, bHash, bLibro);
+
+      t.append(bCopiar);
+      if (esPremium || esPase) t.append(bInv);
+      t.append(bConf);
+      if (conFotocabina) t.append(bFoto);
+      if (!esPase) t.append(bHash, bLibro);
 
       const pInv = h("div", "", "panelx"); pInv.hidden = true;
       const pConf = h("div", "", "panelx"); pConf.hidden = true;
       const pFoto = h("div", "", "panelx"); pFoto.hidden = true;
       const pHash = h("div", "", "panelx"); pHash.hidden = true;
       const pLibro = h("div", "", "panelx"); pLibro.hidden = true;
-      t.append(pInv, pConf);
-      if (!esPase) t.append(pFoto, pHash, pLibro);
 
-      invitados(id, x, bInv, pInv);
+      if (esPremium || esPase) t.append(pInv);
+      t.append(pConf);
+      if (conFotocabina) t.append(pFoto);
+      if (!esPase) t.append(pHash, pLibro);
+
+      if (esPremium || esPase) invitados(id, x, bInv, pInv);
       confirmaciones(id, bConf, pConf);
+      if (conFotocabina) fotocabina(id, x, bFoto, pFoto);
       if (!esPase) {
-        fotocabina(id, x, bFoto, pFoto);
         hashtag(id, x, bHash, pHash);
         libro(id, x, bLibro, pLibro);
       }
       return t;
     }
 
-    /* Lista de invitados */
     function nuevoId() {
       const a = new Uint8Array(10);
       crypto.getRandomValues(a);
@@ -258,12 +265,6 @@
     }
 
     function invitados(id, x, boton, panel) {
-      if (x.package !== "premium" && x.package !== "pase") {
-        panel.appendChild(h("p", "La lista de invitados con invitaciones personales y pases está disponible en los paquetes Premium y Pase QR."));
-        boton.onclick = () => { panel.hidden = !panel.hidden; };
-        return;
-      }
-
       panel.appendChild(h("p", "Cargá cada invitado con su nombre, la cantidad de lugares y, si querés, el número de mesa. Después enviá a cada uno su invitación con su pase por WhatsApp."));
 
       const form = document.createElement("form");
@@ -286,7 +287,6 @@
 
       const agregar = h("button", "Agregar invitado");
       agregar.type = "submit";
-
       form.append(campo("Nombre del invitado", nombre), dos, agregar);
 
       const msg = h("p", "", "msg");
@@ -514,7 +514,174 @@
       });
     }
 
-    /* Fotocabina Virtual: código QR para mesa + moderación de fotos */
+    /* Exportación del muro completo de la Fotocabina (PNG Polaroid y PDF/Imprimir) */
+    function cargarImagen(src) {
+      return new Promise((ok) => {
+        const im = new Image();
+        im.onload = () => ok(im);
+        im.onerror = () => ok(null);
+        im.src = src;
+      });
+    }
+
+    function partirLineas(g, texto, maxW, maxLineas) {
+      const palabras = String(texto || "").trim().split(/\s+/).filter(Boolean);
+      const lineas = [];
+      let actual = "";
+      for (const p of palabras) {
+        const prueba = actual ? actual + " " + p : p;
+        if (g.measureText(prueba).width <= maxW) {
+          actual = prueba;
+        } else {
+          if (actual) lineas.push(actual);
+          actual = p;
+          if (lineas.length === maxLineas - 1) break;
+        }
+      }
+      if (actual && lineas.length < maxLineas) lineas.push(actual);
+      if (lineas.length === maxLineas && palabras.length) {
+        const totalUsado = lineas.join(" ").length;
+        if (totalUsado < String(texto || "").trim().length) {
+          lineas[maxLineas - 1] = lineas[maxLineas - 1].replace(/\s*\S*$/, "") + "…";
+        }
+      }
+      return lineas;
+    }
+
+    async function descargarMuroPNG(id, items, x) {
+      const lista = items.slice().reverse();
+      const POR_PAGINA = 8;
+      const paginas = Math.ceil(lista.length / POR_PAGINA);
+      const imgs = await Promise.all(lista.map((it) => cargarImagen(it.f.photo)));
+
+      const W = 1200, pad = 54, gap = 36, cardW = (W - pad * 2 - gap) / 2;
+      const imgPad = 22, imgSize = cardW - imgPad * 2;
+      const mCanvas = document.createElement("canvas");
+      const mg = mCanvas.getContext("2d");
+
+      const tarjetas = lista.map((it, idx) => {
+        mg.font = "italic 23px Georgia, serif";
+        const lineas = it.f.message ? partirLineas(mg, "“" + it.f.message + "”", cardW - 56, 4) : [];
+        const hTexto = (lineas.length ? lineas.length * 30 + 14 : 10) + 34 + 22;
+        return {
+          im: imgs[idx],
+          nom: it.f.name || "",
+          lineas: lineas,
+          h: imgPad + imgSize + 20 + hTexto
+        };
+      });
+
+      for (let p = 0; p < paginas; p++) {
+        const slice = tarjetas.slice(p * POR_PAGINA, (p + 1) * POR_PAGINA);
+        const topH = 185;
+        let filasH = 0;
+        const alturasFila = [];
+        for (let i = 0; i < slice.length; i += 2) {
+          const hFila = Math.max(slice[i].h, slice[i + 1] ? slice[i + 1].h : 0);
+          alturasFila.push(hFila);
+          filasH += hFila + 34;
+        }
+        const H = topH + filasH + 36;
+        const c = document.createElement("canvas");
+        c.width = W; c.height = H;
+        const g = c.getContext("2d");
+
+        g.fillStyle = "#fffaf3";
+        g.fillRect(0, 0, W, H);
+        g.strokeStyle = "#c9a24b";
+        g.lineWidth = 3;
+        g.strokeRect(24, 24, W - 48, H - 48);
+
+        g.textAlign = "center";
+        g.fillStyle = "#3a3a3a";
+        g.font = "italic 52px Georgia, serif";
+        g.fillText("Muro de Recuerdos", W / 2, 92);
+        const sub = [x.honoree, x.eventType].filter(Boolean).join(" - ") +
+          (paginas > 1 ? " (Parte " + (p + 1) + " de " + paginas + ")" : "");
+        g.fillStyle = "#b8892b";
+        g.font = "28px Georgia, serif";
+        g.fillText(sub, W / 2, 134);
+
+        g.strokeStyle = "#c9a24b"; g.lineWidth = 1.5;
+        g.beginPath(); g.moveTo(W / 2 - 90, 155); g.lineTo(W / 2 + 90, 155); g.stroke();
+
+        let y = topH;
+        for (let i = 0; i < slice.length; i += 2) {
+          const fila = [slice[i], slice[i + 1]].filter(Boolean);
+          fila.forEach((t, col) => {
+            const x0 = pad + col * (cardW + gap);
+            g.save();
+            g.shadowColor = "rgba(0,0,0,.16)";
+            g.shadowBlur = 18;
+            g.shadowOffsetY = 8;
+            g.fillStyle = "#ffffff";
+            g.fillRect(x0, y, cardW, t.h);
+            g.restore();
+
+            g.strokeStyle = "#eadfc8"; g.lineWidth = 1;
+            g.strokeRect(x0, y, cardW, t.h);
+
+            if (t.im) {
+              const s = Math.min(t.im.width, t.im.height);
+              const sx = (t.im.width - s) / 2;
+              const sy = (t.im.height - s) / 2;
+              g.drawImage(t.im, sx, sy, s, s, x0 + imgPad, y + imgPad, imgSize, imgSize);
+            }
+
+            let ty = y + imgPad + imgSize + 36;
+            g.textAlign = "center";
+            if (t.lineas.length) {
+              g.fillStyle = "#333333";
+              g.font = "italic 23px Georgia, serif";
+              t.lineas.forEach((ln) => {
+                g.fillText(ln, x0 + cardW / 2, ty);
+                ty += 30;
+              });
+              ty += 10;
+            }
+            g.fillStyle = "#8a6a1f";
+            g.font = "bold 24px Georgia, serif";
+            g.fillText("- " + t.nom, x0 + cardW / 2, ty);
+          });
+          y += alturasFila[i / 2] + 34;
+        }
+
+        const a = document.createElement("a");
+        a.href = c.toDataURL("image/png");
+        a.download = "muro-fotocabina-" + id + (paginas > 1 ? "-parte-" + (p + 1) : "") + ".png";
+        a.click();
+      }
+    }
+
+    function imprimirMuro(items, x) {
+      const lista = items.slice().reverse();
+      const titulo = "Muro de Recuerdos - " + ([x.honoree, x.eventType].filter(Boolean).join(" - ") || "Fotocabina");
+      const w = window.open("", "_blank");
+      if (!w) { alert("El navegador bloqueó la ventana. Permitila o usá Descargar muro (PNG)."); return; }
+      const tarjetas = lista.map(({ f }) =>
+        "<div class='pol'>" +
+        "<img src='" + f.photo + "' alt=''>" +
+        (f.message ? "<p class='msj'>“" + esc(f.message) + "”</p>" : "") +
+        "<div class='nom'>- " + esc(f.name) + "</div>" +
+        "</div>"
+      ).join("");
+      w.document.write(
+        "<!DOCTYPE html><html><head><meta charset='utf-8'><title>" + esc(titulo) + "</title>" +
+        "<style>" +
+        "body{font-family:Georgia,serif;background:#fffaf3;color:#1a1a1a;max-width:860px;margin:24px auto;padding:0 18px}" +
+        "h1{text-align:center;color:#8a6a1f;font-style:italic;margin-bottom:24px}" +
+        ".grid{display:grid;grid-template-columns:repeat(2,1fr);gap:20px}" +
+        ".pol{background:#fff;padding:12px 12px 18px;border:1px solid #eadfc8;border-radius:4px;box-shadow:0 4px 12px rgba(0,0,0,.08);text-align:center;page-break-inside:avoid;break-inside:avoid}" +
+        ".pol img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;border-radius:2px}" +
+        ".msj{margin:12px 4px 6px;font-style:italic;font-size:.98rem;white-space:pre-wrap}" +
+        ".nom{color:#8a6a1f;font-weight:bold;font-size:.95rem;margin-top:6px}" +
+        "@media print{body{background:#fff;margin:0;padding:12px}.pol{box-shadow:none}}" +
+        "</style></head><body><h1>" + esc(titulo) + "</h1><div class='grid'>" + tarjetas + "</div></body></html>"
+      );
+      w.document.close();
+      setTimeout(() => w.print(), 500);
+    }
+
     async function generarQrSolo(url) {
       if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
       const qr = window.qrcode(0, "M");
@@ -652,19 +819,40 @@
         } catch (e) { console.error(e); alert("No se pudo generar el QR."); }
       };
 
+      const muroAcc = h("div");
+      const bDescMuro = h("button", "Descargar muro Polaroid (PNG)");
+      const bImpMuro = h("button", "Imprimir muro / Guardar PDF", "sec");
+      muroAcc.append(bDescMuro, bImpMuro);
+      muroAcc.hidden = true;
+
       const lista = h("div");
-      panel.append(acc, salida, h("h2", "Fotos subidas"), lista);
+      panel.append(acc, salida, h("h2", "Fotos subidas"), muroAcc, lista);
+
+      let itemsActuales = [];
+      bDescMuro.onclick = async () => {
+        if (!itemsActuales.length) return;
+        bDescMuro.disabled = true;
+        bDescMuro.textContent = "Armando mural...";
+        try { await descargarMuroPNG(id, itemsActuales, x); }
+        catch (e) { console.error(e); alert("No se pudo generar el mural. Probá con Imprimir muro / Guardar PDF."); }
+        bDescMuro.disabled = false;
+        bDescMuro.textContent = "Descargar muro Polaroid (PNG)";
+      };
+      bImpMuro.onclick = () => {
+        if (itemsActuales.length) imprimirMuro(itemsActuales, x);
+      };
 
       let cargado = false;
       async function cargarFotos() {
         lista.textContent = "Cargando...";
         try {
           const s = await getDocs(query(collection(db, "photobooth"), where("invitationId", "==", id)));
-          const items = s.docs.map((d) => ({ pid: d.id, f: d.data() }))
+          itemsActuales = s.docs.map((d) => ({ pid: d.id, f: d.data() }))
             .sort((a, b) => (b.f.createdAt?.seconds || 0) - (a.f.createdAt?.seconds || 0));
           lista.textContent = "";
-          if (!items.length) { lista.textContent = "Todavía no hay fotos subidas."; return; }
-          items.forEach(({ pid, f }) => {
+          muroAcc.hidden = !itemsActuales.length;
+          if (!itemsActuales.length) { lista.textContent = "Todavía no hay fotos subidas."; return; }
+          itemsActuales.forEach(({ pid, f }) => {
             const row = h("div", "", "fc-foto");
             const im = document.createElement("img"); im.src = f.photo; im.alt = f.name;
             const info = h("div", "", "fc-foto-info");
@@ -694,7 +882,6 @@
       };
     }
 
-    /* Hashtag de las fotos y tarjeta con QR para las mesas */
     async function generarTarjeta(tag, x) {
       if (!window.qrcode) await cargarScript("https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js");
       const url = "https://www.instagram.com/explore/tags/" + encodeURIComponent(tag) + "/";
