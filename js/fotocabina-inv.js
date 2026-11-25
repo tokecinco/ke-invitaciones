@@ -32,7 +32,7 @@ async function iniciar() {
     const inv = await getDoc(doc(db, "invitations", idInv));
     if (!inv.exists()) return;
     const d = inv.data();
-    if (d.active !== true || d.package === "pase") return;
+    if (d.active !== true || d.package !== "premium" || d.photobooth === false) return;
 
     let fotos = [];
     try {
