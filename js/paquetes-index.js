@@ -35,6 +35,7 @@ async function iniciar() {
       ".paq ul{list-style:none;padding:0;margin:14px 0;text-align:left}" +
       ".paq li{padding:4px 0 4px 22px;position:relative}" +
       ".paq li:before{content:'\\2713';position:absolute;left:0;color:#c9a24b}" +
+      "#precios .paq li.destacado{font-weight:bold;font-size:1.01rem;color:#1a1a1a;padding-top:6px;padding-bottom:6px}" +
       ".paq .desc{font-size:.9rem;color:#666}";
     document.head.appendChild(estilo);
 
@@ -53,27 +54,27 @@ async function iniciar() {
         : "Foto de portada";
 
       const items = [
-        "Mensaje personalizado",
-        "Cuenta regresiva, fecha y mapa del lugar",
-        "Itinerario",
-        "Confirmación de asistencia online",
-        "Regalo",
-        fotos
+        { t: "Mensaje personalizado" },
+        { t: "Cuenta regresiva, fecha y mapa del lugar" },
+        { t: "Itinerario" },
+        { t: "Confirmación de asistencia online" },
+        { t: "Regalo" },
+        { t: fotos }
       ];
-      if (p.music || g.v3 !== true) items.push("Música de fondo");
-      items.push("Playlist de Spotify");
-      items.push("Hashtag de Instagram + tarjeta QR para la mesa");
-      items.push("Libro de mensajes");
+      if (p.music || g.v3 !== true) items.push({ t: "Música de fondo" });
+      items.push({ t: "Playlist de Spotify" });
+      items.push({ t: "Hashtag de Instagram + tarjeta QR para la mesa" });
+      items.push({ t: "Libro de mensajes" });
       if (k === "premium") {
-        items.push("Fotocabina Virtual (Polaroid con mensajes + tarjeta QR para la mesa)");
+        items.push({ t: "Fotocabina Virtual (Polaroid con mensajes + tarjeta QR para la mesa)", dest: true });
       }
       if (p.personalized) {
-        items.push("Invitación personalizada por invitado");
-        items.push("Pase digital QR, control y organizador de invitados y mesas");
+        items.push({ t: "Invitación personalizada por invitado", dest: true });
+        items.push({ t: "Pase digital QR, control y organizador de invitados y mesas", dest: true });
       }
 
       const ul = h("ul");
-      items.forEach((t) => ul.appendChild(h("li", t)));
+      items.forEach((it) => ul.appendChild(h("li", it.t, it.dest ? "destacado" : "")));
       c.appendChild(ul);
 
       if (p.description) c.appendChild(h("p", p.description, "desc"));
