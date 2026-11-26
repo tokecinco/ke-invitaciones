@@ -28,7 +28,8 @@ export const ESTILOS_FONDO = [
   ["cinta-saten", "Cinta de satén central"],
   ["neon-fiesta", "Fiesta Glow moderno"],
   ["franjas", "Franjas verticales elegantes con detalles dorados"],
-  ["franjas-santo", "Franjas rojas y blancas con detalles dorados"]
+  ["franjas-santo", "Franjas rojas y blancas con detalles dorados"],
+  ["banda-river", "La Banda diagonal blanca, roja y oro"]
 ];
 
 export const PATRONES = [
