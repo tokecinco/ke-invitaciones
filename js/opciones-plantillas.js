@@ -30,7 +30,9 @@ export const ESTILOS_FONDO = [
   ["franjas", "Franjas verticales elegantes con detalles dorados"],
   ["franjas-santo", "Franjas rojas y blancas con detalles dorados"],
   ["banda-river", "La Banda diagonal blanca, roja y oro"],
-  ["franja-boca", "Franja horizontal oro sobre azul (Boca Juniors)"]
+  ["franja-boca", "Franja horizontal oro sobre azul (Boca Juniors)"],
+  ["retro-pro", "Retro Coleccionista 70s Pro"],
+  ["revista-pro", "Editorial Revista Pro (tapa de revista)"]
 ];
 
 export const PATRONES = [
