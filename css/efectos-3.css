@@ -365,3 +365,90 @@ body.fondo-franjas .galeria img:first-child {
   border:3px solid #ffffff; outline:1px solid color-mix(in srgb, var(--acento) 55%, transparent);
   border-radius:14px; transform:none;
   }
+/* 10. Franjas rojas y blancas con detalles dorados (San Martín de Tucumán) */
+body.fondo-franjas-santo {
+  background-color:var(--fondo);
+  background-image:repeating-linear-gradient(
+    90deg,
+    #ffffff 0 42px,
+    color-mix(in srgb, var(--acento) 88%, #ffffff) 42px 84px
+  );
+  background-attachment:fixed;
+}
+body.fondo-franjas-santo .portada > .rama-der { display:none; }
+body.fondo-franjas-santo .portada > .rama-izq {
+  position:absolute !important; inset:14px; z-index:1; pointer-events:none;
+  border:1.5px solid rgba(201,162,75,.85);
+  outline:1px solid rgba(201,162,75,.42);
+  outline-offset:-6px;
+}
+body.fondo-franjas-santo .portada > *:not(.rama) { z-index:3; }
+
+body.fondo-franjas-santo .portada:not(.con-foto) {
+  background:radial-gradient(ellipse at 50% 48%, rgba(255,255,255,.95) 26%, rgba(255,255,255,.72) 58%, rgba(255,255,255,.12) 86%);
+}
+body.fondo-franjas-santo .portada:not(.con-foto)::before { display:none; }
+
+body.fondo-franjas-santo .portada.con-foto {
+  background:linear-gradient(180deg, rgba(255,255,255,.18) 0%, rgba(255,255,255,.88) 60%, rgba(255,255,255,.95) 100%);
+  justify-content:flex-start;
+  padding-top:calc(6vh + max(40vh, 240px) + 34px);
+  padding-bottom:90px;
+  color:var(--texto);
+  text-shadow:none;
+}
+body.fondo-franjas-santo .portada.con-foto::before {
+  inset:auto; top:6vh; left:0; right:0; margin:0 auto; z-index:2;
+  width:min(74vw, 285px); height:40vh; min-height:240px;
+  border-radius:18px; border:4px solid #ffffff;
+  box-shadow:0 14px 32px rgba(34,18,20,.2);
+  background-color:var(--suave); animation:none;
+}
+body.fondo-franjas-santo .portada.con-foto::after {
+  inset:auto; top:calc(6vh - 8px); left:0; right:0; margin:0 auto; z-index:2;
+  width:calc(min(74vw, 285px) + 16px); height:calc(max(40vh, 240px) + 16px);
+  border:1.5px solid #c9a24b; border-radius:24px;
+  background:none; opacity:.95;
+}
+body.fondo-franjas-santo .portada.con-foto h1,
+body.fondo-franjas-santo .portada.con-foto .para b { color:var(--texto); }
+body.fondo-franjas-santo .tipo { letter-spacing:.32em; font-size:.76rem; color:var(--acento); font-weight:600; }
+body.fondo-franjas-santo #nombre {
+  color:var(--texto); letter-spacing:.06em; text-transform:uppercase;
+  font-size:clamp(1.85rem, 8.5vw, 3rem); line-height:1.2; font-weight:600;
+}
+body.fondo-franjas-santo .linea { height:1px; background:#c9a24b; position:relative; overflow:visible; }
+body.fondo-franjas-santo .linea::after {
+  content:"\2605\FE0E"; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  font-size:.72rem; color:#c9a24b; line-height:1;
+}
+
+body.fondo-franjas-santo #invitacion > section.sec-a { background-color:rgba(255,255,255,.88); }
+body.fondo-franjas-santo #invitacion > section.sec-b { background-color:rgba(250,235,237,.9); }
+
+body.fondo-franjas-santo h2 { letter-spacing:.22em; text-transform:uppercase; font-size:1rem; font-weight:600; }
+body.fondo-franjas-santo h2::after { background:linear-gradient(90deg, transparent, #c9a24b, transparent); }
+body.fondo-franjas-santo .boton {
+  border-radius:999px; letter-spacing:.08em; text-transform:uppercase; font-size:.82rem; font-weight:600;
+  border:1px solid rgba(201,162,75,.55);
+  box-shadow:0 8px 20px color-mix(in srgb, var(--acento) 26%, transparent);
+}
+body.fondo-franjas-santo .icono { background:#ffffff; border:1px solid rgba(201,162,75,.65); }
+body.fondo-franjas-santo .cuenta div,
+body.fondo-franjas-santo .tarjeta-esp,
+body.fondo-franjas-santo .libro-card,
+body.fondo-franjas-santo .regalo-alias,
+body.fondo-franjas-santo input,
+body.fondo-franjas-santo select,
+body.fondo-franjas-santo textarea {
+  background:#ffffff;
+  border:1px solid rgba(201,162,75,.48);
+}
+body.fondo-franjas-santo #sec-itinerario .it-punto { box-shadow:0 0 0 3px #ffffff; }
+body.fondo-franjas-santo .galeria img,
+body.fondo-franjas-santo .galeria img:nth-child(odd),
+body.fondo-franjas-santo .galeria img:nth-child(even),
+body.fondo-franjas-santo .galeria img:first-child {
+  border:3px solid #ffffff; outline:1px solid rgba(201,162,75,.65);
+  border-radius:14px; transform:none;
+    }
