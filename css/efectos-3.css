@@ -452,3 +452,97 @@ body.fondo-franjas-santo .galeria img:first-child {
   border:3px solid #ffffff; outline:1px solid rgba(201,162,75,.65);
   border-radius:14px; transform:none;
     }
+/* 11. La Banda diagonal blanca, roja y oro (River Plate) */
+body.fondo-banda-river {
+  background-color:var(--fondo);
+  background-image:linear-gradient(
+    38deg,
+    transparent 42%,
+    color-mix(in srgb, var(--acento) 12%, transparent) 42.3% 57.7%,
+    transparent 58%
+  );
+  background-attachment:fixed;
+}
+body.fondo-banda-river .portada > .rama-der { display:none; }
+body.fondo-banda-river .portada > .rama-izq {
+  position:absolute !important; inset:14px; z-index:1; pointer-events:none;
+  border:1.5px solid rgba(201,162,75,.8);
+  outline:1px solid rgba(24,24,27,.16);
+  outline-offset:-6px;
+}
+body.fondo-banda-river .portada > *:not(.rama) { z-index:3; }
+
+body.fondo-banda-river .portada:not(.con-foto) {
+  background:
+    radial-gradient(ellipse at 50% 48%, rgba(255,255,255,.94) 24%, rgba(255,255,255,.6) 56%, transparent 84%),
+    linear-gradient(38deg, transparent 40%, #c9a24b 40.2% 40.6%, var(--acento) 40.8% 59.2%, #c9a24b 59.4% 59.8%, transparent 60%),
+    #ffffff;
+}
+body.fondo-banda-river .portada:not(.con-foto)::before { display:none; }
+
+body.fondo-banda-river .portada.con-foto {
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,.78) 56%, rgba(255,255,255,.96) 80%),
+    linear-gradient(38deg, transparent 40%, #c9a24b 40.2% 40.6%, var(--acento) 40.8% 59.2%, #c9a24b 59.4% 59.8%, transparent 60%),
+    #ffffff;
+  justify-content:flex-start;
+  padding-top:calc(6vh + max(40vh, 240px) + 34px);
+  padding-bottom:90px;
+  color:var(--texto);
+  text-shadow:none;
+}
+body.fondo-banda-river .portada.con-foto::before {
+  inset:auto; top:6vh; left:0; right:0; margin:0 auto; z-index:2;
+  width:min(74vw, 285px); height:40vh; min-height:240px;
+  border-radius:18px; border:4px solid #ffffff;
+  box-shadow:0 14px 34px rgba(24,24,27,.18);
+  background-color:var(--suave); animation:none;
+}
+body.fondo-banda-river .portada.con-foto::after {
+  inset:auto; top:calc(6vh - 8px); left:0; right:0; margin:0 auto; z-index:2;
+  width:calc(min(74vw, 285px) + 16px); height:calc(max(40vh, 240px) + 16px);
+  border:1.5px solid #c9a24b; border-radius:24px;
+  background:none; opacity:.95;
+}
+body.fondo-banda-river .portada.con-foto h1,
+body.fondo-banda-river .portada.con-foto .para b { color:var(--texto); }
+body.fondo-banda-river .tipo { letter-spacing:.32em; font-size:.76rem; color:var(--acento); font-weight:600; }
+body.fondo-banda-river #nombre {
+  color:var(--texto); letter-spacing:.06em; text-transform:uppercase;
+  font-size:clamp(1.85rem, 8.5vw, 3rem); line-height:1.2; font-weight:600;
+}
+body.fondo-banda-river .linea { height:1px; background:#c9a24b; position:relative; overflow:visible; }
+body.fondo-banda-river .linea::after {
+  content:"\2726\FE0E"; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  font-size:.7rem; color:#c9a24b; line-height:1;
+}
+
+body.fondo-banda-river #invitacion > section.sec-a { background-color:rgba(255,255,255,.86); }
+body.fondo-banda-river #invitacion > section.sec-b { background-color:rgba(250,232,235,.88); }
+
+body.fondo-banda-river h2 { letter-spacing:.22em; text-transform:uppercase; font-size:1rem; font-weight:600; }
+body.fondo-banda-river h2::after { background:linear-gradient(90deg, transparent, #c9a24b, transparent); }
+body.fondo-banda-river .boton {
+  border-radius:999px; letter-spacing:.08em; text-transform:uppercase; font-size:.82rem; font-weight:600;
+  border:1px solid rgba(201,162,75,.55);
+  box-shadow:0 8px 20px color-mix(in srgb, var(--acento) 26%, transparent);
+}
+body.fondo-banda-river .icono { background:#ffffff; border:1px solid rgba(201,162,75,.65); }
+body.fondo-banda-river .cuenta div,
+body.fondo-banda-river .tarjeta-esp,
+body.fondo-banda-river .libro-card,
+body.fondo-banda-river .regalo-alias,
+body.fondo-banda-river input,
+body.fondo-banda-river select,
+body.fondo-banda-river textarea {
+  background:#ffffff;
+  border:1px solid rgba(201,162,75,.48);
+}
+body.fondo-banda-river #sec-itinerario .it-punto { box-shadow:0 0 0 3px #ffffff; }
+body.fondo-banda-river .galeria img,
+body.fondo-banda-river .galeria img:nth-child(odd),
+body.fondo-banda-river .galeria img:nth-child(even),
+body.fondo-banda-river .galeria img:first-child {
+  border:3px solid #ffffff; outline:1px solid rgba(201,162,75,.65);
+  border-radius:14px; transform:none;
+      }
