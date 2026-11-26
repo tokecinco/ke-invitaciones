@@ -28,7 +28,8 @@
     .check{display:flex;align-items:center;margin:6px 0}
     .vista{border-radius:12px;padding:20px;text-align:center;border:1px solid #d8cbb0;margin:10px 0}
     .vista .tarj{display:inline-block;border-radius:10px;padding:8px 14px;margin:8px 4px 0}
-    .miniatura{width:100%;max-height:160px;object-fit:cover;border-radius:10px;margin-top:6px}
+    .miniatura{width:180px;max-width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:10px;margin:6px 0;border:1px solid #d8cbb0;display:block}
+    .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px;margin:8px 0}
     .nota{font-size:.85rem;color:#777;margin:4px 0}
     .visible{color:#2e7d32}
     .oculta{color:#c0392b}
@@ -40,100 +41,107 @@
   <p><a href="dashboard.html">Menú</a> - <a href="admin.html">Panel</a> - <a href="plantillas-extra.html">Plantillas prearmadas</a></p>
 
   <section id="login">
-    <input id="email" type="email" placeholder="Email" autocomplete="username">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
     <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
     <button id="btn-login" type="button">Entrar</button>
     <p id="login-msg" class="msg"></p>
   </section>
 
   <section id="panel" hidden>
-    <div class="caja">
-      <b>Plantillas base</b>
-      <p>Carga en la base de datos las 3 plantillas que ya usa el sistema (cumpleaños, 15 años y casamiento). Las que ya existan no se tocan.</p>
-      <button id="btn-base" type="button">Cargar plantillas base</button>
-      <p id="base-msg" class="msg"></p>
-    </div>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
 
-    <div class="caja">
-      <b>Categorías</b>
-      <p>Son los grupos que se ven en "Nuestros Diseños" de la página principal. Entre paréntesis está la cantidad de plantillas de cada una.</p>
-      <div id="cats"></div>
-      <input id="n-cat" placeholder="Nombre de la categoría nueva" maxlength="40">
-      <button id="btn-cat" class="ancho" type="button">Crear categoría</button>
-      <p id="cat-msg" class="msg"></p>
-    </div>
-
-    <h2 id="titulo-form">Nueva plantilla</h2>
-    <form id="form" novalidate>
-      <input id="f-nombre" placeholder="Nombre de la plantilla" maxlength="60">
-      <label>Categoría</label>
-      <select id="f-cat"></select>
-      <label class="check"><input id="f-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
-
-      <h2>Tipografías</h2>
-      <label>Títulos (nombre grande, títulos de cada sección y números de la cuenta regresiva)</label>
-      <select id="f-f-titulo"></select>
-      <label>Subtítulos e información (textos, mensaje y formularios)</label>
-      <select id="f-f-texto"></select>
-      <label>Botones</label>
-      <select id="f-f-boton"></select>
-
-      <h2>Tamaños de letra</h2>
-      <p class="nota">100% es el tamaño normal. La muestra de más abajo refleja los cambios.</p>
-      <div id="tamanos"></div>
-      <button id="btn-reset-tam" class="sec ancho" type="button">Restablecer tamaños</button>
-
-      <h2>Colores</h2>
-      <div class="colores">
-        <div>Fondo<input id="c-fondo" type="color" value="#fffaf3"></div>
-        <div>Texto<input id="c-texto" type="color" value="#1a1a1a"></div>
-        <div>Acento (títulos y botones)<input id="c-acento" type="color" value="#c9a24b"></div>
-        <div>Suave (cajas)<input id="c-suave" type="color" value="#f6dde2"></div>
+    <div id="contenido">
+      <div class="caja">
+        <b>Plantillas base</b>
+        <p>Carga en la base de datos las 3 plantillas que ya usa el sistema (cumpleaños, 15 años y casamiento). Las que ya existan no se tocan.</p>
+        <button id="btn-base" type="button">Cargar plantillas base</button>
+        <p id="base-msg" class="msg"></p>
       </div>
 
-      <div id="vista" class="vista">
-        <h3 id="v-titulo" style="margin:0">Sofía</h3>
-        <p id="v-sub" style="margin:6px 0 0">Subtítulo de ejemplo</p>
-        <p id="v-texto" style="margin:4px 0">Así se ven los textos de tu plantilla</p>
-        <span id="v-boton" class="tarj">Botón</span>
-        <span id="v-caja" class="tarj">Caja</span>
+      <div class="caja">
+        <b>Categorías</b>
+        <p>Son los grupos que se ven en "Nuestros Diseños" de la página principal. Entre paréntesis está la cantidad de plantillas de cada una.</p>
+        <div id="cats"></div>
+        <input id="n-cat" placeholder="Nombre de la categoría nueva" maxlength="40">
+        <button id="btn-cat" class="ancho" type="button">Crear categoría</button>
+        <p id="cat-msg" class="msg"></p>
       </div>
 
-      <h2>Fondos y efectos</h2>
-      <label>Estilo de fondo completo</label>
-      <select id="f-fondo"></select>
-      <p class="nota">Cambia la forma de la portada y de las secciones. Si elegís uno, no hace falta marco ni detalle de fondo.</p>
-      <label>Detalle de fondo</label>
-      <select id="f-patron"></select>
-      <label>Marco</label>
-      <select id="f-marco"></select>
-      <label>Decoración flotante (aparece en la portada)</label>
-      <select id="f-deco"></select>
-      <label>Efectos</label>
-      <div id="efectos"></div>
-      <p class="nota">Los fondos, marcos y efectos se ven en la invitación, no en la muestra de arriba. Guardá y abrí una invitación con esta plantilla para verlos.</p>
+      <h2 id="titulo-form">Nueva plantilla</h2>
+      <form id="form" novalidate>
+        <input id="f-nombre" placeholder="Nombre de la plantilla" maxlength="60">
+        <label>Categoría</label>
+        <select id="f-cat"></select>
+        <label class="check"><input id="f-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
 
-      <h2>Secciones</h2>
-      <label>Secciones que muestra</label>
-      <div id="secciones"></div>
+        <h2>Tipografías</h2>
+        <label>Títulos (nombre grande, títulos de cada sección y números de la cuenta regresiva)</label>
+        <select id="f-f-titulo"></select>
+        <label>Subtítulos e información (textos, mensaje y formularios)</label>
+        <select id="f-f-texto"></select>
+        <label>Botones</label>
+        <select id="f-f-boton"></select>
 
-      <label>Imagen de muestra (opcional)</label>
-      <input id="f-muestra" type="file" accept="image/*">
-      <img id="v-muestra" class="miniatura" alt="" hidden>
-      <label class="check"><input id="f-muestra-portada" type="checkbox">Usar esta imagen de muestra como portada por defecto</label>
+        <h2>Tamaños de letra</h2>
+        <p class="nota">100% es el tamaño normal. La muestra de más abajo refleja los cambios.</p>
+        <div id="tamanos"></div>
+        <button id="btn-reset-tam" class="sec ancho" type="button">Restablecer tamaños</button>
 
-      <button id="btn-guardar" type="submit">Guardar plantilla</button>
-      <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
-      <p id="f-msg" class="msg"></p>
-    </form>
+        <h2>Colores</h2>
+        <div class="colores">
+          <div>Fondo<input id="c-fondo" type="color" value="#fffaf3"></div>
+          <div>Texto<input id="c-texto" type="color" value="#1a1a1a"></div>
+          <div>Acento (títulos y botones)<input id="c-acento" type="color" value="#c9a24b"></div>
+          <div>Suave (cajas)<input id="c-suave" type="color" value="#f6dde2"></div>
+        </div>
 
-    <h2>Plantillas creadas</h2>
-    <div id="lista"></div>
+        <div id="vista" class="vista">
+          <h3 id="v-titulo" style="margin:0">Sofía</h3>
+          <p id="v-sub" style="margin:6px 0 0">Subtítulo de ejemplo</p>
+          <p id="v-texto" style="margin:4px 0">Así se ven los textos de tu plantilla</p>
+          <span id="v-boton" class="tarj">Botón</span>
+          <span id="v-caja" class="tarj">Caja</span>
+        </div>
+
+        <h2>Fondos y efectos</h2>
+        <label>Estilo de fondo completo</label>
+        <select id="f-fondo"></select>
+        <p class="nota">Cambia la forma de la portada y de las secciones. Si elegís uno, no hace falta marco ni detalle de fondo.</p>
+        <label>Detalle de fondo</label>
+        <select id="f-patron"></select>
+        <label>Marco</label>
+        <select id="f-marco"></select>
+        <label>Decoración flotante (aparece en la portada)</label>
+        <select id="f-deco"></select>
+        <label>Efectos</label>
+        <div id="efectos"></div>
+        <p class="nota">Los fondos, marcos y efectos se ven en la invitación, no en la muestra de arriba. Guardá y abrí una invitación con esta plantilla para verlos.</p>
+
+        <h2>Secciones</h2>
+        <label>Secciones que muestra</label>
+        <div id="secciones"></div>
+
+        <label>Imagen de muestra (opcional)</label>
+        <input id="f-muestra" type="file" accept="image/*">
+        <img id="v-muestra" class="miniatura" alt="" hidden>
+        <button id="btn-quitar-muestra" class="rojo" type="button" hidden>Quitar imagen de muestra</button>
+        <label class="check"><input id="f-muestra-portada" type="checkbox">Usar esta imagen de muestra como portada por defecto</label>
+
+        <button id="btn-guardar" type="submit">Guardar plantilla</button>
+        <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
+        <p id="f-msg" class="msg"></p>
+      </form>
+
+      <h2>Plantillas creadas</h2>
+      <div id="lista"></div>
+    </div>
   </section>
 
   <script type="module">
     import { db, auth } from "./js/firebase.js";
-    import { signInWithEmailAndPassword, onAuthStateChanged }
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
@@ -141,12 +149,12 @@
     import { ESTILOS_FONDO, PATRONES, MARCOS, DECOS, EFECTOS } from "./js/opciones-plantillas.js?v=2";
 
     const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
 
-    // Categorías que se usan mientras todavía no hayas creado o eliminado ninguna
     const CATEGORIAS_BASE = [
       ["cumpleanos", "Cumpleaños infantiles"], ["quince", "15 años"], ["boda", "Casamientos"],
       ["bautismo", "Bautismos"], ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"],
-      ["especial", "Eventos especiales"], ["pase", "Pase QR"]
+      ["especial", "Eventos especiales"]
     ];
     const SECCIONES = [
       ["portada", "Portada"], ["mensaje", "Mensaje personalizado"], ["cuenta", "Cuenta regresiva"],
@@ -178,7 +186,6 @@
     let muestra = "";
     let muestraActual = "";
 
-    // Una plantilla se ve en la página principal salvo que tenga showHome en false
     const esVisible = (x) => x.showHome !== false;
 
     function llenarSelect(sel, pares) {
@@ -210,7 +217,6 @@
       $("secciones").appendChild(f);
     });
 
-    // Controles de tamaño de letra
     TAMANOS.forEach(([k, t]) => {
       const l = document.createElement("label"); l.id = "tl-" + k;
       const r = document.createElement("input");
@@ -244,7 +250,6 @@
       $("v-boton").style.color = "#ffffff";
       $("v-caja").style.fontFamily = $("f-f-texto").value;
       $("v-caja").style.background = $("c-suave").value;
-      // Tamaños
       $("v-titulo").style.zoom = $("t-titulo").value / 100;
       $("v-sub").style.zoom = $("t-subtitulo").value / 100;
       $("v-texto").style.zoom = $("t-info").value / 100;
@@ -258,14 +263,32 @@
     previsualizar();
 
     $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
       try {
         await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
       } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
     });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
     onAuthStateChanged(auth, (u) => {
-      $("login").hidden = !!u;
-      $("panel").hidden = !u;
-      if (u) iniciar();
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      iniciar();
     });
 
     function slug(t) {
@@ -274,13 +297,12 @@
     }
     function azar() { return Math.random().toString(36).slice(2, 6); }
 
-    /* Categorías */
     async function cargarCategorias() {
       try {
         const s = await getDoc(doc(db, "settings", "categories"));
         if (s.exists() && Array.isArray(s.data().items)) {
           categorias = s.data().items
-            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string")
+            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string" && c.id !== "pase")
             .map((c) => [c.id, c.name]);
           return;
         }
@@ -378,8 +400,7 @@
           for (let i = 0; i < 6; i++) {
             const k = Math.min(1, max / Math.max(img.width, img.height));
             const c = document.createElement("canvas");
-            c.width = Math.round(img.width * k);
-            c.height = Math.round(img.height * k);
+            c.width = Math.round(img.width * k); c.height = Math.round(img.height * k);
             const ctx = c.getContext("2d");
             ctx.imageSmoothingEnabled = true;
             ctx.imageSmoothingQuality = "high";
@@ -401,8 +422,19 @@
       if (!a) return;
       try {
         muestra = await comprimir(a);
-        $("v-muestra").src = muestra; $("v-muestra").hidden = false;
+        $("v-muestra").src = muestra;
+        $("v-muestra").hidden = false;
+        $("btn-quitar-muestra").hidden = false;
       } catch (err) { $("f-msg").textContent = "No se pudo leer la imagen."; }
+    });
+    $("btn-quitar-muestra").addEventListener("click", () => {
+      muestra = "";
+      muestraActual = "";
+      $("f-muestra").value = "";
+      $("v-muestra").src = "";
+      $("v-muestra").hidden = true;
+      $("btn-quitar-muestra").hidden = true;
+      $("f-msg").textContent = "Imagen de muestra quitada. Tocá Guardar plantilla para aplicar.";
     });
 
     function fijarSelect(id, valor) {
@@ -421,9 +453,12 @@
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = true; });
       EFECTOS.forEach(([k]) => { $("e-" + k).checked = false; });
       $("f-home").checked = false;
+      $("f-muestra-portada").checked = false;
       $("c-fondo").value = "#fffaf3"; $("c-texto").value = "#1a1a1a";
       $("c-acento").value = "#c9a24b"; $("c-suave").value = "#f6dde2";
+      $("v-muestra").src = "";
       $("v-muestra").hidden = true;
+      $("btn-quitar-muestra").hidden = true;
       $("titulo-form").textContent = "Nueva plantilla";
       $("btn-cancelar").hidden = true;
       restablecerTamanos();
@@ -466,7 +501,11 @@
       const s = Array.isArray(x.sections) ? x.sections : SECCIONES.map(([k]) => k);
       SECCIONES.forEach(([k]) => { $("s-" + k).checked = k === "portada" || s.includes(k); });
       muestraActual = x.sampleImage || "";
-      if (muestraActual) { $("v-muestra").src = muestraActual; $("v-muestra").hidden = false; }
+      if (muestraActual) {
+        $("v-muestra").src = muestraActual;
+        $("v-muestra").hidden = false;
+        $("btn-quitar-muestra").hidden = false;
+      }
       $("f-muestra-portada").checked = !!x.sampleAsCover;
       $("titulo-form").textContent = "Editar plantilla: " + id;
       $("btn-cancelar").hidden = false;
@@ -586,6 +625,20 @@
               refrescar();
             } catch (err) { console.error(err); $("f-msg").textContent = "No se pudo cambiar la visibilidad."; }
           };
+          const bq = document.createElement("button"); bq.type = "button"; bq.className = "sec";
+          bq.textContent = "Quitar muestra";
+          bq.onclick = async () => {
+            if (!confirm("¿Quitar la imagen de muestra de " + (x.name || id) + "?")) return;
+            try {
+              await updateDoc(doc(db, "templates", id), { sampleImage: "", updatedAt: serverTimestamp() });
+              if (editId === id) {
+                muestra = ""; muestraActual = "";
+                $("v-muestra").hidden = true;
+                $("btn-quitar-muestra").hidden = true;
+              }
+              refrescar();
+            } catch (err) { console.error(err); $("f-msg").textContent = "No se pudo quitar la muestra."; }
+          };
           const be = document.createElement("button"); be.type = "button"; be.textContent = "Editar";
           be.onclick = () => editar(id, x);
           const bd = document.createElement("button"); bd.type = "button"; bd.className = "rojo"; bd.textContent = "Eliminar";
@@ -594,7 +647,9 @@
             try { await deleteDoc(doc(db, "templates", id)); refrescar(); }
             catch (err) { console.error(err); $("f-msg").textContent = "No se pudo eliminar."; }
           };
-          t.append(bv, be, bd);
+          t.append(bv, be);
+          if (x.sampleImage && /^data:image\//.test(x.sampleImage)) t.append(bq);
+          t.append(bd);
           cont.appendChild(t);
         });
       } catch (err) {
@@ -615,4 +670,4 @@
     }
   </script>
 </body>
-                        </html>
+  </html>
