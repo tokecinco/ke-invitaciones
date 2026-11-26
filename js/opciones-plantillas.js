@@ -26,7 +26,8 @@ export const ESTILOS_FONDO = [
   ["arco-fino", "Arco doble fino (sin ramas)"],
   ["marco-oval", "Óvalo clásico (retrato)"],
   ["cinta-saten", "Cinta de satén central"],
-  ["neon-fiesta", "Fiesta Glow moderno"]
+  ["neon-fiesta", "Fiesta Glow moderno"],
+  ["franjas", "Franjas verticales elegantes con detalles dorados"]
 ];
 
 export const PATRONES = [
