@@ -29,7 +29,8 @@ export const ESTILOS_FONDO = [
   ["neon-fiesta", "Fiesta Glow moderno"],
   ["franjas", "Franjas verticales elegantes con detalles dorados"],
   ["franjas-santo", "Franjas rojas y blancas con detalles dorados"],
-  ["banda-river", "La Banda diagonal blanca, roja y oro"]
+  ["banda-river", "La Banda diagonal blanca, roja y oro"],
+  ["franja-boca", "Franja horizontal oro sobre azul (Boca Juniors)"]
 ];
 
 export const PATRONES = [
