@@ -814,3 +814,56 @@ body.fondo-revista-pro .galeria img:nth-child(even),
 body.fondo-revista-pro .galeria img:first-child {
   border:0; border-radius:2px; box-shadow:none; transform:none; background:none;
                                   }
+/* ================= CORRECCIÓN DE PAPEL + NUEVOS DETALLES DE FONDO ================= */
+body[class*="patron-"] .portada:not(.con-foto):not(.fondo-aurora):not(.fondo-cielo):not(.fondo-rayos):not(.fondo-estrellado):not(.fondo-marmol):not(.fondo-acuarela):not(.fondo-confeti):not(.fondo-noche):not(.fondo-franjas):not(.fondo-franjas-santo):not(.fondo-banda-river):not(.fondo-franja-boca):not(.fondo-retro-pro) {
+  background:radial-gradient(circle at 50% 30%, color-mix(in srgb, var(--suave) 55%, transparent), transparent 76%);
+}
+body[class*="patron-"][class*="fondo-boda-"] .portada,
+body[class*="patron-"].fondo-boho .portada,
+body[class*="patron-"].fondo-lila .portada,
+body[class*="patron-"].fondo-glam .portada,
+body[class*="patron-"].fondo-botanico .portada,
+body[class*="patron-"].fondo-arco-fino .portada,
+body[class*="patron-"].fondo-marco-oval .portada,
+body[class*="patron-"].fondo-revista-pro .portada:not(.con-foto) {
+  background:transparent;
+}
+
+/* Papel con textura artesanal (100% compatible en iOS/Android) */
+body.patron-papel {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cg fill='%238c7b68' fill-opacity='.11'%3E%3Ccircle cx='12' cy='18' r='.9'/%3E%3Ccircle cx='47' cy='9' r='.7'/%3E%3Ccircle cx='88' cy='24' r='.8'/%3E%3Ccircle cx='28' cy='54' r='.8'/%3E%3Ccircle cx='71' cy='43' r='.9'/%3E%3Ccircle cx='106' cy='62' r='.7'/%3E%3Ccircle cx='19' cy='88' r='.8'/%3E%3Ccircle cx='59' cy='81' r='.9'/%3E%3Ccircle cx='95' cy='98' r='.7'/%3E%3Ccircle cx='41' cy='109' r='.8'/%3E%3C/g%3E%3Cg stroke='%238c7b68' stroke-opacity='.09' stroke-width='.7' fill='none'%3E%3Cpath d='M8 34q8-3 15 1M64 18q6 4 12-1M34 72q9 2 14-3M82 78q7-4 13 2M14 106q8 3 16-1'/%3E%3C/g%3E%3Cg fill='%23ffffff' fill-opacity='.16'%3E%3Ccircle cx='33' cy='28' r='.8'/%3E%3Ccircle cx='77' cy='64' r='.8'/%3E%3Ccircle cx='52' cy='96' r='.7'/%3E%3Ccircle cx='102' cy='40' r='.8'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+/* Nuevos detalles de fondo modernos */
+body.patron-seda {
+  background-image:
+    repeating-linear-gradient(115deg, transparent 0 9px, color-mix(in srgb, var(--acento) 7%, transparent) 9px 10px),
+    repeating-linear-gradient(65deg, transparent 0 13px, color-mix(in srgb, var(--suave) 45%, transparent) 13px 14px);
+}
+body.patron-botanico-suave {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140' viewBox='0 0 140 140'%3E%3Cg fill='none' stroke='%238a8578' stroke-opacity='.15' stroke-width='1.1' stroke-linecap='round'%3E%3Cpath d='M32 58c4-14 12-26 24-34'/%3E%3Cpath d='M38 42c-6-2-9-7-8-13 6 1 10 6 8 13ZM45 34c5 2 10 0 13-5-5-3-10-1-13 5Z'/%3E%3Cpath d='M96 116c5-12 12-22 22-28'/%3E%3Cpath d='M102 102c-6-2-8-6-7-11 5 1 8 5 7 11ZM109 94c5 2 9 0 11-5-5-2-9 0-11 5Z'/%3E%3C/g%3E%3C/svg%3E");
+}
+body.patron-estrellas-finas {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='110' height='110' viewBox='0 0 110 110'%3E%3Cg fill='none' stroke='%238c8478' stroke-opacity='.2' stroke-width='.9'%3E%3Cpath d='M24 14v12M18 20h12M20 16l8 8M28 16l-8 8'/%3E%3Cpath d='M82 68v10M77 73h10'/%3E%3Ccircle cx='58' cy='42' r='1.3' fill='%238c8478' fill-opacity='.22'/%3E%3Ccircle cx='18' cy='86' r='1' fill='%238c8478' fill-opacity='.18'/%3E%3Ccircle cx='94' cy='22' r='1.1' fill='%238c8478' fill-opacity='.18'/%3E%3C/g%3E%3C/svg%3E");
+}
+body.patron-ondas-finas {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='60' viewBox='0 0 120 60'%3E%3Cg fill='none' stroke='%238c8478' stroke-opacity='.14' stroke-width='1'%3E%3Cpath d='M0 15q30-14 60 0t60 0M0 35q30-14 60 0t60 0M0 55q30-14 60 0t60 0'/%3E%3C/g%3E%3C/svg%3E");
+}
+body.patron-grilla-editorial {
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M24 20v8M20 24h8' stroke='%238c8478' stroke-opacity='.2' stroke-width='1'/%3E%3C/svg%3E");
+}
+body.patron-diagonal-oro {
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0 21px, color-mix(in srgb, var(--acento) 12%, transparent) 21px 22px),
+    repeating-linear-gradient(135deg, transparent 0 21px, color-mix(in srgb, var(--acento) 8%, transparent) 21px 22px);
+}
+body.patron-cuadros-suaves {
+  background-image:
+    linear-gradient(90deg, color-mix(in srgb, var(--suave) 38%, transparent) 50%, transparent 50%),
+    linear-gradient(color-mix(in srgb, var(--suave) 38%, transparent) 50%, transparent 50%);
+  background-size:64px 64px;
+}
+body.patron-vineta-lujo {
+  background-image:radial-gradient(ellipse at 50% 45%, transparent 48%, color-mix(in srgb, var(--acento) 18%, transparent) 100%);
+  background-attachment:fixed;
+}
