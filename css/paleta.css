@@ -40,7 +40,7 @@ body.tema-oscuro #invitacion > section.sec-c {
   border:1px solid color-mix(in srgb, var(--acento) 24%, transparent);
 }
 
-/* Galería: fondo neutro que favorece las fotos */
+/* Galería: fondo neutro/profundo de la misma paleta que favorece las fotos */
 #invitacion > section.sec-galeria {
   --sec-bg:color-mix(in srgb, var(--texto) 8%, color-mix(in srgb, var(--suave) 32%, var(--fondo)));
   background-color:#ebe6df;
@@ -48,10 +48,10 @@ body.tema-oscuro #invitacion > section.sec-c {
   background-image:radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.05) 100%);
 }
 body.tema-oscuro #invitacion > section.sec-galeria {
-  --sec-bg:color-mix(in srgb, var(--texto) 6%, #131316);
-  background-color:#1c1c20;
+  --sec-bg:color-mix(in srgb, var(--fondo) 62%, #0b0d12);
+  background-color:var(--fondo);
   background-color:var(--sec-bg);
-  background-image:radial-gradient(circle at 50% 45%, transparent 40%, rgba(0,0,0,.22) 100%);
+  background-image:radial-gradient(circle at 50% 45%, transparent 35%, rgba(0,0,0,.22) 100%);
 }
 :where(.sec-galeria) .icono { background:var(--fondo); }
 :where(body.tema-oscuro) :where(.sec-galeria) .icono { background:var(--suave); }
