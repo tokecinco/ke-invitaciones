@@ -4,7 +4,7 @@ import { doc, getDoc }
 
 const idInvitacion = new URLSearchParams(location.search).get("i");
 
-["css/extras.css", "css/fondos.css", "css/paleta.css"].forEach((href) => {
+["css/extras.css", "css/fondos.css", "css/paleta.css?v=2"].forEach((href) => {
   const css = document.createElement("link");
   css.rel = "stylesheet";
   css.href = href;
