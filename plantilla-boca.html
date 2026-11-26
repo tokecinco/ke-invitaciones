@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex">
-  <title>Plantilla 60 Años Azul y Oro - KE Invitaciones</title>
+  <title>Plantilla Boca Juniors - KE Invitaciones</title>
   <style>
     [hidden]{display:none!important}
     *{box-sizing:border-box}
@@ -18,12 +18,23 @@
     .check{display:flex;align-items:center;margin:10px 0}
     a{color:#c9a24b}
     .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:12px 0}
-    .preview{position:relative;border-radius:12px;padding:28px 18px;margin:10px 0;text-align:center;background:#0a1d42;color:#f7f2e4;border:1px solid rgba(229,181,58,.55)}
-    .preview-in{border:1px solid rgba(229,181,58,.35);border-radius:8px;padding:20px 12px}
-    .preview small{display:block;letter-spacing:3px;text-transform:uppercase;font-size:.72rem;opacity:.85;margin-bottom:6px}
-    .preview h2{margin:4px 0 8px;font-size:1.75rem;color:#e5b53a;letter-spacing:.1em;text-transform:uppercase}
-    .preview p{margin:0 0 14px;font-size:.95rem;opacity:.92}
-    .preview .muestra-btn{display:inline-block;background:#e5b53a;color:#0a1d42;padding:9px 20px;border-radius:2px;font-size:.82rem;letter-spacing:.15em;text-transform:uppercase;font-weight:bold}
+    .preview{
+      position:relative;border-radius:14px;padding:14px;margin:10px 0;text-align:center;color:#f7f2e4;
+      background:
+        linear-gradient(180deg, transparent 32%, rgba(255,245,200,.4) 32.4% 32.9%, #e5b324 33.2% 58.8%, rgba(255,245,200,.4) 59.1% 59.6%, transparent 60%),
+        #071b48;
+      border:1px solid rgba(229,179,36,.65);
+    }
+    .preview-in{
+      background:radial-gradient(ellipse at 50% 50%, rgba(7,27,72,.92) 32%, rgba(7,27,72,.68) 85%);
+      border:1.5px solid rgba(229,179,36,.75);
+      border-radius:10px;padding:24px 14px;
+    }
+    .preview small{display:block;letter-spacing:3px;text-transform:uppercase;font-size:.72rem;color:#f7f2e4;font-weight:600;margin-bottom:6px;opacity:.92}
+    .preview h2{margin:4px 0 8px;font-size:1.7rem;color:#e5b324;letter-spacing:.08em;text-transform:uppercase;font-weight:600}
+    .preview .raya{width:70px;height:1px;background:#e5b324;margin:10px auto}
+    .preview p{margin:0 0 16px;font-size:.92rem;color:#f7f2e4;opacity:.92}
+    .preview .muestra-btn{display:inline-block;background:#e5b324;color:#071b48;padding:10px 22px;border-radius:999px;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;font-weight:600}
     .colores{display:flex;gap:6px;margin-top:10px}
     .colores span{flex:1;height:24px;border-radius:6px;border:1px solid rgba(0,0,0,.12)}
     .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
@@ -31,7 +42,7 @@
   </style>
 </head>
 <body>
-  <h1>Plantilla 60 Años (Azul y Oro)</h1>
+  <h1>Plantilla Boca Juniors</h1>
   <p><a href="plantillas.html">Plantillas</a> - <a href="admin.html">Invitaciones</a> - <a href="dashboard.html">Menú</a></p>
 
   <section id="login">
@@ -49,29 +60,30 @@
     <div id="contenido" class="caja">
       <div id="preview" class="preview">
         <div class="preview-in">
-          <small>Mis 60 años</small>
-          <h2 id="pv-tit">Carlos</h2>
-          <p id="pv-txt">Te espero para celebrar una noche inolvidable, azul y oro.</p>
+          <small>★ Están todos invitados ★</small>
+          <h2 id="pv-tit">Fiesta Xeneize</h2>
+          <div class="raya"></div>
+          <p id="pv-txt">Azul profundo, franja oro y estilo moderno para festejar a lo grande.</p>
           <span id="pv-btn" class="muestra-btn">Confirmar asistencia</span>
         </div>
       </div>
 
       <div class="colores">
-        <span style="background:#0a1d42" title="Fondo #0a1d42"></span>
-        <span style="background:#132c5c" title="Suave #132c5c"></span>
-        <span style="background:#e5b53a" title="Acento #e5b53a"></span>
-        <span style="background:#f7f2e4" title="Texto #f7f2e4"></span>
+        <span style="background:#071b48" title="Azul Boca #071b48"></span>
+        <span style="background:#112d6b" title="Azul suave #112d6b"></span>
+        <span style="background:#e5b324" title="Oro Boca #e5b324"></span>
+        <span style="background:#f7f2e4" title="Texto marfil #f7f2e4"></span>
       </div>
 
       <label>Nombre de la plantilla</label>
-      <input id="f-nombre" value="60 Años Gala Azul y Oro" maxlength="60">
+      <input id="f-nombre" value="Gala Xeneize (Boca Juniors)" maxlength="60">
 
       <label>Categoría</label>
       <select id="f-cat"></select>
 
       <label class="check"><input id="f-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
 
-      <button id="btn-cargar" type="button">Guardar plantilla Azul y Oro</button>
+      <button id="btn-cargar" type="button">Guardar plantilla Boca Juniors</button>
       <p id="msg" class="msg"></p>
     </div>
   </section>
@@ -90,13 +102,13 @@
     const CATEGORIAS_BASE = [
       ["especial", "Eventos especiales"], ["cumpleanos", "Cumpleaños infantiles"],
       ["quince", "15 años"], ["boda", "Casamientos"], ["bautismo", "Bautismos"],
-      ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"], ["pase", "Pase QR"]
+      ["babyshower", "Baby shower"], ["aniversario", "Aniversarios"]
     ];
 
     const FONTS = {
-      titulo: "'Cinzel', serif",
-      texto: "'Lora', serif",
-      boton: "'Cinzel', serif"
+      titulo: "'Outfit', sans-serif",
+      texto: "'Plus Jakarta Sans', sans-serif",
+      boton: "'Montserrat', sans-serif"
     };
     Object.values(FONTS).forEach((css) => cargarFuente(buscarFuente(css)));
     $("preview").style.fontFamily = FONTS.texto;
@@ -138,7 +150,7 @@
         const s = await getDoc(doc(db, "settings", "categories"));
         if (s.exists() && Array.isArray(s.data().items) && s.data().items.length) {
           lista = s.data().items
-            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string")
+            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string" && c.id !== "pase")
             .map((c) => [c.id, c.name]);
         }
       } catch (e) { console.error(e); }
@@ -154,7 +166,7 @@
     }
 
     $("btn-cargar").addEventListener("click", async () => {
-      const nombre = $("f-nombre").value.trim() || "60 Años Gala Azul y Oro";
+      const nombre = $("f-nombre").value.trim() || "Gala Xeneize (Boca Juniors)";
       const btn = $("btn-cargar");
       btn.disabled = true;
       $("msg").textContent = "Guardando plantilla...";
@@ -167,14 +179,14 @@
           showHome: $("f-home").checked,
           font: FONTS.texto,
           fonts: FONTS,
-          tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 95 },
+          tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 100 },
           colors: {
-            fondo: "#0a1d42",
+            fondo: "#071b48",
             texto: "#f7f2e4",
-            acento: "#e5b53a",
-            suave: "#132c5c"
+            acento: "#e5b324",
+            suave: "#112d6b"
           },
-          fondo: "noche",
+          fondo: "franja-boca",
           patron: "",
           marco: "",
           deco: "estrellas",
@@ -184,13 +196,13 @@
         if (ex.exists()) {
           diseno.updatedAt = serverTimestamp();
           await updateDoc(ref, diseno);
-          $("msg").textContent = "Plantilla actualizada (identificador: boca-60-gala). Ya podés usarla en admin.html.";
+          $("msg").textContent = "Plantilla de Boca Juniors actualizada (boca-60-gala).";
         } else {
           diseno.sampleImage = "";
           diseno.active = true;
           diseno.createdAt = serverTimestamp();
           await setDoc(ref, diseno);
-          $("msg").textContent = "Plantilla creada (identificador: boca-60-gala). Ya podés elegirla en admin.html.";
+          $("msg").textContent = "Plantilla de Boca Juniors creada (boca-60-gala).";
         }
       } catch (e) {
         console.error(e);
