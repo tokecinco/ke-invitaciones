@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Plantillas Pro (Retro & Revista) - KE Invitaciones</title>
+  <style>
+    [hidden]{display:none!important}
+    *{box-sizing:border-box}
+    body{margin:0 auto;background:#fffaf3;color:#1a1a1a;font-family:Georgia,serif;padding:16px;max-width:580px}
+    h1,h2{color:#c9a24b}
+    input,select,button{width:100%;padding:12px;margin:5px 0;border:1px solid #d8cbb0;border-radius:10px;font-size:1rem;font-family:inherit;background:#fff}
+    input[type=checkbox]{width:auto;margin:0 8px 0 0}
+    button{background:#c9a24b;color:#fff;border:0;cursor:pointer}
+    button.sec{background:#1a1a1a}
+    label{font-size:.9rem;display:block;margin-top:8px}
+    .check{display:flex;align-items:center;margin:10px 0}
+    a{color:#c9a24b}
+    .caja{background:#fff;border:1px solid #eadfc8;border-radius:12px;padding:14px;margin:14px 0}
+    .pv-retro{
+      border-radius:14px;padding:16px;text-align:center;color:#2b1b12;
+      background:
+        linear-gradient(150deg, transparent 74%, rgba(212,154,53,.28) 74.2% 79%, rgba(194,77,44,.25) 79.2% 84%, rgba(94,110,82,.22) 84.2% 89%, transparent 89.2%),
+        #f6ebd8;
+      border:1.5px solid #c24d2c;box-shadow:5px 5px 0 rgba(194,77,44,.22);
+    }
+    .pv-retro .tag{display:inline-block;background:#edd8bb;border:1px solid rgba(194,77,44,.4);border-radius:999px;padding:3px 12px;font-size:.7rem;letter-spacing:2px;text-transform:uppercase}
+    .pv-retro h3{margin:8px 0 6px;font-size:1.75rem;color:#c24d2c;text-shadow:2px 2px 0 rgba(212,154,53,.3)}
+    .pv-retro .btn{display:inline-block;background:#c24d2c;color:#fff;padding:8px 18px;border-radius:10px;font-size:.82rem;box-shadow:3px 3px 0 #2b1b12;margin-top:8px}
+    .pv-revista{
+      border-radius:4px;padding:16px;text-align:center;color:#141414;background:#faf8f5;
+      border:1px solid rgba(20,20,20,.2);
+    }
+    .pv-revista .ed{font-size:.6rem;letter-spacing:.35em;border-top:1px solid rgba(20,20,20,.25);border-bottom:1px solid rgba(20,20,20,.25);padding:4px 0;margin-bottom:14px}
+    .pv-revista .tag{font-size:.68rem;letter-spacing:.32em;text-transform:uppercase;color:#8c6d46}
+    .pv-revista h3{margin:6px 0;font-size:1.95rem;color:#141414;font-weight:normal;line-height:1.05}
+    .pv-revista .raya{width:44px;height:1px;background:#8c6d46;margin:10px auto}
+    .pv-revista .btn{display:inline-block;background:#141414;color:#faf8f5;padding:9px 22px;border-radius:2px;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;margin-top:8px}
+    .aviso{background:#f6dde2;border-radius:10px;padding:10px 12px;margin:8px 0}
+    .msg{min-height:1.4em}
+  </style>
+</head>
+<body>
+  <h1>Plantillas Pro: Retro & Revista</h1>
+  <p><a href="plantillas.html">Plantillas</a> - <a href="admin.html">Invitaciones</a> - <a href="dashboard.html">Menú</a></p>
+
+  <section id="login">
+    <input id="email" type="email" placeholder="Email de administrador" autocomplete="username">
+    <input id="clave" type="password" placeholder="Contraseña" autocomplete="current-password">
+    <button id="btn-login" type="button">Entrar</button>
+    <p id="login-msg" class="msg"></p>
+  </section>
+
+  <section id="panel" hidden>
+    <p>Sesión: <b id="sesion-email"></b></p>
+    <button id="btn-salir" class="sec" type="button">Cerrar sesión</button>
+    <p id="admin-aviso" class="aviso" hidden></p>
+
+    <div id="contenido">
+      <div class="caja">
+        <h2>1. Retro Coleccionista 70s Pro</h2>
+        <div id="pv-retro" class="pv-retro">
+          <span class="tag">Edición Vintage</span>
+          <h3 id="retro-tit">Camila & Nico</h3>
+          <p style="margin:4px 0;font-size:.9rem">Papel con textura, franjas retro, ventana 70s y detalles en terracota y oro mostaza.</p>
+          <span id="retro-btn" class="btn">Confirmar asistencia</span>
+        </div>
+        <label>Nombre</label>
+        <input id="r-nombre" value="Retro Coleccionista 70s Pro" maxlength="60">
+        <label>Categoría</label>
+        <select id="r-cat"></select>
+        <label class="check"><input id="r-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
+        <button id="btn-retro" type="button">Guardar Retro 70s Pro</button>
+        <p id="r-msg" class="msg"></p>
+      </div>
+
+      <div class="caja">
+        <h2>2. Editorial Revista Pro</h2>
+        <div id="pv-rev" class="pv-revista">
+          <div class="ed">EDICIÓN ESPECIAL</div>
+          <div class="tag">Nuestra Boda</div>
+          <h3 id="rev-tit">Valentina & Mateo</h3>
+          <div class="raya"></div>
+          <p style="margin:4px 0;font-size:.88rem;color:#555">Portada estilo revista de lujo en marfil, negro tinta y bronce con tipografía Bodoni Moda.</p>
+          <span id="rev-btn" class="btn">Confirmar asistencia</span>
+        </div>
+        <label>Nombre</label>
+        <input id="v-nombre" value="Editorial Revista Pro" maxlength="60">
+        <label>Categoría</label>
+        <select id="v-cat"></select>
+        <label class="check"><input id="v-home" type="checkbox">Mostrar en la página principal (Nuestros Diseños)</label>
+        <button id="btn-rev" type="button">Guardar Editorial Revista Pro</button>
+        <p id="v-msg" class="msg"></p>
+      </div>
+    </div>
+  </section>
+
+  <script type="module">
+    import { db, auth } from "./js/firebase.js";
+    import { signInWithEmailAndPassword, onAuthStateChanged, signOut }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+    import { doc, getDoc, setDoc, updateDoc, serverTimestamp }
+      from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { buscarFuente, cargarFuente } from "./js/fuentes.js";
+
+    const $ = (id) => document.getElementById(id);
+    const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
+    const TODAS = ["portada", "mensaje", "cuenta", "lugar", "info", "galeria", "rsvp", "compartir"];
+    const CATEGORIAS_BASE = [
+      ["especial", "Eventos especiales"], ["boda", "Casamientos"], ["quince", "15 años"],
+      ["aniversario", "Aniversarios"], ["cumpleanos", "Cumpleaños infantiles"],
+      ["bautismo", "Bautismos"], ["babyshower", "Baby shower"]
+    ];
+
+    const F_RETRO = { titulo: "'DM Serif Display', serif", texto: "'Lora', serif", boton: "'Montserrat', sans-serif" };
+    const F_REV   = { titulo: "'Bodoni Moda', serif", texto: "'Plus Jakarta Sans', sans-serif", boton: "'Plus Jakarta Sans', sans-serif" };
+    [...Object.values(F_RETRO), ...Object.values(F_REV)].forEach((css) => cargarFuente(buscarFuente(css)));
+    $("pv-retro").style.fontFamily = F_RETRO.texto;
+    $("retro-tit").style.fontFamily = F_RETRO.titulo;
+    $("retro-btn").style.fontFamily = F_RETRO.boton;
+    $("pv-rev").style.fontFamily = F_REV.texto;
+    $("rev-tit").style.fontFamily = F_REV.titulo;
+    $("rev-btn").style.fontFamily = F_REV.boton;
+
+    $("btn-login").addEventListener("click", async () => {
+      $("login-msg").textContent = "Entrando...";
+      try {
+        await signInWithEmailAndPassword(auth, $("email").value.trim(), $("clave").value);
+        $("login-msg").textContent = "";
+      } catch (e) { $("login-msg").textContent = "Email o contraseña incorrectos."; }
+    });
+    $("btn-salir").addEventListener("click", () => signOut(auth));
+
+    onAuthStateChanged(auth, (u) => {
+      if (!u || u.isAnonymous) {
+        $("login").hidden = false;
+        $("panel").hidden = true;
+        return;
+      }
+      $("login").hidden = true;
+      $("panel").hidden = false;
+      $("sesion-email").textContent = u.email || u.uid;
+      if (u.uid !== ADMIN_UID) {
+        $("admin-aviso").textContent = "Iniciaste sesión con otra cuenta (" + (u.email || u.uid) + "), no con la cuenta administradora. Tocá \"Cerrar sesión\" y entrá como administrador.";
+        $("admin-aviso").hidden = false;
+        $("contenido").hidden = true;
+        return;
+      }
+      $("admin-aviso").hidden = true;
+      $("contenido").hidden = false;
+      cargarCategorias();
+    });
+
+    async function cargarCategorias() {
+      let lista = CATEGORIAS_BASE;
+      try {
+        const s = await getDoc(doc(db, "settings", "categories"));
+        if (s.exists() && Array.isArray(s.data().items) && s.data().items.length) {
+          lista = s.data().items
+            .filter((c) => c && typeof c.id === "string" && typeof c.name === "string" && c.id !== "pase")
+            .map((c) => [c.id, c.name]);
+        }
+      } catch (e) { console.error(e); }
+      ["r-cat", "v-cat"].forEach((id) => {
+        const sel = $(id);
+        sel.innerHTML = "";
+        lista.forEach(([cid, nom]) => {
+          const o = document.createElement("option"); o.value = cid; o.textContent = nom; sel.appendChild(o);
+        });
+      });
+      if (lista.some(([cid]) => cid === "retro")) $("r-cat").value = "retro";
+      else if (lista.some(([cid]) => cid === "especial")) $("r-cat").value = "especial";
+      if (lista.some(([cid]) => cid === "boda")) $("v-cat").value = "boda";
+    }
+
+    async function guardar(tplId, datos, msgEl, btn) {
+      btn.disabled = true;
+      msgEl.textContent = "Guardando...";
+      try {
+        const ref = doc(db, "templates", tplId);
+        const ex = await getDoc(ref);
+        if (ex.exists()) {
+          datos.updatedAt = serverTimestamp();
+          await updateDoc(ref, datos);
+          msgEl.textContent = "Plantilla actualizada (" + tplId + "). Ya podés usarla en admin.html.";
+        } else {
+          datos.sampleImage = "";
+          datos.active = true;
+          datos.createdAt = serverTimestamp();
+          await setDoc(ref, datos);
+          msgEl.textContent = "Plantilla creada (" + tplId + "). Ya podés elegirla en admin.html.";
+        }
+      } catch (e) {
+        console.error(e);
+        msgEl.textContent = "No se pudo guardar.";
+      }
+      btn.disabled = false;
+    }
+
+    $("btn-retro").addEventListener("click", () => guardar("retro-70s-pro", {
+      name: $("r-nombre").value.trim() || "Retro Coleccionista 70s Pro",
+      category: $("r-cat").value || "especial",
+      showHome: $("r-home").checked,
+      font: F_RETRO.texto,
+      fonts: F_RETRO,
+      tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 100 },
+      colors: { fondo: "#f6ebd8", texto: "#2b1b12", acento: "#c24d2c", suave: "#edd8bb" },
+      fondo: "retro-pro",
+      patron: "",
+      marco: "",
+      deco: "brillos-4",
+      efectos: [],
+      sections: TODAS
+    }, $("r-msg"), $("btn-retro")));
+
+    $("btn-rev").addEventListener("click", () => guardar("revista-editorial-pro", {
+      name: $("v-nombre").value.trim() || "Editorial Revista Pro",
+      category: $("v-cat").value || "boda",
+      showHome: $("v-home").checked,
+      font: F_REV.texto,
+      fonts: F_REV,
+      tamanos: { titulo: 100, subtitulo: 100, info: 100, boton: 100 },
+      colors: { fondo: "#faf8f5", texto: "#141414", acento: "#8c6d46", suave: "#efebe4" },
+      fondo: "revista-pro",
+      patron: "",
+      marco: "",
+      deco: "",
+      efectos: [],
+      sections: TODAS
+    }, $("v-msg"), $("btn-rev")));
+  </script>
+</body>
+    </html>
