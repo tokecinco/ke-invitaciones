@@ -283,3 +283,85 @@ body.fondo-neon-fiesta .regalo-alias {
   border:1px solid color-mix(in srgb, var(--acento) 48%, transparent);
   box-shadow:0 0 18px color-mix(in srgb, var(--acento) 14%, transparent);
                                                               }
+/* 9. Franjas verticales elegantes con detalles dorados (Atlético Tucumán) */
+body.fondo-franjas {
+  background-color:var(--fondo);
+  background-image:repeating-linear-gradient(
+    90deg,
+    var(--fondo) 0 42px,
+    color-mix(in srgb, var(--suave) 72%, var(--fondo)) 42px 84px
+  );
+  background-attachment:fixed;
+}
+body.fondo-franjas .portada > .rama-der { display:none; }
+body.fondo-franjas .portada > .rama-izq {
+  position:absolute !important; inset:14px; z-index:1; pointer-events:none;
+  border:1px solid color-mix(in srgb, var(--acento) 75%, transparent);
+  outline:1px solid color-mix(in srgb, var(--acento) 35%, transparent);
+  outline-offset:-6px;
+}
+body.fondo-franjas .portada > *:not(.rama) { z-index:3; }
+
+body.fondo-franjas .portada:not(.con-foto) {
+  background:radial-gradient(ellipse at 50% 48%, rgba(255,255,255,.9) 18%, rgba(255,255,255,.52) 52%, transparent 80%);
+}
+body.fondo-franjas .portada:not(.con-foto)::before { display:none; }
+
+body.fondo-franjas .portada.con-foto {
+  background:linear-gradient(180deg, rgba(255,255,255,.08) 0%, rgba(255,255,255,.78) 62%, rgba(255,255,255,.9) 100%);
+  justify-content:flex-start;
+  padding-top:calc(6vh + max(40vh, 240px) + 34px);
+  padding-bottom:90px;
+  color:var(--texto);
+  text-shadow:none;
+}
+body.fondo-franjas .portada.con-foto::before {
+  inset:auto; top:6vh; left:0; right:0; margin:0 auto; z-index:2;
+  width:min(74vw, 285px); height:40vh; min-height:240px;
+  border-radius:18px; border:4px solid #ffffff;
+  box-shadow:0 14px 32px rgba(16,38,59,.16);
+  background-color:var(--suave); animation:none;
+}
+body.fondo-franjas .portada.con-foto::after {
+  inset:auto; top:calc(6vh - 8px); left:0; right:0; margin:0 auto; z-index:2;
+  width:calc(min(74vw, 285px) + 16px); height:calc(max(40vh, 240px) + 16px);
+  border:1.5px solid var(--acento); border-radius:24px;
+  background:none; opacity:.9;
+}
+body.fondo-franjas .portada.con-foto h1,
+body.fondo-franjas .portada.con-foto .para b { color:var(--texto); }
+body.fondo-franjas .tipo { letter-spacing:.32em; font-size:.76rem; color:var(--acento); font-weight:600; }
+body.fondo-franjas #nombre {
+  color:var(--texto); letter-spacing:.06em; text-transform:uppercase;
+  font-size:clamp(1.85rem, 8.5vw, 3rem); line-height:1.2; font-weight:600;
+}
+body.fondo-franjas .linea { height:1px; background:var(--acento); position:relative; overflow:visible; }
+body.fondo-franjas .linea::after {
+  content:"\2605\FE0E"; position:absolute; left:50%; top:50%; transform:translate(-50%, -50%);
+  font-size:.72rem; color:var(--acento); line-height:1;
+}
+
+body.fondo-franjas h2 { letter-spacing:.22em; text-transform:uppercase; font-size:1rem; font-weight:600; }
+body.fondo-franjas .boton {
+  border-radius:999px; letter-spacing:.08em; text-transform:uppercase; font-size:.82rem; font-weight:600;
+  box-shadow:0 8px 20px color-mix(in srgb, var(--acento) 28%, transparent);
+}
+body.fondo-franjas .icono { background:#ffffff; border:1px solid color-mix(in srgb, var(--acento) 55%, transparent); }
+body.fondo-franjas .cuenta div,
+body.fondo-franjas .tarjeta-esp,
+body.fondo-franjas .libro-card,
+body.fondo-franjas .regalo-alias,
+body.fondo-franjas input,
+body.fondo-franjas select,
+body.fondo-franjas textarea {
+  background:#ffffff;
+  border:1px solid color-mix(in srgb, var(--acento) 42%, transparent);
+}
+body.fondo-franjas #sec-itinerario .it-punto { box-shadow:0 0 0 3px #ffffff; }
+body.fondo-franjas .galeria img,
+body.fondo-franjas .galeria img:nth-child(odd),
+body.fondo-franjas .galeria img:nth-child(even),
+body.fondo-franjas .galeria img:first-child {
+  border:3px solid #ffffff; outline:1px solid color-mix(in srgb, var(--acento) 55%, transparent);
+  border-radius:14px; transform:none;
+  }
