@@ -55,7 +55,15 @@ export const PATRONES = [
   ["mosaico", "Mosaico Art Déco"],
   ["marmol-suave", "Vetas de mármol suave"],
   ["destellos-fondo", "Micro-destellos de fondo"],
-  ["borde-degrade", "Halo suave en los bordes"]
+  ["borde-degrade", "Halo suave en los bordes"],
+  ["seda", "Trama de seda fina"],
+  ["botanico-suave", "Hojas botánicas tenues"],
+  ["estrellas-finas", "Constelación minimalista"],
+  ["ondas-finas", "Ondas orgánicas (papel japonés)"],
+  ["grilla-editorial", "Grilla arquitectónica (+)"],
+  ["diagonal-oro", "Micro-trama diagonal fina"],
+  ["cuadros-suaves", "Tablero vichy suave"],
+  ["vineta-lujo", "Viñeta elegante en los bordes"]
 ];
 
 export const MARCOS = [
