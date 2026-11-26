@@ -635,3 +635,182 @@ body.fondo-franja-boca .galeria img:first-child {
   border:3px solid var(--suave); outline:1px solid color-mix(in srgb, var(--acento) 62%, transparent);
   border-radius:14px; transform:none;
                     }
+/* 13. Retro Coleccionista 70s Pro */
+body.fondo-retro-pro {
+  background-color:var(--fondo);
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.35 0 0 0 0 0.25 0 0 0 0 0.18 0 0 0 .14 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+body.fondo-retro-pro .portada > .rama-der { display:none; }
+body.fondo-retro-pro .portada > .rama-izq {
+  position:absolute !important; inset:14px; z-index:1; pointer-events:none;
+  border:1.5px solid color-mix(in srgb, var(--acento) 75%, transparent);
+  outline:1px solid rgba(212,154,53,.55); outline-offset:-7px;
+  border-radius:16px;
+}
+body.fondo-retro-pro .portada > *:not(.rama) { z-index:3; }
+
+body.fondo-retro-pro .portada:not(.con-foto) {
+  background:
+    radial-gradient(circle at 50% 34%, rgba(212,154,53,.26) 0 18%, transparent 18.4%),
+    radial-gradient(circle at 50% 34%, rgba(194,77,44,.16) 0 29%, transparent 29.4%),
+    radial-gradient(circle at 50% 34%, rgba(94,110,82,.14) 0 40%, transparent 40.4%),
+    transparent;
+}
+body.fondo-retro-pro .portada:not(.con-foto)::before { display:none; }
+
+body.fondo-retro-pro .portada.con-foto {
+  background:
+    linear-gradient(150deg, transparent 74%, rgba(212,154,53,.24) 74.2% 79%, rgba(194,77,44,.22) 79.2% 84%, rgba(94,110,82,.2) 84.2% 89%, transparent 89.2%),
+    transparent;
+  justify-content:flex-start;
+  padding-top:calc(6vh + max(40vh, 240px) + 38px);
+  padding-bottom:90px;
+  color:var(--texto); text-shadow:none;
+}
+body.fondo-retro-pro .portada.con-foto::before {
+  inset:auto; top:6vh; left:0; right:0; margin:0 auto; z-index:2;
+  width:min(70vw, 270px); height:40vh; min-height:240px;
+  border-radius:140px 140px 22px 22px;
+  border:4px solid #fffdf8;
+  box-shadow:10px 10px 0 color-mix(in srgb, var(--acento) 32%, transparent), 0 12px 28px rgba(43,27,18,.16);
+  background-color:var(--suave); animation:none;
+}
+body.fondo-retro-pro .portada.con-foto::after {
+  inset:auto; top:calc(6vh - 8px); left:0; right:0; margin:0 auto; z-index:2;
+  width:calc(min(70vw, 270px) + 16px); height:calc(max(40vh, 240px) + 16px);
+  border:1.5px solid #d49a35; border-radius:148px 148px 28px 28px;
+  background:none; opacity:.85;
+}
+body.fondo-retro-pro .portada.con-foto h1,
+body.fondo-retro-pro .portada.con-foto .para b { color:var(--acento); }
+body.fondo-retro-pro .tipo {
+  background:var(--suave); padding:4px 14px; border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--acento) 40%, transparent);
+  font-size:.74rem; letter-spacing:.26em; color:var(--texto);
+}
+body.fondo-retro-pro #nombre {
+  color:var(--acento); font-size:clamp(2.1rem, 9.5vw, 3.3rem); line-height:1.12;
+  text-shadow:2px 2px 0 rgba(212,154,53,.28);
+}
+body.fondo-retro-pro .linea { height:2px; background:var(--acento); width:84px; }
+body.fondo-retro-pro .boton {
+  border-radius:12px; letter-spacing:.06em;
+  box-shadow:4px 4px 0 color-mix(in srgb, var(--texto) 75%, transparent);
+}
+body.fondo-retro-pro .cuenta div,
+body.fondo-retro-pro .tarjeta-esp,
+body.fondo-retro-pro .libro-card,
+body.fondo-retro-pro .regalo-alias {
+  background:#fffdf8;
+  border:1.5px solid color-mix(in srgb, var(--acento) 55%, transparent);
+  border-radius:14px;
+  box-shadow:4px 4px 0 color-mix(in srgb, var(--acento) 22%, transparent);
+}
+body.fondo-retro-pro .sec-cierre .cuenta div {
+  background:rgba(255,255,255,.08);
+  border:1px solid color-mix(in srgb, var(--sec-acento) 45%, transparent);
+  box-shadow:none;
+}
+body.fondo-retro-pro .galeria img,
+body.fondo-retro-pro .galeria img:nth-child(odd),
+body.fondo-retro-pro .galeria img:nth-child(even),
+body.fondo-retro-pro .galeria img:first-child {
+  border:4px solid #fffdf8; border-radius:14px; transform:none;
+  box-shadow:6px 6px 0 color-mix(in srgb, var(--acento) 28%, transparent);
+}
+
+/* 14. Editorial Revista Pro (Tapa de revista) */
+body.fondo-revista-pro { background-color:var(--fondo); }
+body.fondo-revista-pro .portada > .rama-der { display:none; }
+body.fondo-revista-pro .portada > .rama-izq {
+  position:absolute !important; top:14px; left:16px; right:16px; height:26px; z-index:4;
+  pointer-events:none; display:flex; align-items:center; justify-content:center;
+  border-top:1px solid color-mix(in srgb, var(--texto) 32%, transparent);
+  border-bottom:1px solid color-mix(in srgb, var(--texto) 32%, transparent);
+}
+body.fondo-revista-pro .portada > .rama-izq::after {
+  content:"EDICIÓN ESPECIAL";
+  font-size:.6rem; letter-spacing:.36em; color:var(--texto); opacity:.82;
+  font-family:var(--f-texto, sans-serif); font-weight:600;
+}
+body.fondo-revista-pro .portada > *:not(.rama) { z-index:3; }
+
+body.fondo-revista-pro .portada:not(.con-foto) {
+  background:var(--fondo); padding:74px 26px 84px;
+}
+body.fondo-revista-pro .portada:not(.con-foto)::before { display:none; }
+body.fondo-revista-pro .portada:not(.con-foto) #nombre { color:var(--texto); }
+
+body.fondo-revista-pro .portada.con-foto {
+  background:var(--fondo);
+  justify-content:flex-end;
+  padding:80px 30px 76px;
+}
+body.fondo-revista-pro .portada.con-foto::before {
+  inset:50px 16px 16px; border-radius:2px; animation:none;
+}
+body.fondo-revista-pro .portada.con-foto::after {
+  inset:50px 16px 16px; border-radius:2px; opacity:1;
+  background:linear-gradient(180deg, rgba(16,14,12,.05) 28%, rgba(16,14,12,.78) 100%);
+}
+body.fondo-revista-pro .portada.con-foto .deslizar { bottom:24px; font-size:.72rem; letter-spacing:3px; }
+body.fondo-revista-pro .tipo { letter-spacing:.38em; font-size:.74rem; font-weight:600; }
+body.fondo-revista-pro #nombre {
+  font-size:clamp(2.2rem, 11vw, 3.8rem); line-height:1.02; letter-spacing:-.02em; font-weight:normal;
+}
+body.fondo-revista-pro .linea { width:54px; height:1px; background:var(--acento); }
+
+body.fondo-revista-pro h2 {
+  font-size:1.75rem; color:var(--texto); letter-spacing:.02em; font-weight:normal;
+}
+body.fondo-revista-pro h2::after { width:44px; background:var(--acento); opacity:.85; }
+body.fondo-revista-pro .boton {
+  background:var(--texto); color:var(--fondo); border-radius:2px;
+  letter-spacing:.2em; text-transform:uppercase; font-size:.74rem; font-weight:600;
+  padding:13px 26px; box-shadow:none;
+}
+body.fondo-revista-pro .icono {
+  background:transparent; border:1px solid color-mix(in srgb, var(--texto) 28%, transparent);
+  color:var(--acento);
+}
+body.fondo-revista-pro .cuenta {
+  gap:0; max-width:400px;
+  border-top:1px solid color-mix(in srgb, var(--texto) 20%, transparent);
+  border-bottom:1px solid color-mix(in srgb, var(--texto) 20%, transparent);
+}
+body.fondo-revista-pro .cuenta div {
+  background:transparent !important; border:0 !important; border-radius:0 !important;
+  box-shadow:none !important; padding:14px 4px !important;
+  border-right:1px solid color-mix(in srgb, var(--texto) 16%, transparent) !important;
+}
+body.fondo-revista-pro .cuenta div:last-child { border-right:0 !important; }
+body.fondo-revista-pro .cuenta b { color:var(--texto); font-size:clamp(1.5rem, 7vw, 2.15rem); }
+body.fondo-revista-pro .cuenta span { color:var(--acento); font-size:.64rem; letter-spacing:.16em; }
+body.fondo-revista-pro .sec-cierre .cuenta {
+  border-top-color:rgba(246,241,232,.22); border-bottom-color:rgba(246,241,232,.22);
+}
+body.fondo-revista-pro .sec-cierre .cuenta div {
+  border-right-color:rgba(246,241,232,.18) !important;
+}
+body.fondo-revista-pro .sec-cierre .cuenta b { color:var(--sec-acento); }
+body.fondo-revista-pro .sec-cierre .cuenta span { color:rgba(246,241,232,.78); }
+
+body.fondo-revista-pro .tarjeta-esp,
+body.fondo-revista-pro .libro-card,
+body.fondo-revista-pro .regalo-alias {
+  background:var(--suave); border-radius:2px; box-shadow:none;
+  border-left:3px solid var(--acento); text-align:left;
+}
+body.fondo-revista-pro input,
+body.fondo-revista-pro select,
+body.fondo-revista-pro textarea {
+  border:0; border-bottom:1.5px solid color-mix(in srgb, var(--texto) 45%, transparent);
+  border-radius:0; background:rgba(255,255,255,.55); padding:12px 10px;
+}
+body.fondo-revista-pro .galeria { gap:6px; }
+body.fondo-revista-pro .galeria img,
+body.fondo-revista-pro .galeria img:nth-child(odd),
+body.fondo-revista-pro .galeria img:nth-child(even),
+body.fondo-revista-pro .galeria img:first-child {
+  border:0; border-radius:2px; box-shadow:none; transform:none; background:none;
+                                  }
