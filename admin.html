@@ -24,6 +24,7 @@
     .tarjeta button{width:auto;padding:8px 12px;margin:4px 4px 0 0;font-size:.9rem}
     .msg{min-height:1.4em}
     .fotos img{width:60px;height:60px;object-fit:cover;border-radius:8px;margin:3px}
+    .muestra-prev{width:150px;aspect-ratio:3/4;object-fit:cover;border-radius:12px;border:1px solid #d8cbb0;display:block;margin:6px 0}
     .aviso{background:#f6dde2;border-radius:10px;padding:8px 12px}
   </style>
 </head>
@@ -72,11 +73,11 @@
         <textarea id="f-regalo" placeholder="Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')" maxlength="300"></textarea>
         <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
         <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
-        <label class="check"><input id="f-usar-muestra" type="checkbox">Usar imagen de muestra de la plantilla como portada</label>
-        <p id="aviso-muestra" class="msg" style="font-size:.85rem;color:#777;margin:0"></p>
         <label id="lbl-fotos">Fotos (la primera es la portada)</label>
         <input id="f-fotos" type="file" accept="image/*" multiple>
         <div id="vista-fotos" class="fotos"></div>
+        <label class="check"><input id="f-guardar-muestra" type="checkbox">Usar la portada de esta invitación (con título) como muestra de la plantilla</label>
+        <img id="vista-muestra-tpl" class="muestra-prev" alt="Vista previa de muestra" hidden>
         <label class="check"><input id="f-firma" type="checkbox" checked>Mostrar firma de KE Invitaciones al final</label>
         <button id="btn-crear" type="submit">Crear invitación</button>
         <button id="btn-cancelar" class="sec" type="button" hidden>Cancelar edición</button>
@@ -101,11 +102,16 @@
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, orderBy, where, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+    import { buscarFuente, cargarFuente } from "./js/fuentes.js";
 
     const $ = (id) => document.getElementById(id);
     const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
     const ETIQ_PAQ = { basico: "Esencial", premium: "Premium", pase: "Pase QR (ant.)" };
-    // maxPhotos cuenta la portada: Esencial = portada + 6, Premium = portada + 8
+    const LEGACY_TPL = {
+      cumple: { colors: { fondo: "#fff6e0", texto: "#1a1a1a", acento: "#e8833a", suave: "#ffd9e6" }, font: "'Trebuchet MS', sans-serif" },
+      quince: { colors: { fondo: "#fdf0f4", texto: "#1a1a1a", acento: "#b8860b", suave: "#f6dde2" }, font: "Georgia, serif" },
+      boda:   { colors: { fondo: "#ffffff", texto: "#1a1a1a", acento: "#c9a24b", suave: "#f3efe6" }, font: "Georgia, serif" }
+    };
     let paquetes = {
       basico:  { maxPhotos: 7, music: true },
       premium: { maxPhotos: 9, music: true }
@@ -116,6 +122,7 @@
     let pedidoId = null;
     let todas = [];
     let tplDatos = {};
+    let muestraGenerada = "";
 
     $("btn-login").addEventListener("click", async () => {
       $("login-msg").textContent = "Entrando...";
@@ -165,15 +172,8 @@
           });
         }
         tplDatos = {};
-        tp.forEach((d) => {
-          const x = d.data();
-          tplDatos[d.id] = { sampleAsCover: !!x.sampleAsCover, hasImage: !!x.sampleImage };
-        });
+        tp.forEach((d) => { tplDatos[d.id] = d.data(); });
       } catch (e) { console.error(e); }
-      if (!editId) {
-        const td = tplDatos[$("f-template").value];
-        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
-      }
       aplicarLimites();
     }
 
@@ -188,6 +188,7 @@
         pedidoId = pid;
         if (o.product && ["basico", "premium"].includes(o.product)) {
           $("f-paquete").value = o.product;
+          aplicarLimites();
         }
         if (d.template) {
           const sel = $("f-template");
@@ -199,9 +200,6 @@
           }
           sel.value = d.template;
         }
-        const td = tplDatos[$("f-template").value];
-        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
-        aplicarLimites();
         $("f-honoree").value = d.honoree || "";
         $("f-tipo").value = o.eventType || "";
         $("f-fecha").value = o.eventDate || "";
@@ -227,35 +225,14 @@
 
     function aplicarLimites() {
       const l = limites();
-      const usarMuestra = $("f-usar-muestra").checked;
-      const galMax = Math.max(l.maxPhotos - 1, 0);
-      if (usarMuestra) {
-        $("lbl-fotos").textContent = "Fotos de galería (opcional, hasta " + galMax + "; la portada será la imagen de muestra)";
-      } else {
-        $("lbl-fotos").textContent = "Fotos: la primera es la portada, más hasta " + galMax + " de galería";
-      }
-      $("f-fotos").disabled = false;
-      const td = tplDatos[$("f-template").value];
-      $("aviso-muestra").textContent = usarMuestra && td && !td.hasImage
-        ? "Aviso: esta plantilla todavía no tiene imagen de muestra cargada en Plantillas."
-        : "";
+      $("lbl-fotos").textContent = "Fotos: la primera es la portada, más hasta " + Math.max(l.maxPhotos - 1, 0) + " de galería";
       $("f-musica").disabled = !l.music;
       $("f-musica").placeholder = l.music
         ? "Enlace de música (https://... .mp3) opcional"
         : "Música: no incluida en este paquete";
       if (!l.music) $("f-musica").value = "";
-      $("f-regalo").disabled = false;
-      $("f-regalo").placeholder = "Regalo (ej: alias para transferir, o 'Tu presencia es el mejor regalo')";
     }
     $("f-paquete").addEventListener("change", aplicarLimites);
-    $("f-usar-muestra").addEventListener("change", aplicarLimites);
-    $("f-template").addEventListener("change", () => {
-      if (!editId) {
-        const td = tplDatos[$("f-template").value];
-        $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
-      }
-      aplicarLimites();
-    });
 
     function slug(t) {
       return t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
@@ -298,6 +275,261 @@
       });
     }
 
+    /* Genera la imagen 3:4 de muestra de la plantilla usando la portada y el título de esta invitación */
+    function cargarImg(src) {
+      return new Promise((ok) => {
+        if (!src) return ok(null);
+        const im = new Image();
+        im.crossOrigin = "anonymous";
+        im.onload = () => ok(im);
+        im.onerror = () => ok(null);
+        im.src = src;
+      });
+    }
+
+    function partirLineas(g, texto, maxW, maxLineas) {
+      const palabras = String(texto || "").trim().split(/\s+/).filter(Boolean);
+      const out = [];
+      let act = "";
+      for (const p of palabras) {
+        const pr = act ? act + " " + p : p;
+        if (g.measureText(pr).width <= maxW) act = pr;
+        else {
+          if (act) out.push(act);
+          act = p;
+          if (out.length === maxLineas - 1) break;
+        }
+      }
+      if (act && out.length < maxLineas) out.push(act);
+      return out;
+    }
+
+    function dibujarCover(g, im, x, y, w, h) {
+      const rImg = im.width / im.height;
+      const rBox = w / h;
+      let sx = 0, sy = 0, sw = im.width, sh = im.height;
+      if (rImg > rBox) {
+        sw = im.height * rBox;
+        sx = (im.width - sw) / 2;
+      } else {
+        sh = im.width / rBox;
+        sy = (im.height - sh) / 2;
+      }
+      g.drawImage(im, sx, sy, sw, sh, x, y, w, h);
+    }
+
+    async function generarMuestraPortada() {
+      const tplId = $("f-template").value;
+      const tpl = tplDatos[tplId] || LEGACY_TPL[tplId] || LEGACY_TPL.boda;
+      const col = tpl.colors || {};
+      const fondo = col.fondo || "#fffaf3";
+      const texto = col.texto || "#1a1a1a";
+      const acento = col.acento || "#c9a24b";
+      const suave = col.suave || "#f6dde2";
+      const estiloFondo = tpl.fondo || "";
+
+      const f = tpl.fonts || {};
+      const fTit = f.titulo || tpl.font || "Georgia, serif";
+      const fTxt = f.texto || tpl.font || "Georgia, serif";
+      const bTit = buscarFuente(fTit);
+      const bTxt = buscarFuente(fTxt);
+      cargarFuente(bTit);
+      cargarFuente(bTxt);
+      const pesoTit = (bTit && bTit.peso) ? bTit.peso + " " : "";
+      if (document.fonts) {
+        await Promise.race([
+          Promise.all([
+            document.fonts.ready,
+            document.fonts.load(pesoTit + "64px " + fTit).catch(() => {}),
+            document.fonts.load("26px " + fTxt).catch(() => {})
+          ]),
+          new Promise((r) => setTimeout(r, 1200))
+        ]);
+      }
+
+      const fotoSrc = fotos.length ? fotos[0] : (fotosExistentes[0] || "");
+      const im = await cargarImg(fotoSrc);
+
+      const W = 600, H = 800;
+      const c = document.createElement("canvas");
+      c.width = W; c.height = H;
+      const g = c.getContext("2d");
+
+      const conMarco = ["boda-salvia", "boda-terracota", "arco-fino", "botanico", "boho", "lila", "marco-oval", "glam"].includes(estiloFondo);
+      const esOval = ["lila", "marco-oval"].includes(estiloFondo);
+      const esPill = estiloFondo === "glam";
+
+      g.fillStyle = fondo;
+      g.fillRect(0, 0, W, H);
+
+      const honoree = $("f-honoree").value.trim() || tpl.name || "Invitación";
+      const tipo = $("f-tipo").value.trim();
+      const welcome = $("f-bienvenida").value.trim();
+
+      let textColor = texto;
+      let titleColor = acento;
+      let lineColor = acento;
+      let yStart = 350;
+
+      if (conMarco) {
+        const fx = 135, fy = 56, fw = 330, fh = 370;
+        if (estiloFondo === "boho") {
+          ["#c07a58", "#deb496", "#ecdcc8"].forEach((clr, idx) => {
+            const p = (3 - idx) * 14;
+            g.fillStyle = clr;
+            g.beginPath();
+            g.arc(fx + fw / 2, fy + (fw / 2) - p * 0.2, (fw / 2) + p, Math.PI, 0);
+            g.lineTo(fx + fw + p, fy + fh);
+            g.lineTo(fx - p, fy + fh);
+            g.closePath();
+            g.fill();
+          });
+        }
+        if (esPill) {
+          g.fillStyle = "rgba(183,110,121,.35)";
+          g.beginPath();
+          g.roundRect(fx + 14, fy + 14, fw, fh, 165);
+          g.fill();
+        }
+        g.save();
+        g.beginPath();
+        if (esOval) {
+          g.ellipse(fx + fw / 2, fy + fh / 2, fw / 2, fh / 2, 0, 0, Math.PI * 2);
+        } else if (esPill) {
+          g.roundRect(fx, fy, fw, fh, 165);
+        } else {
+          const r = fw / 2;
+          g.arc(fx + r, fy + r, r, Math.PI, 0);
+          g.lineTo(fx + fw, fy + fh);
+          g.lineTo(fx, fy + fh);
+          g.closePath();
+        }
+        g.clip();
+        if (im) dibujarCover(g, im, fx, fy, fw, fh);
+        else { g.fillStyle = suave; g.fillRect(fx, fy, fw, fh); }
+        g.restore();
+
+        if (!["boho", "glam"].includes(estiloFondo)) {
+          g.strokeStyle = acento;
+          g.lineWidth = 2;
+          g.beginPath();
+          if (esOval) {
+            g.ellipse(fx + fw / 2, fy + fh / 2, fw / 2 + 12, fh / 2 + 12, 0, 0, Math.PI * 2);
+          } else {
+            const r = fw / 2 + 12;
+            g.arc(fx + fw / 2, fy + fw / 2, r, Math.PI, 0);
+            g.lineTo(fx + fw + 12, fy + fh + 12);
+            g.lineTo(fx - 12, fy + fh + 12);
+            g.closePath();
+          }
+          g.stroke();
+        }
+        if (estiloFondo.startsWith("boda-")) titleColor = texto;
+        yStart = 490;
+      } else if (im) {
+        dibujarCover(g, im, 0, 0, W, H);
+        const grad = g.createLinearGradient(0, 0, 0, H);
+        grad.addColorStop(0, "rgba(0,0,0,.18)");
+        grad.addColorStop(0.45, "rgba(0,0,0,.28)");
+        grad.addColorStop(1, "rgba(0,0,0,.78)");
+        g.fillStyle = grad;
+        g.fillRect(0, 0, W, H);
+        textColor = "#ffffff";
+        titleColor = estiloFondo === "noche" ? acento : "#ffffff";
+        yStart = 500;
+      } else {
+        const rg = g.createRadialGradient(W / 2, H * 0.35, 20, W / 2, H * 0.35, 360);
+        rg.addColorStop(0, suave);
+        rg.addColorStop(1, fondo);
+        g.fillStyle = rg;
+        g.fillRect(0, 0, W, H);
+        yStart = 320;
+      }
+
+      if (["noche", "editorial", "artdeco", "filete"].includes(estiloFondo)) {
+        g.strokeStyle = acento;
+        g.globalAlpha = 0.65;
+        g.lineWidth = 2;
+        g.strokeRect(20, 20, W - 40, H - 40);
+        g.globalAlpha = 1;
+      }
+
+      g.textAlign = "center";
+      let y = yStart;
+      if (im && !conMarco) {
+        g.shadowColor = "rgba(0,0,0,.55)";
+        g.shadowBlur = 14;
+      }
+
+      if (tipo) {
+        g.fillStyle = textColor;
+        g.font = "22px " + fTxt;
+        g.fillText(tipo.toUpperCase().split("").join(" "), W / 2, y);
+        y += 66;
+      }
+
+      let tam = 72;
+      let lineas = [];
+      do {
+        g.font = pesoTit + tam + "px " + fTit;
+        lineas = partirLineas(g, honoree, W - 90, 2);
+        const maxW = Math.max(...lineas.map((l) => g.measureText(l).width), 0);
+        if (maxW <= W - 90) break;
+        tam -= 4;
+      } while (tam > 32);
+
+      g.fillStyle = titleColor;
+      lineas.forEach((l) => {
+        g.fillText(l, W / 2, y);
+        y += tam * 1.1;
+      });
+
+      g.shadowBlur = 0;
+      g.strokeStyle = lineColor;
+      g.lineWidth = 2.5;
+      g.beginPath();
+      g.moveTo(W / 2 - 55, y - tam * 0.35);
+      g.lineTo(W / 2 + 55, y - tam * 0.35);
+      g.stroke();
+
+      if (welcome) {
+        y += 26;
+        g.fillStyle = textColor;
+        g.globalAlpha = 0.92;
+        g.font = "italic 25px " + fTxt;
+        partirLineas(g, welcome, W - 96, 2).forEach((l) => {
+          g.fillText(l, W / 2, y);
+          y += 32;
+        });
+        g.globalAlpha = 1;
+      }
+
+      let out = "";
+      for (let q = 0.86; q >= 0.56; q -= 0.08) {
+        out = c.toDataURL("image/webp", q);
+        if (!out.startsWith("data:image/webp")) out = c.toDataURL("image/jpeg", q);
+        if (out.length <= 95000) break;
+      }
+      return out;
+    }
+
+    async function actualizarPreviewMuestra() {
+      if (!$("f-guardar-muestra").checked) {
+        $("vista-muestra-tpl").hidden = true;
+        muestraGenerada = "";
+        return;
+      }
+      muestraGenerada = await generarMuestraPortada();
+      $("vista-muestra-tpl").src = muestraGenerada;
+      $("vista-muestra-tpl").hidden = false;
+    }
+
+    $("f-guardar-muestra").addEventListener("change", actualizarPreviewMuestra);
+    ["f-template", "f-honoree", "f-tipo", "f-bienvenida"].forEach((id) => {
+      $(id).addEventListener("input", () => { if ($("f-guardar-muestra").checked) actualizarPreviewMuestra(); });
+      $(id).addEventListener("change", () => { if ($("f-guardar-muestra").checked) actualizarPreviewMuestra(); });
+    });
+
     function verFotos(lista) {
       $("vista-fotos").innerHTML = "";
       lista.forEach((src) => {
@@ -308,24 +540,22 @@
     }
 
     $("f-fotos").addEventListener("change", async (e) => {
-      const usarMuestra = $("f-usar-muestra").checked;
-      const max = usarMuestra ? Math.max(limites().maxPhotos - 1, 0) : limites().maxPhotos;
+      const max = limites().maxPhotos;
       const elegidas = Array.from(e.target.files);
       const archivos = elegidas.slice(0, max);
       $("f-msg").textContent = "Procesando fotos...";
       try {
         fotos = [];
         for (let i = 0; i < archivos.length; i++) {
-          fotos.push(await comprimir(archivos[i], !usarMuestra && i === 0));
+          fotos.push(await comprimir(archivos[i], i === 0));
         }
         verFotos(fotos);
         let t = fotos.length + " foto(s) nueva(s) lista(s)" + (editId ? " (reemplazan a las anteriores)." : ".");
         if (elegidas.length > max) {
-          t += max === 1
-            ? " Este paquete permite 1 foto: se usó la primera."
-            : " Este paquete permite hasta " + max + " foto(s): se usaron las primeras.";
+          t += " Este paquete permite hasta " + max + " foto(s): se usaron las primeras.";
         }
         $("f-msg").textContent = t;
+        if ($("f-guardar-muestra").checked) actualizarPreviewMuestra();
       } catch (err) {
         fotos = [];
         $("f-msg").textContent = "No se pudo leer una de las fotos.";
@@ -333,15 +563,14 @@
     });
 
     function salirDeEdicion() {
-      editId = null; pedidoId = null; fotos = []; fotosExistentes = [];
+      editId = null; pedidoId = null; fotos = []; fotosExistentes = []; muestraGenerada = "";
       $("form").reset();
       $("vista-fotos").innerHTML = "";
+      $("vista-muestra-tpl").hidden = true;
       $("titulo-form").textContent = "Nueva invitación";
       $("btn-crear").textContent = "Crear invitación";
       $("btn-cancelar").hidden = true;
       $("aviso-edicion").hidden = true;
-      const td = tplDatos[$("f-template").value];
-      $("f-usar-muestra").checked = !!(td && td.sampleAsCover);
       aplicarLimites();
     }
     $("btn-cancelar").addEventListener("click", () => { salirDeEdicion(); $("f-msg").textContent = ""; });
@@ -367,8 +596,6 @@
       $("f-whatsapp").value = x.whatsapp || "";
       $("f-musica").value = x.music || "";
       $("f-firma").checked = x.showBrand !== false;
-      const td = tplDatos[x.template];
-      $("f-usar-muestra").checked = x.useTemplateCover === true || (x.useTemplateCover !== false && !!(td && td.sampleAsCover));
       aplicarLimites();
       verFotos(fotosExistentes);
       $("titulo-form").textContent = "Editar invitación";
@@ -399,11 +626,9 @@
       if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Maps debe empezar con https://"; return; }
       if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
 
-      const usarMuestra = $("f-usar-muestra").checked;
-      const maxFinal = usarMuestra ? Math.max(l.maxPhotos - 1, 0) : l.maxPhotos;
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
-      if (fotosFinal.length > maxFinal) {
-        msg.textContent = "Este paquete permite hasta " + maxFinal + " foto(s). Elegí menos o cambiá a Premium.";
+      if (fotosFinal.length > l.maxPhotos) {
+        msg.textContent = "Este paquete permite hasta " + l.maxPhotos + " foto(s). Elegí menos o cambiá a Premium.";
         return;
       }
       if (fotosFinal.join("").length > 980000) {
@@ -411,9 +636,11 @@
         return;
       }
 
+      const guardarMuestra = $("f-guardar-muestra").checked;
+      const tplId = $("f-template").value;
       const datos = {
         package: $("f-paquete").value,
-        template: $("f-template").value,
+        template: tplId,
         honoree: honoree,
         eventType: tipo,
         date: fecha,
@@ -429,19 +656,28 @@
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
         photos: fotosFinal,
-        useTemplateCover: usarMuestra,
         showBrand: $("f-firma").checked
       };
 
       $("btn-crear").disabled = true;
       msg.textContent = editId ? "Guardando..." : "Creando...";
       try {
+        if (guardarMuestra) {
+          muestraGenerada = await generarMuestraPortada();
+          if (tplDatos[tplId]) {
+            await updateDoc(doc(db, "templates", tplId), {
+              sampleImage: muestraGenerada,
+              updatedAt: serverTimestamp()
+            });
+            tplDatos[tplId].sampleImage = muestraGenerada;
+          }
+        }
         if (editId) {
           datos.updatedAt = serverTimestamp();
           await updateDoc(doc(db, "invitations", editId), datos);
           const id = editId;
           salirDeEdicion();
-          msg.textContent = "Cambios guardados. Enlace: " + linkDe(id);
+          msg.textContent = "Cambios guardados" + (guardarMuestra ? " y muestra actualizada" : "") + ". Enlace: " + linkDe(id);
         } else {
           let id = slug(honoree + " " + tipo) || "invitacion";
           const existe = await getDoc(doc(db, "invitations", id));
@@ -459,7 +695,7 @@
             } catch (err) { console.error(err); }
           }
           salirDeEdicion();
-          msg.textContent = "Creada. Enlace: " + linkDe(id);
+          msg.textContent = "Creada" + (guardarMuestra ? " y muestra actualizada" : "") + ". Enlace: " + linkDe(id);
         }
         listar();
       } catch (err) {
@@ -569,4 +805,4 @@
   </script>
   <script type="module" src="js/plantillas-select.js"></script>
 </body>
-                             </html>
+  </html>
