@@ -22,34 +22,35 @@ function mostrarError(texto) {
 function urlSegura(url) {
   return typeof url === "string" && /^https:\/\//i.test(url);
 }
-/* Títulos de los lugares y segundo lugar (ej: ceremonia en iglesia + fiesta en salón) */
+/* Lugares de "Cuándo y dónde": si hay dos, los dos tienen el mismo formato
+   (estrellita, título, horario dorado, dirección y botón de mapa) */
 function armarLugares(d) {
-  if (d.venueLabel) {
-    const etq = document.createElement("p");
-    etq.className = "lugar-etq";
-    etq.textContent = d.venueLabel;
-    $("lugar").insertAdjacentElement("beforebegin", etq);
-  }
-  if (!d.venue2 && !d.address2) return;
-
-  const caja = document.createElement("div");
-  caja.className = "lugar2";
-  const add = (tag, clase, texto) => {
+  const dos = !!(d.venue2 || d.address2);
+  const nuevo = (tag, clase, texto) => {
     const e = document.createElement(tag);
     if (clase) e.className = clase;
     if (texto) e.textContent = texto;
-    caja.appendChild(e);
     return e;
   };
-  add("span", "lugar-sep", "✦");
-  if (d.venue2Label) add("p", "lugar-etq", d.venue2Label);
-  if (d.venue2Time) add("p", "lugar-hora", d.venue2Time + " hs");
-  add("p", null, [d.venue2, d.address2].filter(Boolean).join(" - "));
+
+  const previos = [];
+  if (dos) previos.push(nuevo("span", "lugar-sep", "✦"));
+  if (d.venueLabel) previos.push(nuevo("p", "lugar-etq", d.venueLabel));
+  if (dos && d.time) previos.push(nuevo("p", "lugar-hora", d.time + " hs"));
+  previos.forEach((e) => $("lugar").insertAdjacentElement("beforebegin", e));
+  if (!dos) return;
+
+  const caja = nuevo("div", "lugar2");
+  caja.appendChild(nuevo("span", "lugar-sep", "✦"));
+  if (d.venue2Label) caja.appendChild(nuevo("p", "lugar-etq", d.venue2Label));
+  if (d.venue2Time) caja.appendChild(nuevo("p", "lugar-hora", d.venue2Time + " hs"));
+  caja.appendChild(nuevo("p", "lugar-texto", [d.venue2, d.address2].filter(Boolean).join(" - ")));
   if (urlSegura(d.mapsUrl2)) {
-    const b = add("a", "boton", "Ver en Google Maps");
+    const b = nuevo("a", "boton", "Ver en Google Maps");
     b.href = d.mapsUrl2;
     b.target = "_blank";
     b.rel = "noopener";
+    caja.appendChild(b);
   }
   $("btn-mapa").insertAdjacentElement("afterend", caja);
 }
@@ -139,7 +140,8 @@ function mostrar(d, lim, invitado, tpl) {
     const f = fecha.toLocaleDateString("es-AR", {
       weekday: "long", day: "numeric", month: "long", year: "numeric"
     });
-    $("fecha-hora").textContent = f + (d.time ? " - " + d.time + " hs" : "");
+    const dosLugares = !!(d.venue2 || d.address2);
+    $("fecha-hora").textContent = f + (d.time && !dosLugares ? " - " + d.time + " hs" : "");
     iniciarCuenta(fecha);
   } else {
     $("fecha-hora").textContent = "";
