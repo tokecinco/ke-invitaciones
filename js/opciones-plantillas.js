@@ -108,6 +108,25 @@ export const DECOS = [
   ["coronas-finas", "Coronas finas"]
 ];
 
+export const DIVISORES = [
+  ["", "Estándar (como está ahora)"],
+  ["doble", "Doble línea fina"],
+  ["punteada", "Línea punteada"],
+  ["guiones", "Línea de guiones"],
+  ["barra", "Barra corta gruesa"],
+  ["degrade-ancho", "Línea ancha con degradé"],
+  ["rombo", "Línea con rombo al centro"],
+  ["rombos", "Tres rombos (clásico)"],
+  ["corazon", "Línea con corazón"],
+  ["estrella", "Línea con estrella"],
+  ["flor", "Línea con florcita"],
+  ["rama", "Ramita con hojas"],
+  ["ondas", "Onda suave"],
+  ["perlas", "Hilo de perlas"],
+  ["puntos", "Tres puntitos"],
+  ["ninguno", "Sin línea divisora"]
+];
+
 export const EFECTOS = [
   ["titulos", "Brillo que recorre los títulos"],
   ["botones", "Destello en los botones"],
