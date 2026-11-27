@@ -67,7 +67,7 @@ function construir(d) {
 /* Elige un ícono lineal acorde al título de la actividad */
 function iconoActividad(titulo) {
   const t = String(titulo || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-  if (/bautismo|comunion|misa|iglesia|parroquia|catedral/.test(t)) {
+  if (/ceremonia religiosa|religios|bautismo|bautizo|comunion|confirmacion|misa|iglesia|parroquia|catedral/.test(t)) {
     return '<path d="M12 2v4"/><path d="M10 4h4"/><path d="M7 10l5-4 5 4"/><path d="M5 21V11h14v10"/><path d="M3 21h18"/><path d="M10 21v-5a2 2 0 0 1 4 0v5"/>';
   }
   if (/ceremonia|civil|altar|voto|anillo|bendicion/.test(t)) {
