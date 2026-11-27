@@ -867,7 +867,7 @@ body.patron-cuadros-suaves {
     linear-gradient(color-mix(in srgb, var(--suave) 38%, transparent) 50%, transparent 50%);
   background-size:64px 64px;
 }
-body.patron-vineta-lujo {
-  background-image:radial-gradient(ellipse at 50% 45%, transparent 48%, color-mix(in srgb, var(--acento) 18%, transparent) 100%);
-  background-attachment:fixed;
+body.patron-vineta-lujo::after {
+  content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse closest-side at 50% 50%, transparent 60%, color-mix(in srgb, var(--acento) 30%, transparent) 100%);
 }
