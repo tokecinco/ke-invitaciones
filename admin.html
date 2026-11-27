@@ -66,6 +66,15 @@
         <input id="f-salon" placeholder="Nombre del salón" maxlength="80">
         <input id="f-dir" placeholder="Dirección" maxlength="120">
         <input id="f-maps" placeholder="Enlace de Google Maps (https://...)">
+        <input id="f-lugar1-etq" placeholder="Título de este lugar (opcional, ej: Ceremonia religiosa)" maxlength="40">
+        <label class="check"><input id="f-lugar2-on" type="checkbox">Agregar un segundo lugar (ej: ceremonia en una iglesia y fiesta en un salón)</label>
+        <div id="bloque-lugar2" hidden>
+          <input id="f-lugar2-etq" placeholder="Título del segundo lugar (ej: Fiesta)" maxlength="40">
+          <label>Hora del segundo lugar (opcional)</label><input id="f-hora2" type="time">
+          <input id="f-salon2" placeholder="Nombre del salón / lugar" maxlength="80">
+          <input id="f-dir2" placeholder="Dirección" maxlength="120">
+          <input id="f-maps2" placeholder="Enlace de Google Maps (https://...)">
+        </div>
         <input id="f-bienvenida" placeholder="Texto de bienvenida" maxlength="120">
         <textarea id="f-mensaje" placeholder="Mensaje personalizado" maxlength="400"></textarea>
         <textarea id="f-info" placeholder="Información adicional" maxlength="400"></textarea>
@@ -562,6 +571,10 @@
       }
     });
 
+    function mostrarLugar2() { $("bloque-lugar2").hidden = !$("f-lugar2-on").checked; }
+    $("f-lugar2-on").addEventListener("change", mostrarLugar2);
+    $("form").addEventListener("reset", () => setTimeout(mostrarLugar2, 0));
+
     function salirDeEdicion() {
       editId = null; pedidoId = null; fotos = []; fotosExistentes = []; muestraGenerada = "";
       $("form").reset();
@@ -588,6 +601,14 @@
       $("f-salon").value = x.venue || "";
       $("f-dir").value = x.address || "";
       $("f-maps").value = x.mapsUrl || "";
+      $("f-lugar1-etq").value = x.venueLabel || "";
+      $("f-lugar2-etq").value = x.venue2Label || "";
+      $("f-hora2").value = x.venue2Time || "";
+      $("f-salon2").value = x.venue2 || "";
+      $("f-dir2").value = x.address2 || "";
+      $("f-maps2").value = x.mapsUrl2 || "";
+      $("f-lugar2-on").checked = !!(x.venue2 || x.address2);
+      mostrarLugar2();
       $("f-bienvenida").value = x.welcome || "";
       $("f-mensaje").value = x.message || "";
       $("f-info").value = x.info || "";
@@ -624,6 +645,9 @@
       if (!honoree) { msg.textContent = "Falta el nombre del homenajeado."; return; }
       if (!fecha) { msg.textContent = "Falta la fecha."; return; }
       if (maps && !/^https:\/\//i.test(maps)) { msg.textContent = "El enlace de Maps debe empezar con https://"; return; }
+      const dosLugares = $("f-lugar2-on").checked;
+      const maps2 = dosLugares ? $("f-maps2").value.trim() : "";
+      if (maps2 && !/^https:\/\//i.test(maps2)) { msg.textContent = "El enlace de Maps del segundo lugar debe empezar con https://"; return; }
       if (musica && !/^https:\/\//i.test(musica)) { msg.textContent = "El enlace de música debe empezar con https://"; return; }
 
       const fotosFinal = fotos.length ? fotos : fotosExistentes;
@@ -648,6 +672,12 @@
         venue: $("f-salon").value.trim(),
         address: $("f-dir").value.trim(),
         mapsUrl: maps,
+        venueLabel: $("f-lugar1-etq").value.trim(),
+        venue2Label: dosLugares ? $("f-lugar2-etq").value.trim() : "",
+        venue2Time: dosLugares ? $("f-hora2").value : "",
+        venue2: dosLugares ? $("f-salon2").value.trim() : "",
+        address2: dosLugares ? $("f-dir2").value.trim() : "",
+        mapsUrl2: maps2,
         welcome: $("f-bienvenida").value.trim(),
         message: $("f-mensaje").value.trim(),
         info: $("f-info").value.trim(),
