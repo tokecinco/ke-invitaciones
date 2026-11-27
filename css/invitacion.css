@@ -164,8 +164,10 @@ body.tema-oscuro .firma-ke { background:color-mix(in srgb, var(--fondo) 72%, #00
   .reveal { opacity:1; transform:none; }
                   }
 
-/* Segundo lugar en "Cuándo y dónde" */
-.lugar-etq { margin:14px 0 2px; font-size:.78rem; letter-spacing:3px; text-transform:uppercase; opacity:.8; }
+/* Lugares en "Cuándo y dónde" (si hay dos, los dos con el mismo formato) */
+.lugar-sep { display:block; margin:18px 0 4px; color:var(--acento); opacity:.9; }
+.lugar-etq { margin:6px 0 2px; font-size:.78rem; letter-spacing:3px; text-transform:uppercase; opacity:.8; }
 .lugar-hora { margin:2px 0 4px; font-weight:bold; color:var(--acento); }
-.lugar2 { margin-top:6px; text-align:center; }
-.lugar-sep { display:block; margin:18px 0 4px; color:var(--acento); opacity:.85; }
+.lugar2 { text-align:center; }
+body.z-info .lugar-hora,
+body.z-info .lugar-texto { zoom:var(--z-info); }
