@@ -73,7 +73,7 @@ if (sobre && caja && btn && nombre) montar();
 function montar() {
   const link = document.createElement("link");
   link.rel = "stylesheet";
-  link.href = "css/sobre.css";
+  link.href = "css/sobre.css?v=2";
   document.head.appendChild(link);
 
   const pre = caja.querySelector("p");
@@ -92,6 +92,17 @@ function montar() {
   if (pre) { pre.className = "sobre-pre"; texto.appendChild(pre); }
   texto.appendChild(nombre);
   caja.querySelectorAll(".para").forEach((p) => texto.appendChild(p));
+
+  /* Monograma del sello: "J&M" si el título es "Juan y María"; si no, una estrella */
+  function actualizarMono() {
+    const t = (nombre.textContent || "").trim();
+    const m = t.match(/^(\S+)\s+(?:y|e|&)\s+(\S+)$/i);
+    btn.dataset.mono = m
+      ? Array.from(m[1])[0].toUpperCase() + "&" + Array.from(m[2])[0].toUpperCase()
+      : "\u2726";
+  }
+  actualizarMono();
+  new MutationObserver(actualizarMono).observe(nombre, { childList: true, characterData: true, subtree: true });
 
   btn.className = "sello";
   btn.textContent = "";
