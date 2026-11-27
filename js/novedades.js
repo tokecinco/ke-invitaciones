@@ -274,7 +274,10 @@ function cierre(d, fecha) {
     String(d.venue2 || d.address2 || "").trim()
   ].filter(Boolean);
   sec.appendChild(el("p", "nos-vemos", lugares.length ? "Nos vemos en" : "Nos vemos pronto"));
-  lugares.forEach((lugar) => sec.appendChild(el("p", "nos-lugar", lugar)));
+  lugares.forEach((lugar, i) => {
+    if (i > 0) sec.appendChild(el("p", "nos-vemos", "y luego"));
+    sec.appendChild(el("p", "nos-lugar", lugar));
+  });
 
   if (fecha && !isNaN(fecha)) {
     let f = fecha.toLocaleDateString("es-AR", {
