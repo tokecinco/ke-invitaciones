@@ -80,13 +80,28 @@ function iconoActividad(titulo) {
     return '<circle cx="7.4" cy="5.8" r="1.55"/><path d="M6.2 8.2h2.8l.4 5.6H6Z"/><path d="M6.8 13.8 5.2 21"/><path d="M8.6 13.8 10.2 21"/><path d="M9.2 9.8 14.2 11.2"/><path d="M8.8 8.4 11.7 3"/><circle cx="16" cy="6.2" r="1.5"/><path d="M14.2 8.6h2.6l-.4 3.2 4.3 7.8c-2.6 1.5-6.2 1.7-8.7.6l2.5-8.4Z"/><path d="M15.3 12 16.7 20"/><path d="M14.3 8.8 11.7 3"/>';
   }
   if (/foto|sesion|camara|cabina/.test(t)) {
-    return '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>';
+    return '<rect x="4" y="2.5" width="16" height="19" rx="1.5"/><rect x="6.5" y="5" width="11" height="10.5" rx=".5"/><circle cx="10" cy="8.5" r="1.2"/><path d="M6.5 15.5l3.8-3.8 2.5 2.5 1.7-1.7 3 3"/><path d="M8.5 18.8h5"/>';
   }
   if (/cena|almuerzo|comida|banquete|catering|asado|pizza|lunch|plato/.test(t)) {
     return '<path d="M3 17h18"/><path d="M5 17a7 7 0 0 1 14 0"/><circle cx="12" cy="8.5" r="1.5"/><path d="M4 19.5h16"/>';
   }
   if (/torta|pastel|dulce|postre|candy|vela/.test(t)) {
     return '<path d="M20 21v-8a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8"/><path d="M4 16s.5-1 2-1 2.5 2 4 2 2.5-2 4-2 2.5 2 4 2 2-1 2-1"/><path d="M2 21h20"/><path d="M12 7v4"/><path d="M12 4.5c.8.8.8 1.8 0 2.5-.8-.7-.8-1.7 0-2.5Z"/>';
+  }
+  if (/karaoke|show|grupo musical|animador/.test(t)) {
+    return '<rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0"/><path d="M12 18v4"/><path d="M8 22h8"/>';
+  }
+  if (/vino|fernet|chupe|escabio|tomar/.test(t)) {
+    return '<path d="M10 2h4"/><path d="M10.5 2v5.5C8.5 9 7.5 10 7.5 12v8.5a1.5 1.5 0 0 0 1.5 1.5h6a1.5 1.5 0 0 0 1.5-1.5V12c0-2-1-3-3-4.5V2"/><path d="M7.5 14.5h9"/><path d="M7.5 19h9"/>';
+  }
+  if (/merienda|\bte\b|cafe/.test(t)) {
+    return '<path d="M4 10h13v4a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5Z"/><path d="M17 11h1.5a2.5 2.5 0 0 1 0 5H17"/><path d="M3 21.5h15"/><path d="M8 3.5c-1 1-1 2 0 3"/><path d="M12 3.5c-1 1-1 2 0 3"/>';
+  }
+  if (/mate/.test(t)) {
+    return '<ellipse cx="11" cy="9" rx="5.5" ry="1.8"/><path d="M5.5 9c0 6 1 11 5.5 11s5.5-5 5.5-11"/><path d="M12.5 9 19 2.5"/><path d="M17.8 2l2.2 2.2"/>';
+  }
+  if (/joda|baile|disco/.test(t)) {
+    return '<path d="M12 1.5V5"/><circle cx="12" cy="13" r="8"/><ellipse cx="12" cy="13" rx="3.5" ry="8"/><path d="M4 13h16"/><path d="M5.4 8.5h13.2"/><path d="M5.4 17.5h13.2"/><path d="M12 5v16"/><path d="M21.5 3.5v2.5"/><path d="M20.25 4.75h2.5"/>';
   }
   if (/baile|fiesta|dj|banda|show|musica|carnaval|pista|loca/.test(t)) {
     return '<path d="M9 18V6l10-2v11"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="15" r="2.5"/><path d="M4 6l.8 1.5L6.3 8.3l-1.5.8L4 10.6l-.8-1.5L1.7 8.3l1.5-.8Z"/><path d="M20.5 18l.6 1.1 1.1.6-1.1.6-.6 1.1-.6-1.1-1.1-.6 1.1-.6Z"/>';
