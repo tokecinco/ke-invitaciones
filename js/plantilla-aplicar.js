@@ -27,6 +27,7 @@ const VALIDOS = (lista) => lista.map((o) => o[0]).filter(Boolean);
 const PATRONES_OK = VALIDOS(PATRONES);
 const MARCOS_OK = VALIDOS(MARCOS);
 const DECOS_OK = VALIDOS(DECOS);
+const DIVISORES_OK = VALIDOS(DIVISORES);
 const EFECTOS = { titulos: "ef-titulos", botones: "ef-botones", cuenta: "ef-cuenta" };
 const TAMANOS = ["titulo", "subtitulo", "info", "boton"];
 
@@ -95,6 +96,7 @@ async function aplicar() {
     if (PATRONES_OK.includes(x.patron)) document.body.classList.add("patron-" + x.patron);
     if (MARCOS_OK.includes(x.marco)) document.body.classList.add("marco-" + x.marco);
     if (DECOS_OK.includes(x.deco)) document.body.classList.add("deco-" + x.deco);
+    if (DIVISORES_OK.includes(x.divisor)) document.body.classList.add("con-divisor", "div-" + x.divisor);
     if (Array.isArray(x.efectos)) {
       x.efectos.forEach((e) => {
         if (EFECTOS[e]) document.body.classList.add(EFECTOS[e]);
