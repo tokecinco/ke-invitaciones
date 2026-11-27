@@ -22,6 +22,38 @@ function mostrarError(texto) {
 function urlSegura(url) {
   return typeof url === "string" && /^https:\/\//i.test(url);
 }
+/* Títulos de los lugares y segundo lugar (ej: ceremonia en iglesia + fiesta en salón) */
+function armarLugares(d) {
+  if (d.venueLabel) {
+    const etq = document.createElement("p");
+    etq.className = "lugar-etq";
+    etq.textContent = d.venueLabel;
+    $("lugar").insertAdjacentElement("beforebegin", etq);
+  }
+  if (!d.venue2 && !d.address2) return;
+
+  const caja = document.createElement("div");
+  caja.className = "lugar2";
+  const add = (tag, clase, texto) => {
+    const e = document.createElement(tag);
+    if (clase) e.className = clase;
+    if (texto) e.textContent = texto;
+    caja.appendChild(e);
+    return e;
+  };
+  add("span", "lugar-sep", "✦");
+  if (d.venue2Label) add("p", "lugar-etq", d.venue2Label);
+  if (d.venue2Time) add("p", "lugar-hora", d.venue2Time + " hs");
+  add("p", null, [d.venue2, d.address2].filter(Boolean).join(" - "));
+  if (urlSegura(d.mapsUrl2)) {
+    const b = add("a", "boton", "Ver en Google Maps");
+    b.href = d.mapsUrl2;
+    b.target = "_blank";
+    b.rel = "noopener";
+  }
+  $("btn-mapa").insertAdjacentElement("afterend", caja);
+}
+
 function imagenSegura(url) {
   return typeof url === "string" && (/^https:\/\//i.test(url) || /^data:image\//i.test(url));
 }
@@ -119,6 +151,7 @@ function mostrar(d, lim, invitado, tpl) {
     $("btn-mapa").href = d.mapsUrl;
     $("btn-mapa").hidden = false;
   }
+  armarLugares(d);
   if (d.info) {
     $("info").textContent = d.info;
     $("sec-info").hidden = false;
