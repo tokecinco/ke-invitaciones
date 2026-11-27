@@ -2,7 +2,7 @@ import { db } from "./firebase.js";
 import { doc, getDoc }
   from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
 import { buscarFuente, cargarFuente } from "./fuentes.js?v=2";
-import { PATRONES, MARCOS, DECOS } from "./opciones-plantillas.js?v=3";
+import { PATRONES, MARCOS, DECOS, DIVISORES } from "./opciones-plantillas.js?v=4";
 
 ["css/efectos.css", "css/efectos-2.css", "css/efectos-3.css?v=8", "css/tamanos.css"].forEach((href) => {
   const l = document.createElement("link");
