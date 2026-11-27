@@ -869,5 +869,5 @@ body.patron-cuadros-suaves {
 }
 body.patron-vineta-lujo::after {
   content:""; position:fixed; inset:0; z-index:1; pointer-events:none;
-  background:radial-gradient(ellipse closest-side at 50% 50%, transparent 60%, color-mix(in srgb, var(--acento) 30%, transparent) 100%);
+  background:radial-gradient(ellipse closest-side at 50% 50%, transparent 60%, color-mix(in srgb, var(--acento) 10%, transparent) 100%);
 }
