@@ -67,7 +67,7 @@ function construir(d, fotos) {
 
   const ic = el("div", "icono");
   ic.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
-    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>';
+    '<rect x="4" y="2.5" width="16" height="19" rx="1.5"/><rect x="6.5" y="5" width="11" height="10.5" rx=".5"/><circle cx="10" cy="8.5" r="1.2"/><path d="M6.5 15.5l3.8-3.8 2.5 2.5 1.7-1.7 3 3"/><path d="M8.5 18.8h5"/></svg>';
   s.append(ic, el("h2", null, "Fotocabina Virtual"));
   s.appendChild(el("p", null, d.photoboothOpen === false
     ? "Mirá las fotos Polaroid y recuerdos que dejaron los invitados."
