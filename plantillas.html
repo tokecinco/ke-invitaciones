@@ -115,6 +115,9 @@
         <select id="f-marco"></select>
         <label>Decoración flotante (aparece en la portada)</label>
         <select id="f-deco"></select>
+        <label>Línea divisora decorativa</label>
+        <select id="f-divisor"></select>
+        <p class="nota">Cambia la línea de la portada y la que va debajo de cada título.</p>
         <label>Efectos</label>
         <div id="efectos"></div>
         <p class="nota">Los fondos, marcos y efectos se ven en la invitación, no en la muestra de arriba. Guardá y abrí una invitación con esta plantilla para verlos.</p>
@@ -146,7 +149,7 @@
     import { doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, serverTimestamp }
       from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
     import { FUENTES, buscarFuente, cargarFuente } from "./js/fuentes.js?v=2";
-    import { ESTILOS_FONDO, PATRONES, MARCOS, DECOS, EFECTOS } from "./js/opciones-plantillas.js?v=3";
+    import { ESTILOS_FONDO, PATRONES, MARCOS, DECOS, DIVISORES, EFECTOS } from "./js/opciones-plantillas.js?v=4";
 
     const $ = (id) => document.getElementById(id);
     const ADMIN_UID = "Ivb1LtWt6Eb8GkanORvC3C0Qx943";
@@ -203,6 +206,7 @@
     llenarSelect($("f-patron"), PATRONES);
     llenarSelect($("f-marco"), MARCOS);
     llenarSelect($("f-deco"), DECOS);
+    llenarSelect($("f-divisor"), DIVISORES);
     EFECTOS.forEach(([k, t]) => {
       const f = document.createElement("label"); f.className = "check";
       const c = document.createElement("input"); c.type = "checkbox"; c.id = "e-" + k;
@@ -495,6 +499,7 @@
       fijarSelect("f-patron", x.patron);
       fijarSelect("f-marco", x.marco);
       fijarSelect("f-deco", x.deco);
+      fijarSelect("f-divisor", x.divisor);
       const ef = Array.isArray(x.efectos) ? x.efectos : [];
       EFECTOS.forEach(([k]) => { $("e-" + k).checked = ef.includes(k); });
 
@@ -539,6 +544,7 @@
         patron: $("f-patron").value,
         marco: $("f-marco").value,
         deco: $("f-deco").value,
+        divisor: $("f-divisor").value,
         efectos: EFECTOS.map(([k]) => k).filter((k) => $("e-" + k).checked),
         sections: SECCIONES.map(([k]) => k).filter((k) => $("s-" + k).checked),
         sampleImage: muestra || muestraActual || "",
