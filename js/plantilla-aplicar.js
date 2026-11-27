@@ -4,7 +4,7 @@ import { doc, getDoc }
 import { buscarFuente, cargarFuente } from "./fuentes.js?v=2";
 import { PATRONES, MARCOS, DECOS } from "./opciones-plantillas.js?v=3";
 
-["css/efectos.css", "css/efectos-2.css", "css/efectos-3.css?v=6", "css/tamanos.css"].forEach((href) => {
+["css/efectos.css", "css/efectos-2.css", "css/efectos-3.css?v=7", "css/tamanos.css"].forEach((href) => {
   const l = document.createElement("link");
   l.rel = "stylesheet";
   l.href = href;
