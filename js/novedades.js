@@ -269,9 +269,12 @@ function cierre(d, fecha) {
   sec.id = "sec-cierre";
   sec.classList.add("cierre");
 
-  const lugar = String(d.venue || d.address || "").trim();
-  sec.appendChild(el("p", "nos-vemos", lugar ? "Nos vemos en" : "Nos vemos pronto"));
-  if (lugar) sec.appendChild(el("p", "nos-lugar", lugar));
+  const lugares = [
+    String(d.venue || d.address || "").trim(),
+    String(d.venue2 || d.address2 || "").trim()
+  ].filter(Boolean);
+  sec.appendChild(el("p", "nos-vemos", lugares.length ? "Nos vemos en" : "Nos vemos pronto"));
+  lugares.forEach((lugar) => sec.appendChild(el("p", "nos-lugar", lugar)));
 
   if (fecha && !isNaN(fecha)) {
     let f = fecha.toLocaleDateString("es-AR", {
