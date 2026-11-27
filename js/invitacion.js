@@ -22,10 +22,11 @@ function mostrarError(texto) {
 function urlSegura(url) {
   return typeof url === "string" && /^https:\/\//i.test(url);
 }
-/* Lugares de "Cuándo y dónde": si hay dos, los dos tienen el mismo formato
+/* Lugares de "Cuándo y dónde": todos con el mismo formato
    (estrellita, título, horario dorado, dirección y botón de mapa) */
 function armarLugares(d) {
   const dos = !!(d.venue2 || d.address2);
+  const conLugar = !!(d.venue || d.address) || dos;
   const nuevo = (tag, clase, texto) => {
     const e = document.createElement(tag);
     if (clase) e.className = clase;
@@ -34,9 +35,9 @@ function armarLugares(d) {
   };
 
   const previos = [];
-  if (dos) previos.push(nuevo("span", "lugar-sep", "✦"));
+  if (conLugar) previos.push(nuevo("span", "lugar-sep", "✦"));
   if (d.venueLabel) previos.push(nuevo("p", "lugar-etq", d.venueLabel));
-  if (dos && d.time) previos.push(nuevo("p", "lugar-hora", d.time + " hs"));
+  if (conLugar && d.time) previos.push(nuevo("p", "lugar-hora", d.time + " hs"));
   previos.forEach((e) => $("lugar").insertAdjacentElement("beforebegin", e));
   if (!dos) return;
 
@@ -140,8 +141,8 @@ function mostrar(d, lim, invitado, tpl) {
     const f = fecha.toLocaleDateString("es-AR", {
       weekday: "long", day: "numeric", month: "long", year: "numeric"
     });
-    const dosLugares = !!(d.venue2 || d.address2);
-    $("fecha-hora").textContent = f + (d.time && !dosLugares ? " - " + d.time + " hs" : "");
+    const conLugares = !!(d.venue || d.address || d.venue2 || d.address2);
+    $("fecha-hora").textContent = f + (d.time && !conLugares ? " - " + d.time + " hs" : "");
     iniciarCuenta(fecha);
   } else {
     $("fecha-hora").textContent = "";
