@@ -134,7 +134,7 @@ function mostrar(d, lim, invitado, tpl) {
     $("portada").classList.add("con-foto");
   }
   decorarPortada();
-  armarGaleria(galeria);
+  armarGaleria(galeria, d.galleryType);
 
   const fecha = d.date ? new Date(d.date + "T" + (d.time || "00:00") + ":00") : null;
   if (fecha && !isNaN(fecha)) {
@@ -337,17 +337,76 @@ function activarRevelado() {
 /* Galería con visor a pantalla completa */
 let lbLista = [], lbIdx = 0, lbEl = null;
 
-function armarGaleria(lista) {
+const TIPOS_GALERIA = ["polaroid", "masonry", "revista", "pelicula", "carrusel"];
+
+function armarGaleria(lista, tipo) {
   if (!lista.length) return;
+  const g = $("galeria");
+  const conTipo = TIPOS_GALERIA.includes(tipo);
+  if (conTipo) {
+    g.classList.add("gal-" + tipo);
+    const css = document.createElement("link");
+    css.rel = "stylesheet";
+    css.href = "css/galerias.css?v=1";
+    document.head.appendChild(css);
+  }
   lista.forEach((src, i) => {
     const img = document.createElement("img");
     img.src = src;
     img.alt = "Foto " + (i + 1);
     img.loading = "lazy";
     img.addEventListener("click", () => abrirVisor(lista, i));
-    $("galeria").appendChild(img);
+    g.appendChild(img);
   });
   $("sec-galeria").hidden = false;
+  if (tipo === "carrusel" && lista.length > 1) activarCarrusel(g, lista.length);
+}
+
+/* Carrusel: puntitos, avance automático suave y pausa cuando la persona lo toca */
+function activarCarrusel(g, n) {
+  const puntos = document.createElement("div");
+  puntos.className = "gal-puntos";
+  const marcas = [];
+  for (let i = 0; i < n; i++) {
+    const p = document.createElement("span");
+    p.addEventListener("click", () => { ultimoToque = Date.now(); ir(i); });
+    puntos.appendChild(p);
+    marcas.push(p);
+  }
+  g.insertAdjacentElement("afterend", puntos);
+
+  let actual = 0;
+  let ultimoToque = 0;
+  let visible = true;
+  const paso = () => {
+    const im = g.querySelector("img");
+    return im ? im.offsetWidth + 12 : g.clientWidth;
+  };
+  const marcar = () => marcas.forEach((p, i) => p.classList.toggle("activo", i === actual));
+  function ir(i) {
+    actual = i;
+    marcar();
+    g.scrollTo({ left: i * paso(), behavior: "smooth" });
+  }
+  marcar();
+
+  g.addEventListener("scroll", () => {
+    const i = Math.max(0, Math.min(n - 1, Math.round(g.scrollLeft / paso())));
+    if (i !== actual) { actual = i; marcar(); }
+  }, { passive: true });
+  ["touchstart", "pointerdown", "wheel"].forEach((ev) =>
+    g.addEventListener(ev, () => { ultimoToque = Date.now(); }, { passive: true }));
+
+  if ("IntersectionObserver" in window) {
+    new IntersectionObserver((es) => { visible = es[0].isIntersecting; }).observe(g);
+  }
+  const quieto = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (!quieto) {
+    setInterval(() => {
+      if (document.hidden || !visible || Date.now() - ultimoToque < 6000) return;
+      ir((actual + 1) % n);
+    }, 4000);
+  }
 }
 
 function crearVisor() {
