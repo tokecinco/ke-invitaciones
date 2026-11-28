@@ -337,7 +337,7 @@ function activarRevelado() {
 /* Galería con visor a pantalla completa */
 let lbLista = [], lbIdx = 0, lbEl = null;
 
-const TIPOS_GALERIA = ["polaroid", "masonry", "revista", "pelicula", "carrusel"];
+const TIPOS_GALERIA = ["polaroid", "masonry", "revista", "pelicula", "carrusel", "mosaico"];
 
 function armarGaleria(lista, tipo) {
   if (!lista.length) return;
@@ -347,7 +347,7 @@ function armarGaleria(lista, tipo) {
     g.classList.add("gal-" + tipo);
     const css = document.createElement("link");
     css.rel = "stylesheet";
-    css.href = "css/galerias.css?v=1";
+    css.href = "css/galerias.css?v=2";
     document.head.appendChild(css);
   }
   lista.forEach((src, i) => {
