@@ -83,6 +83,15 @@
         <input id="f-whatsapp" placeholder="WhatsApp para confirmar (ej: 5491112345678)">
         <input id="f-musica" placeholder="Enlace de música (https://... .mp3) opcional">
         <label id="lbl-fotos">Fotos (la primera es la portada)</label>
+        <label>Tipo de galería</label>
+        <select id="f-galeria">
+          <option value="">Estándar (la de siempre)</option>
+          <option value="polaroid">Galería Polaroid</option>
+          <option value="masonry">Galería Masonry</option>
+          <option value="revista">Editorial revista</option>
+          <option value="pelicula">Tira de película</option>
+          <option value="carrusel">Carrusel</option>
+        </select>
         <input id="f-fotos" type="file" accept="image/*" multiple>
         <div id="vista-fotos" class="fotos"></div>
         <label class="check"><input id="f-guardar-muestra" type="checkbox">Usar la portada de esta invitación (con título) como muestra de la plantilla</label>
@@ -617,6 +626,7 @@
       $("f-whatsapp").value = x.whatsapp || "";
       $("f-musica").value = x.music || "";
       $("f-firma").checked = x.showBrand !== false;
+      $("f-galeria").value = x.galleryType || "";
       aplicarLimites();
       verFotos(fotosExistentes);
       $("titulo-form").textContent = "Editar invitación";
@@ -686,6 +696,7 @@
         whatsapp: $("f-whatsapp").value.trim(),
         music: l.music ? musica : "",
         photos: fotosFinal,
+        galleryType: $("f-galeria").value,
         showBrand: $("f-firma").checked
       };
 
