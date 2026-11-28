@@ -1,0 +1,67 @@
+/* Tipos de galería (se elige en el panel > Invitaciones > Tipo de galería).
+   Se usa #galeria para ganarle a los estilos de los fondos completos. */
+
+#galeria[class*="gal-"] { display:block; gap:0; }
+#galeria[class*="gal-"] img {
+  display:block; box-sizing:border-box; width:100%; max-width:100%; height:auto; aspect-ratio:auto;
+  object-fit:cover; margin:0; padding:0; border:0; border-radius:0; background:none;
+  box-shadow:none; transform:none; filter:none; outline:0; grid-column:auto; cursor:zoom-in;
+}
+
+/* ---------- Polaroid ---------- */
+#galeria.gal-polaroid { display:grid; grid-template-columns:repeat(2, 1fr); gap:20px 14px; padding:8px 2px; }
+#galeria.gal-polaroid img {
+  aspect-ratio:4 / 5; background:#fff; padding:8px 8px 34px; border:1px solid rgba(0,0,0,.07);
+  box-shadow:0 7px 16px rgba(0,0,0,.22); transition:transform .3s;
+}
+#galeria.gal-polaroid img:nth-child(odd)  { transform:rotate(-2.6deg); }
+#galeria.gal-polaroid img:nth-child(even) { transform:rotate(2.2deg); }
+#galeria.gal-polaroid img:nth-child(3n)   { transform:rotate(-1deg); }
+#galeria.gal-polaroid img:last-child:nth-child(odd) { grid-column:1 / -1; width:52%; margin:0 auto; }
+
+/* ---------- Masonry ---------- */
+#galeria.gal-masonry { column-count:2; column-gap:8px; }
+#galeria.gal-masonry img {
+  margin:0 0 8px; border-radius:10px; break-inside:avoid; box-shadow:0 4px 12px rgba(0,0,0,.12);
+}
+
+/* ---------- Editorial revista ---------- */
+#galeria.gal-revista { display:grid; grid-template-columns:repeat(2, 1fr); gap:6px; }
+#galeria.gal-revista img { aspect-ratio:4 / 5; border-radius:2px; }
+#galeria.gal-revista img:nth-child(3n+1) { grid-column:1 / -1; aspect-ratio:3 / 2; }
+#galeria.gal-revista img:last-child:nth-child(3n+2) { grid-column:1 / -1; aspect-ratio:3 / 2; }
+
+/* ---------- Tira de película ---------- */
+#galeria.gal-pelicula {
+  display:flex; overflow-x:auto; overflow-y:hidden; background:#111; border-radius:6px;
+  scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+#galeria.gal-pelicula::-webkit-scrollbar { display:none; }
+#galeria.gal-pelicula img {
+  flex:0 0 auto; width:190px; max-width:none; height:126px; box-sizing:content-box;
+  padding:24px 8px; background-color:#111; scroll-snap-align:center;
+  background-image:
+    repeating-linear-gradient(90deg, #e9e5da 0 9px, transparent 9px 18px),
+    repeating-linear-gradient(90deg, #e9e5da 0 9px, transparent 9px 18px);
+  background-size:100% 10px, 100% 10px;
+  background-position:0 7px, 0 calc(100% - 7px);
+  background-repeat:no-repeat;
+  background-clip:padding-box;
+}
+
+/* ---------- Carrusel ---------- */
+#galeria.gal-carrusel {
+  display:flex; gap:12px; overflow-x:auto; padding:6px 8% 14px; scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+#galeria.gal-carrusel::-webkit-scrollbar { display:none; }
+#galeria.gal-carrusel img {
+  flex:0 0 84%; width:84%; aspect-ratio:4 / 5; border-radius:16px; scroll-snap-align:center;
+  box-shadow:0 10px 24px rgba(0,0,0,.2);
+}
+.gal-puntos { display:flex; justify-content:center; gap:8px; margin-top:2px; }
+.gal-puntos span {
+  width:8px; height:8px; border-radius:50%; background:currentColor; opacity:.25; cursor:pointer;
+  transition:opacity .3s, transform .3s, background .3s;
+}
+.gal-puntos span.activo { opacity:1; background:var(--acento); transform:scale(1.3); }
