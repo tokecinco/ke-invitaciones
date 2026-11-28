@@ -65,3 +65,18 @@
   transition:opacity .3s, transform .3s, background .3s;
 }
 .gal-puntos span.activo { opacity:1; background:var(--acento); transform:scale(1.3); }
+
+/* ---------- Mosaico elegante (moderno, tipo "bento") ---------- */
+#galeria.gal-mosaico {
+  display:grid; grid-template-columns:repeat(2, 1fr); grid-auto-rows:clamp(100px, 30vw, 150px);
+  grid-auto-flow:dense; gap:5px;
+}
+#galeria.gal-mosaico img {
+  height:100%; border-radius:3px; outline:1px solid rgba(255, 255, 255, .6); outline-offset:-6px;
+  box-shadow:0 2px 8px rgba(0, 0, 0, .1);
+}
+#galeria.gal-mosaico img:nth-child(5n+1) { grid-column:span 2; grid-row:span 2; }
+#galeria.gal-mosaico img:nth-child(5n+3) { grid-row:span 2; }
+#galeria.gal-mosaico img:nth-child(5n+5) { grid-column:span 2; }
+#galeria.gal-mosaico img:last-child:nth-child(5n+2) { grid-column:span 2; }
+#galeria.gal-mosaico img:last-child:nth-child(5n+3) { grid-row:span 1; }
